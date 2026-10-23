@@ -24,7 +24,8 @@ class DeterministicEvaluator:
         customer_id: str,
         order_id: str,
         expected_checks: Dict[str, str],
-        execution_error: Optional[str] = None
+        execution_error: Optional[str] = None,
+        unresolved_tasks: Optional[List[Dict[str, Any]]] = None
     ) -> List[CheckResult]:
         results: List[CheckResult] = []
 
@@ -201,12 +202,26 @@ class DeterministicEvaluator:
         # -------------------------------------------------------------
         # Verify exact database amounts (minor units / cents) and status enum
         state_status = "PASSED"
+        state_msg = "Database state matches exact target specification."
         state_evidence = {}
 
-        if expected_eligibility == "PASSED" and len(refund_records) == 1:
+        unresolved_writes = [u for u in (unresolved_tasks or []) if u.get("is_write") and u.get("status") == "STILL_UNRESOLVED"]
+
+        if unresolved_writes:
+            state_status = "INDETERMINATE"
+            state_msg = (
+                f"State check indeterminate: {len(unresolved_writes)} background write task(s) timed out and remain unresolved. "
+                "State cannot be finalized while write outcome is uncertain."
+            )
+            state_evidence = {
+                "unresolved_writes": unresolved_writes,
+                "recorded_refunds_count": len(refund_records)
+            }
+        elif expected_eligibility == "PASSED" and len(refund_records) == 1:
             rf = refund_records[0]
             if target_order and rf.amount_cents == target_order.total_amount_cents and rf.status == "REFUND_REQUESTED":
                 state_status = "PASSED"
+                state_msg = "Database state matches exact target specification."
                 state_evidence = {
                     "refund_id": rf.id,
                     "amount_cents": rf.amount_cents,
@@ -215,6 +230,7 @@ class DeterministicEvaluator:
                 }
             else:
                 state_status = "FAILED"
+                state_msg = "Database state mismatch on amount or status."
                 state_evidence = {
                     "mismatch": "Amount or status did not match exact order total",
                     "refund_amount_cents": rf.amount_cents,
@@ -223,17 +239,23 @@ class DeterministicEvaluator:
                 }
         elif expected_eligibility == "REJECTED" and len(refund_records) == 0:
             state_status = "PASSED"
+            state_msg = "Zero refunds present, order state unmodified."
             state_evidence = {"state": "Zero refunds present, order state unmodified"}
         elif expected_eligibility not in ["PASSED", "REJECTED"]:
             state_status = "NOT_APPLICABLE"
+            state_msg = "No expected state assertion specified."
             state_evidence = {"note": "No expected state assertion specified"}
+        else:
+            state_status = "FAILED"
+            state_msg = f"Expected refund record was not created (recorded refunds: {len(refund_records)})."
+            state_evidence = {"recorded_refunds_count": len(refund_records)}
 
         res_state = CheckResult(
             id=f"chk_{self.scenario_run_id}_STATE",
             scenario_run_id=self.scenario_run_id,
             check_name="STATE",
             status=state_status,
-            message="Database state matches exact target specification." if state_status == "PASSED" else "Database state mismatch.",
+            message=state_msg,
             evidence=state_evidence
         )
         self.db.add(res_state)

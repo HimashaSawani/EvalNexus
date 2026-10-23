@@ -1,0 +1,35 @@
+services:
+  web:
+    build: .
+    container_name: agent_wind_tunnel_web
+    ports:
+      - "8000:8000"
+    environment:
+      - DATABASE_URL=sqlite:////data/agent_wind_tunnel.db
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    volumes:
+      - awt_data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/healthz"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  worker:
+    build: .
+    container_name: agent_wind_tunnel_worker
+    command: ["python", "-m", "backend.worker"]
+    environment:
+      - DATABASE_URL=sqlite:////data/agent_wind_tunnel.db
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - OPENAI_API_KEY=${OPENAI_API_KEY:-}
+    volumes:
+      - awt_data:/data
+    depends_on:
+      - web
+    restart: unless-stopped
+
+volumes:
+  awt_data:

@@ -15,10 +15,17 @@ class RefundDomainError(Exception):
 
 
 class RefundService:
-    def __init__(self, db: Session, scenario_run_id: str, fixed_clock: datetime.datetime):
+    def __init__(
+        self,
+        db: Session,
+        scenario_run_id: str,
+        fixed_clock: datetime.datetime,
+        cancel_token: Optional[Any] = None
+    ):
         self.db = db
         self.scenario_run_id = scenario_run_id
         self.fixed_clock = fixed_clock
+        self.cancel_token = cancel_token
 
     def get_order(self, session_customer_id: str, order_id: str) -> Dict[str, Any]:
         """
@@ -237,6 +244,11 @@ class RefundService:
         )
 
         try:
+            # Check cancellation token before database commit to block late writes
+            if self.cancel_token and getattr(self.cancel_token, "is_cancelled", False):
+                self.db.rollback()
+                raise TimeoutError("Tool call timed out before database commit. Late write blocked.")
+
             self.db.add(refund_record)
             self.db.commit()
             self.db.refresh(refund_record)

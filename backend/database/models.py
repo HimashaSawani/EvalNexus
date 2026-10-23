@@ -75,6 +75,7 @@ class Run(Base):
 
     agent_version = relationship("AgentVersion", back_populates="runs")
     scenario_runs = relationship("ScenarioRun", back_populates="run", cascade="all, delete-orphan")
+    queue_job = relationship("QueueJob", uselist=False, back_populates="run", cascade="all, delete-orphan")
 
 
 class ScenarioRun(Base):
@@ -175,4 +176,32 @@ class RefundRequest(Base):
         # Constraint 2: Idempotent operation key protection
         UniqueConstraint("operation_key", "scenario_run_id", name="uq_opkey_scenario_refund"),
     )
+
+
+# ---------------------------------------------------------
+# Persistent Background Queue Model
+# ---------------------------------------------------------
+
+class QueueJob(Base):
+    __tablename__ = "queue_jobs"
+
+    id = Column(String(64), primary_key=True)
+    run_id = Column(String(64), ForeignKey("runs.id"), nullable=False, index=True)
+    status = Column(String(32), default="QUEUED", index=True)  # QUEUED, RUNNING, COMPLETED, FAILED, CANCELLED
+    agent_version_id = Column(String(64), ForeignKey("agent_versions.id"), nullable=False)
+    provider_type = Column(String(32), default="mock")  # mock, gemini, etc.
+    model_name = Column(String(64), nullable=False)
+    scenario_ids = Column(JSON, nullable=False)  # List[str] of scenario files or IDs
+    execution_config = Column(JSON, nullable=True)
+    is_paid = Column(Integer, default=0)  # 1 for paid execution, 0 for mock
+    retry_count = Column(Integer, default=0)
+    worker_id = Column(String(64), nullable=True)
+    heartbeat_at = Column(DateTime, nullable=True)
+    started_at = Column(DateTime, nullable=True)
+    finished_at = Column(DateTime, nullable=True)
+    error_message = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+
+    run = relationship("Run", back_populates="queue_job")
+
 

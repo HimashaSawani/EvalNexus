@@ -2,6 +2,7 @@ import json
 import pytest
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from sqlalchemy.pool import StaticPool
 
 from backend.database.connection import Base
 from backend.database.models import RefundRequest, TraceEvent, CheckResult
@@ -10,7 +11,12 @@ from backend.runner.agent_runner import AgentWindTunnelRunner
 
 @pytest.fixture
 def db_session():
-    engine = create_engine("sqlite:///:memory:", echo=False)
+    engine = create_engine(
+        "sqlite:///:memory:",
+        connect_args={"check_same_thread": False},
+        poolclass=StaticPool,
+        echo=False
+    )
     Base.metadata.create_all(engine)
     Session = sessionmaker(bind=engine)
     session = Session()
@@ -109,4 +115,77 @@ def test_missing_credentials_fails_clearly():
     finally:
         if old_key:
             os.environ["OPENAI_API_KEY"] = old_key
+
+
+def test_tool_timeout_interrupts_waiting(db_session):
+    import time
+    from backend.agent.agent_loop import AgentLoop
+    from backend.runner.trace_logger import TraceLogger
+    from backend.agent.provider import MockToolCallingProvider
+
+    trace_logger = TraceLogger(db_session, "test_timeout_run")
+    provider = MockToolCallingProvider()
+
+    # Mock service where get_order hangs/sleeps
+    class HangingService:
+        def get_order(self, session_customer_id, order_id):
+            time.sleep(0.3)
+            return {"status": "SUCCESS"}
+
+    loop = AgentLoop(
+        service=HangingService(),
+        trace_logger=trace_logger,
+        provider=provider,
+        tool_timeout_sec=0.1  # Set short 100ms timeout
+    )
+
+    t0 = time.time()
+    tool_res, err = loop._execute_tool_with_timeout(
+        customer_id="c1",
+        tool_name="get_order",
+        arguments={"order_id": "ord_hang"}
+    )
+    elapsed = time.time() - t0
+
+    # Must interrupt waiting around 0.1s, well before 0.3s sleep finishes
+    assert tool_res is None
+    assert "Gateway Timeout" in err
+    assert "timed out after 0.1s" in err
+    assert elapsed < 0.25
+
+
+def test_provider_error_marks_checks_not_evaluated(db_session):
+    """
+    Verifies Requirement 4 & 5:
+    When a provider setup/network failure occurs (e.g. 404 Model Not Found or 401 Auth error):
+    1. Scenario run status is classified as PROVIDER_ERROR.
+    2. All checks are marked NOT_EVALUATED (not failed).
+    3. Elapsed duration is measured (>0ms).
+    4. Tokens is preserved as None (unknown).
+    """
+    from backend.agent.provider import BaseLLMProvider
+
+    class FailingProvider(BaseLLMProvider):
+        provider_type = "gemini"
+        model_name = "gemini-nonexistent"
+
+        def generate(self, messages, tools, temperature=0.0):
+            raise RuntimeError("Error code: 404 - [{'error': {'code': 404, 'message': 'models/gemini-nonexistent is not found'}}]")
+
+    with open("scenarios/dev/scen_norm_01_delivered_5d.json", "r", encoding="utf-8") as f:
+        scenario_data = json.load(f)
+
+    runner = AgentWindTunnelRunner(db=db_session, provider=FailingProvider())
+    result = runner.run_agent_scenario(scenario_data, agent_version_id="agent_v1_baseline")
+
+    assert result["status"] == "PROVIDER_ERROR"
+    assert result["duration_ms"] >= 0
+    assert result["tokens"] is None  # Preserved as unknown
+    assert result["turns"] == 0
+
+    # All checks must be NOT_EVALUATED
+    for cr in result["check_results"]:
+        assert cr["status"] == "NOT_EVALUATED"
+        assert "Provider setup failure" in cr["message"]
+
 

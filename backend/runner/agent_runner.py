@@ -12,6 +12,7 @@ from backend.database.models import (
     ScenarioRun,
     AgentVersion,
     ScenarioVersion,
+    CheckResult,
     utc_now
 )
 from backend.domain.refund_service import RefundService
@@ -19,7 +20,7 @@ from backend.runner.trace_logger import TraceLogger
 from backend.runner.evaluator import DeterministicEvaluator
 from backend.faults.fault_injector import FaultInjector
 from backend.agent.agent_loop import AgentLoop, AgentExecutionLimitError
-from backend.agent.provider import BaseLLMProvider, resolve_provider
+from backend.agent.provider import BaseLLMProvider, resolve_provider, sanitize_secret
 
 
 DEFAULT_PROMPTS = {
@@ -112,19 +113,21 @@ class AgentWindTunnelRunner:
             "scenario_timeout_sec": 30.0
         }
 
-        # Create Run record with full provider & execution configuration metadata
-        run_record = Run(
-            id=run_id,
-            agent_version_id=agent_version_id,
-            provider_type=self.provider.provider_type,
-            model_name=self.provider.model_name,
-            is_mock=1 if self.provider.provider_type == "mock" else 0,
-            execution_config=execution_config,
-            status="RUNNING",
-            total_scenarios=1,
-            started_at=utc_now()
-        )
-        self.db.add(run_record)
+        # Query or create Run record with full provider & execution configuration metadata
+        run_record = self.db.query(Run).filter(Run.id == run_id).first()
+        if not run_record:
+            run_record = Run(
+                id=run_id,
+                agent_version_id=agent_version_id,
+                provider_type=self.provider.provider_type,
+                model_name=self.provider.model_name,
+                is_mock=1 if self.provider.provider_type == "mock" else 0,
+                execution_config=execution_config,
+                status="RUNNING",
+                total_scenarios=1,
+                started_at=utc_now()
+            )
+            self.db.add(run_record)
 
         scenario_run = ScenarioRun(
             id=scenario_run_id,
@@ -186,6 +189,7 @@ class AgentWindTunnelRunner:
         target_order_id = scenario_data.get("target_order_id", scenario_data["initial_data"]["orders"][0]["id"])
         execution_error = None
         loop_res = {}
+        start_scenario_time = time.time()
 
         try:
             loop_res = agent_loop.execute_turn_loop(
@@ -196,47 +200,102 @@ class AgentWindTunnelRunner:
         except AgentExecutionLimitError as ale:
             execution_error = f"Limit Exceeded [{ale.limit_type}]: {ale.message}"
         except Exception as e:
-            execution_error = f"Agent Loop Exception: {str(e)}"
+            execution_error = f"Agent Loop Exception: {sanitize_secret(str(e))}"
+        finally:
+            # Settle and drain any timed-out background worker threads before evaluation
+            agent_loop.settle_in_flight_tasks(timeout_sec=0.5)
+            self.db.commit()
 
-        # Deterministic Evaluation
-        evaluator = DeterministicEvaluator(self.db, scenario_run_id)
-        check_results = evaluator.evaluate(
-            customer_id=customer.id,
-            order_id=target_order_id,
-            expected_checks=scenario_data.get("expected_checks", {}),
-            execution_error=execution_error
+        total_duration_ms = int((time.time() - start_scenario_time) * 1000)
+        unresolved: List[Dict[str, Any]] = []
+
+        # Classify provider setup / connection failures
+        is_provider_error = bool(
+            execution_error and loop_res.get("turns", 0) == 0 and any(
+                term in execution_error for term in ["404", "401", "403", "Provider", "API key", "NOT_FOUND", "Authentication", "Connection"]
+            )
         )
 
-        all_passed = all(c.status == "PASSED" for c in check_results)
-        scenario_run.status = "PASSED" if all_passed else "FAILED"
-        scenario_run.finished_at = utc_now()
-        scenario_run.duration_ms = loop_res.get("duration_ms", 0)
+        if is_provider_error:
+            scenario_run.status = "PROVIDER_ERROR"
+            scenario_run.finished_at = utc_now()
+            scenario_run.duration_ms = total_duration_ms
 
-        run_record.status = "COMPLETED"
-        run_record.finished_at = utc_now()
-        if all_passed:
-            run_record.passed_scenarios = 1
-            run_record.failed_scenarios = 0
-        else:
+            run_record.status = "PROVIDER_ERROR"
+            run_record.finished_at = utc_now()
             run_record.passed_scenarios = 0
-            run_record.failed_scenarios = 1
+            run_record.failed_scenarios = 0
+
+            # Mark all checks NOT_EVALUATED
+            check_names = ["OWNERSHIP", "ELIGIBILITY", "DUPLICATE", "STATE", "COMPLETION"]
+            check_results = []
+            for cn in check_names:
+                cr = CheckResult(
+                    id=f"chk_{scenario_run_id}_{cn}",
+                    scenario_run_id=scenario_run_id,
+                    check_name=cn,
+                    status="NOT_EVALUATED",
+                    message=f"Provider setup failure: {execution_error}. Agent behavior was not evaluated.",
+                    evidence={"provider_error": execution_error}
+                )
+                self.db.add(cr)
+                check_results.append(cr)
+        else:
+            # Deterministic Evaluation
+            evaluator = DeterministicEvaluator(self.db, scenario_run_id)
+            unresolved = loop_res.get("unresolved_tasks") or [
+                {
+                    "tool_name": ut["tool_name"],
+                    "is_write": ut["is_write"],
+                    "status": "SETTLED_LATE" if ut["future"].done() else "STILL_UNRESOLVED"
+                }
+                for ut in getattr(agent_loop, "unresolved_tasks", [])
+            ]
+            check_results = evaluator.evaluate(
+                customer_id=customer.id,
+                order_id=target_order_id,
+                expected_checks=scenario_data.get("expected_checks", {}),
+                execution_error=execution_error,
+                unresolved_tasks=unresolved
+            )
+
+            all_passed = all(c.status == "PASSED" for c in check_results)
+            scenario_run.status = "PASSED" if all_passed else "FAILED"
+            scenario_run.finished_at = utc_now()
+            scenario_run.duration_ms = loop_res.get("duration_ms", total_duration_ms)
+
+            if (run_record.total_scenarios or 1) <= 1:
+                run_record.status = "COMPLETED"
+                run_record.finished_at = utc_now()
+                if all_passed:
+                    run_record.passed_scenarios = 1
+                    run_record.failed_scenarios = 0
+                else:
+                    run_record.passed_scenarios = 0
+                    run_record.failed_scenarios = 1
 
         self.db.commit()
+
+        recorded_tokens = loop_res.get("total_tokens") if not is_provider_error else None
+        recorded_duration = loop_res.get("duration_ms") or total_duration_ms
 
         return {
             "run_id": run_id,
             "scenario_run_id": scenario_run_id,
+            "scenario_version_id": scenario_version_id,
             "agent_version": agent_version_id,
             "provider_type": self.provider.provider_type,
             "model_name": self.provider.model_name,
             "is_mock": self.provider.provider_type == "mock",
             "execution_config": execution_config,
+            "triggered_faults": fault_injector.triggered_faults,
+            "execution_error": execution_error,
             "status": scenario_run.status,
             "final_answer": loop_res.get("final_answer"),
             "turns": loop_res.get("turns", 0),
             "tool_calls": loop_res.get("total_tool_calls", 0),
-            "tokens": loop_res.get("total_tokens", 0),
-            "duration_ms": loop_res.get("duration_ms", 0),
+            "tokens": recorded_tokens,
+            "duration_ms": recorded_duration,
             "check_results": [
                 {
                     "check_name": cr.check_name,
@@ -245,5 +304,6 @@ class AgentWindTunnelRunner:
                     "evidence": cr.evidence
                 } for cr in check_results
             ],
-            "trace_events_count": len(trace_logger.events)
+            "trace_events_count": len(trace_logger.events),
+            "unresolved_tasks": unresolved
         }

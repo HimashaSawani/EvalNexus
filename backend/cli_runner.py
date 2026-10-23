@@ -23,6 +23,8 @@ def run_scenario_from_file(
     provider_type: str = "mock",
     model_name: str = None
 ):
+    from backend.agent.provider import validate_model_name
+    validate_model_name(model_name)
     init_db()
     with open(file_path, "r", encoding="utf-8") as f:
         scenario_data = json.load(f)

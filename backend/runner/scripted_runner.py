@@ -25,7 +25,8 @@ class ScriptedRunner:
     def run_scenario(
         self,
         scenario_data: Dict[str, Any],
-        agent_version_id: Optional[str] = "agent_scripted_baseline"
+        agent_version_id: Optional[str] = "agent_scripted_baseline",
+        run_id: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Executes a deterministic scripted scenario:
@@ -34,7 +35,7 @@ class ScriptedRunner:
         3. Logs trace events
         4. Evaluates outcome against assertions
         """
-        run_id = f"run_{uuid.uuid4().hex[:8]}"
+        run_id = run_id or f"run_{uuid.uuid4().hex[:8]}"
         scenario_run_id = f"scen_run_{uuid.uuid4().hex[:8]}"
         scenario_version_id = scenario_data.get("id", f"scen_{uuid.uuid4().hex[:6]}")
 
@@ -75,15 +76,17 @@ class ScriptedRunner:
             self.db.add(scen_ver)
             self.db.commit()
 
-        # Create Run record
-        run_record = Run(
-            id=run_id,
-            agent_version_id=agent_version_id,
-            status="RUNNING",
-            total_scenarios=1,
-            started_at=datetime.datetime.now(datetime.timezone.utc)
-        )
-        self.db.add(run_record)
+        # Create or reuse Run record
+        run_record = self.db.query(Run).filter(Run.id == run_id).first()
+        if not run_record:
+            run_record = Run(
+                id=run_id,
+                agent_version_id=agent_version_id,
+                status="RUNNING",
+                total_scenarios=1,
+                started_at=datetime.datetime.now(datetime.timezone.utc)
+            )
+            self.db.add(run_record)
 
         # Create ScenarioRun record
         scenario_run = ScenarioRun(
@@ -231,14 +234,15 @@ class ScriptedRunner:
         scenario_run.finished_at = datetime.datetime.now(datetime.timezone.utc)
         scenario_run.duration_ms = total_duration_ms
 
-        run_record.status = "COMPLETED"
-        run_record.finished_at = datetime.datetime.now(datetime.timezone.utc)
-        if all_passed:
-            run_record.passed_scenarios = 1
-            run_record.failed_scenarios = 0
-        else:
-            run_record.passed_scenarios = 0
-            run_record.failed_scenarios = 1
+        if (run_record.total_scenarios or 1) <= 1:
+            run_record.status = "COMPLETED"
+            run_record.finished_at = datetime.datetime.now(datetime.timezone.utc)
+            if all_passed:
+                run_record.passed_scenarios = 1
+                run_record.failed_scenarios = 0
+            else:
+                run_record.passed_scenarios = 0
+                run_record.failed_scenarios = 1
 
         self.db.commit()
 
