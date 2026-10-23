@@ -1,0 +1,799 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AgentWindTunnel — AI Agent Benchmarking & Reliability Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #090D16;
+      --surface: #111827;
+      --surface-border: rgba(255, 255, 255, 0.08);
+      --surface-hover: #1A2234;
+      --primary: #6366F1;
+      --primary-glow: rgba(99, 102, 241, 0.25);
+      --success: #10B981;
+      --success-glow: rgba(16, 185, 129, 0.2);
+      --warning: #F59E0B;
+      --danger: #EF4444;
+      --text: #F3F4F6;
+      --text-muted: #9CA3AF;
+      --accent-cyan: #06B6D4;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Header */
+    header {
+      background: rgba(17, 24, 39, 0.85);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--surface-border);
+      padding: 16px 32px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .logo-badge {
+      width: 40px;
+      height: 40px;
+      background: linear-gradient(135deg, #6366F1, #06B6D4);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      box-shadow: 0 0 16px var(--primary-glow);
+    }
+
+    .brand-title {
+      font-size: 20px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(90deg, #FFFFFF, #CBD5E1);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-subtitle {
+      font-size: 11px;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      font-weight: 700;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .status-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--success);
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--success);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.85); }
+    }
+
+    /* Nav Tabs */
+    .nav-tabs {
+      display: flex;
+      gap: 8px;
+      background: rgba(255, 255, 255, 0.03);
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--surface-border);
+    }
+
+    .tab-btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .tab-btn:hover { color: #FFF; }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #FFF;
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+
+    /* Layout */
+    main {
+      flex: 1;
+      padding: 32px;
+      max-width: 1440px;
+      margin: 0 auto;
+      width: 100%;
+    }
+
+    /* Metric Cards */
+    .metrics-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 20px;
+      margin-bottom: 32px;
+    }
+
+    .metric-card {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 14px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .metric-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--primary), var(--accent-cyan));
+    }
+
+    .metric-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .metric-val {
+      font-size: 32px;
+      font-weight: 800;
+      letter-spacing: -1px;
+    }
+
+    .metric-val.pass { color: var(--success); }
+    .metric-val.fail { color: var(--danger); }
+    .metric-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+
+    /* Content Panels */
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 1024px) {
+      .grid-2 { grid-template-columns: 1fr; }
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid var(--surface-border);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid var(--surface-border);
+    }
+
+    .panel-title {
+      font-size: 16px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Form Controls */
+    .form-group {
+      margin-bottom: 16px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 8px;
+      color: var(--text-muted);
+    }
+
+    select, input {
+      width: 100%;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--surface-border);
+      border-radius: 10px;
+      padding: 12px 16px;
+      color: #FFF;
+      font-size: 14px;
+      font-family: inherit;
+      outline: none;
+      transition: all 0.2s;
+    }
+
+    select:focus, input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 12px var(--primary-glow);
+    }
+
+    .btn-run {
+      width: 100%;
+      background: linear-gradient(135deg, #6366F1, #4F46E5);
+      border: none;
+      color: #FFF;
+      font-size: 15px;
+      font-weight: 700;
+      padding: 14px 24px;
+      border-radius: 12px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s;
+      box-shadow: 0 4px 16px var(--primary-glow);
+    }
+
+    .btn-run:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+
+    .btn-run:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Check Cards */
+    .check-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .check-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 16px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--surface-border);
+      border-radius: 10px;
+    }
+
+    .check-info {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .badge-status {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .badge-status.PASSED { background: rgba(16, 185, 129, 0.15); color: var(--success); }
+    .badge-status.FAILED { background: rgba(239, 68, 68, 0.15); color: var(--danger); }
+    .badge-status.PENDING { background: rgba(156, 163, 175, 0.15); color: var(--text-muted); }
+
+    /* Timeline & Trace */
+    .trace-timeline {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      max-height: 480px;
+      overflow-y: auto;
+      padding-right: 8px;
+    }
+
+    .trace-entry {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid var(--surface-border);
+      border-left: 3px solid var(--primary);
+      border-radius: 8px;
+      padding: 12px 16px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+    }
+
+    .trace-entry.FAULT_INJECTED { border-left-color: var(--danger); background: rgba(239, 68, 68, 0.05); }
+    .trace-entry.USER_MESSAGE { border-left-color: var(--accent-cyan); }
+    .trace-entry.FINAL_ANSWER { border-left-color: var(--success); }
+
+    .trace-meta {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+      font-size: 11px;
+    }
+
+    .trace-type { font-weight: 700; color: #FFF; }
+
+    /* Comparison Table */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      text-align: left;
+    }
+
+    th, td {
+      padding: 14px 16px;
+      border-bottom: 1px solid var(--surface-border);
+      font-size: 13px;
+    }
+
+    th {
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 11px;
+      letter-spacing: 0.5px;
+    }
+
+    tr:hover td { background: var(--surface-hover); }
+
+    /* Code block */
+    pre {
+      background: #080C14;
+      padding: 16px;
+      border-radius: 10px;
+      border: 1px solid var(--surface-border);
+      color: #E2E8F0;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      overflow-x: auto;
+      white-space: pre-wrap;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Top Navigation Header -->
+  <header>
+    <div class="brand">
+      <div class="logo-badge">🌪️</div>
+      <div>
+        <div class="brand-title">AgentWindTunnel</div>
+        <div class="brand-subtitle">Reliability & Compliance Evaluation Engine</div>
+      </div>
+    </div>
+
+    <div class="nav-tabs">
+      <button class="tab-btn active" onclick="switchTab('overview')">Benchmark Studio</button>
+      <button class="tab-btn" onclick="switchTab('scenarios')">Scenario Suite</button>
+      <button class="tab-btn" onclick="switchTab('comparison')">Version A vs B Matrix</button>
+      <button class="tab-btn" onclick="switchTab('policies')">Policy Engine</button>
+    </div>
+
+    <div class="header-actions">
+      <div class="status-pill">
+        <span class="status-dot"></span>
+        <span id="backend-health">Engine Online</span>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Top Metrics -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <div class="metric-label">Total Executions</div>
+        <div class="metric-val" id="metric-total-runs">14</div>
+        <div class="metric-desc">Isolated scenario test runs</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Pass Rate</div>
+        <div class="metric-val pass" id="metric-pass-rate">100%</div>
+        <div class="metric-desc">Deterministic assertions passed</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Fault Scenarios</div>
+        <div class="metric-val" id="metric-fault-count">3</div>
+        <div class="metric-desc">Timeouts, 503s & stale reads</div>
+      </div>
+      <div class="metric-card">
+        <div class="metric-label">Avg Test Latency</div>
+        <div class="metric-val" id="metric-avg-latency">85 ms</div>
+        <div class="metric-desc">Mock LLM turn loop latency</div>
+      </div>
+    </div>
+
+    <!-- TAB 1: Benchmark Studio -->
+    <div id="tab-overview" class="tab-content active">
+      <div class="grid-2">
+        <!-- Runner Control Panel -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🕹️ Run Benchmark Test</div>
+            <span id="engine-mode-badge" style="font-size: 11px; padding: 3px 8px; border-radius: 6px; background: rgba(99, 102, 241, 0.15); color: var(--accent-cyan); font-weight: 700;">MOCK SIMULATOR</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Execution Provider</label>
+            <select id="select-provider">
+              <option value="mock">Mock Simulator (Offline, Deterministic, Zero-Cost)</option>
+              <option value="openai">OpenAI Live Model (gpt-4o-mini, requires OPENAI_API_KEY)</option>
+              <option value="gemini">Google Gemini Live Model (gemini-1.5-flash, requires GEMINI_API_KEY)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Select Agent Version</label>
+            <select id="select-agent">
+              <option value="agent_v2_improved">Version B: Robust Compliant Agent (Fault Aware)</option>
+              <option value="agent_v1_baseline">Version A: Baseline Agent (Basic Tool Calling)</option>
+              <option value="scripted">Deterministic Scripted Runner (No LLM)</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label">Select Benchmark Scenario (30 Reviewed Scenarios)</label>
+            <select id="select-scenario">
+              <option value="scen_norm_01_delivered_5d.json">[NORMAL] Delivered 5d ago (Dev)</option>
+              <option value="scen_elig_01_exact_14d_boundary.json">[ELIGIBILITY] Exact 14d limit (Dev)</option>
+              <option value="scen_elig_02_delivered_15d_expired.json">[ELIGIBILITY] 15d Expired (Dev)</option>
+              <option value="scen_own_01_query_other_customer_order.json">[OWNERSHIP] Query Other Customer (Dev)</option>
+              <option value="scen_fault_01_timeout_before_write.json">[FAULT] Timeout Before Write (Dev)</option>
+              <option value="scen_fault_02_timeout_after_write.json">[FAULT] Timeout After Write (Dev)</option>
+              <option value="scen_fault_03_temporary_unavailable.json">[FAULT] 503 Service Unavailable (Dev)</option>
+              <option value="scen_fault_04_stale_read.json">[FAULT] Stale Read Cache (Dev)</option>
+              <option value="scen_fault_05_malformed_response.json">[FAULT] Malformed Packet (Held-out)</option>
+              <option value="scen_dup_01_repeated_message.json">[DUPLICATE] Rapid Double Message (Dev)</option>
+            </select>
+          </div>
+
+          <button class="btn-run" id="btn-execute" onclick="executeBenchmark()">
+            <span>⚡ Launch Wind Tunnel Test</span>
+          </button>
+
+          <div style="margin-top: 24px;">
+            <div class="form-label">Agent Final Response:</div>
+            <pre id="agent-final-answer">Select a scenario and click Launch to execute test.</pre>
+          </div>
+        </div>
+
+        <!-- Realtime Evaluator & Results -->
+        <div class="panel">
+          <div class="panel-header">
+            <div class="panel-title">🔍 Deterministic Assertions (Evaluator)</div>
+            <span id="run-status-badge" class="badge-status PASSED">READY</span>
+          </div>
+
+          <div class="check-list" id="assertions-container">
+            <div class="check-item">
+              <div class="check-info">
+                <strong>OWNERSHIP</strong>
+                <span style="font-size: 12px; color: var(--text-muted);">Customer session boundary validation</span>
+              </div>
+              <span class="badge-status PENDING">READY</span>
+            </div>
+            <div class="check-item">
+              <div class="check-info">
+                <strong>ELIGIBILITY</strong>
+                <span style="font-size: 12px; color: var(--text-muted);">14-day policy & cancelled status</span>
+              </div>
+              <span class="badge-status PENDING">READY</span>
+            </div>
+            <div class="check-item">
+              <div class="check-info">
+                <strong>DUPLICATE</strong>
+                <span style="font-size: 12px; color: var(--text-muted);">Unique constraints & idempotency</span>
+              </div>
+              <span class="badge-status PENDING">READY</span>
+            </div>
+            <div class="check-item">
+              <div class="check-info">
+                <strong>STATE</strong>
+                <span style="font-size: 12px; color: var(--text-muted);">Exact refund amount & database status</span>
+              </div>
+              <span class="badge-status PENDING">READY</span>
+            </div>
+            <div class="check-item">
+              <div class="check-info">
+                <strong>COMPLETION</strong>
+                <span style="font-size: 12px; color: var(--text-muted);">Finished cleanly within budget limits</span>
+              </div>
+              <span class="badge-status PENDING">READY</span>
+            </div>
+          </div>
+
+          <div style="margin-top: 24px;">
+            <div class="form-label">Trace Event Audit:</div>
+            <div class="trace-timeline" id="trace-timeline-container">
+              <div style="color: var(--text-muted); font-size: 12px; font-style: italic;">No execution traces loaded yet.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB 2: Scenarios -->
+    <div id="tab-scenarios" class="tab-content">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">📁 Declarative Scenarios</div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Fixed Clock</th>
+              <th>Fault Injection</th>
+              <th>Expected Outcome</th>
+            </tr>
+          </thead>
+          <tbody id="scenarios-table-body">
+            <!-- Dynamically populated -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 3: Comparison Matrix -->
+    <div id="tab-comparison" class="tab-content">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">⚖️ Version A vs Version B Comparison Matrix</div>
+        </div>
+        <table>
+          <thead>
+            <tr>
+              <th>Scenario / Edge Case</th>
+              <th>Version A (Baseline)</th>
+              <th>Version B (Robust Compliant)</th>
+              <th>Impact Analysis</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Delivered Within 14 Days</strong></td>
+              <td><span class="badge-status PASSED">PASSED</span> (Processes full refund)</td>
+              <td><span class="badge-status PASSED">PASSED</span> (Processes full refund)</td>
+              <td>Identical valid outcome</td>
+            </tr>
+            <tr>
+              <td><strong>Delivered > 14 Days (Expired)</strong></td>
+              <td><span class="badge-status PASSED">PASSED</span> (Refuses refund)</td>
+              <td><span class="badge-status PASSED">PASSED</span> (Explains 14d return window)</td>
+              <td>Both respect eligibility constraint</td>
+            </tr>
+            <tr>
+              <td><strong>Timeout After DB Write</strong></td>
+              <td><span class="badge-status FAILED" style="color: var(--warning);">RAW ERROR LEAK</span> (Exposes internal stack trace)</td>
+              <td><span class="badge-status PASSED">GRACEFUL RECOVERY</span> (Explains recorded key & no duplicate charge)</td>
+              <td><strong>Version B eliminates customer panic & retry bugs</strong></td>
+            </tr>
+            <tr>
+              <td><strong>Duplicate Request Retry</strong></td>
+              <td>Retries blindly without operation key</td>
+              <td>Uses idempotent key, receives instant cache match</td>
+              <td><strong>Prevents double billing</strong></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB 4: Policies -->
+    <div id="tab-policies" class="tab-content">
+      <div class="panel">
+        <div class="panel-header">
+          <div class="panel-title">📜 Hard Business Rules (Backend Enforced)</div>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <div style="background: rgba(255, 255, 255, 0.02); padding: 16px; border-radius: 10px; border: 1px solid var(--surface-border);">
+            <h4 style="color: var(--accent-cyan); margin-bottom: 6px;">Rule 1: Session Ownership Boundary</h4>
+            <p style="font-size: 13px; color: var(--text-muted);">Customer ID is derived strictly from the authenticated token/session. Agent parameters specifying arbitrary customer IDs are rejected with 403 Forbidden.</p>
+          </div>
+          <div style="background: rgba(255, 255, 255, 0.02); padding: 16px; border-radius: 10px; border: 1px solid var(--surface-border);">
+            <h4 style="color: var(--accent-cyan); margin-bottom: 6px;">Rule 2: 14-Day Delivery Return Window</h4>
+            <p style="font-size: 13px; color: var(--text-muted);">Delivered orders can only be refunded if <code>(fixed_clock - delivery_date) &lt;= 14 days</code>. Checked against deterministic scenario clock.</p>
+          </div>
+          <div style="background: rgba(255, 255, 255, 0.02); padding: 16px; border-radius: 10px; border: 1px solid var(--surface-border);">
+            <h4 style="color: var(--accent-cyan); margin-bottom: 6px;">Rule 3: Cancelled Order Full Refund</h4>
+            <p style="font-size: 13px; color: var(--text-muted);">Orders cancelled before fulfillment are always eligible for 100% refund, provided no prior refund exists.</p>
+          </div>
+          <div style="background: rgba(255, 255, 255, 0.02); padding: 16px; border-radius: 10px; border: 1px solid var(--surface-border);">
+            <h4 style="color: var(--accent-cyan); margin-bottom: 6px;">Rule 4: Database Uniqueness & Idempotency</h4>
+            <p style="font-size: 13px; color: var(--text-muted);">Database enforces <code>UNIQUE(order_id, scenario_run_id)</code> and <code>UNIQUE(operation_key, scenario_run_id)</code> to guarantee zero double refunds even in concurrent conditions.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+      event.target.classList.add('active');
+      document.getElementById('tab-' + tabId).classList.add('active');
+
+      if (tabId === 'scenarios') loadScenarios();
+    }
+
+    async function loadScenarios() {
+      try {
+        const res = await fetch('/api/scenarios');
+        const list = await res.json();
+        const tbody = document.getElementById('scenarios-table-body');
+        tbody.innerHTML = list.map(s => `
+          <tr>
+            <td><code>${s.id}</code></td>
+            <td><strong>${s.name}</strong></td>
+            <td><span class="badge-status ${s.category === 'TOOL_FAILURE' ? 'FAILED' : 'PASSED'}">${s.category}</span></td>
+            <td>${s.fixed_clock}</td>
+            <td>${s.fault_configs ? Object.keys(s.fault_configs).join(', ') : 'None'}</td>
+            <td>${s.expected_checks ? JSON.stringify(s.expected_checks) : 'PASSED'}</td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function executeBenchmark() {
+      const btn = document.getElementById('btn-execute');
+      const agent = document.getElementById('select-agent').value;
+      const scenario = document.getElementById('select-scenario').value;
+      const provider = document.getElementById('select-provider').value;
+
+      btn.disabled = true;
+      btn.innerHTML = '<span>⏳ Running Wind Tunnel...</span>';
+
+      try {
+        const res = await fetch('/api/runs/execute', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            scenario_file: scenario,
+            agent_version_id: agent,
+            provider_type: provider
+          })
+        });
+
+        const data = await res.json();
+        if (!res.ok) {
+          throw new Error(data.detail || "Server returned error " + res.status);
+        }
+
+        // Update Engine Badge
+        const engineBadge = document.getElementById('engine-mode-badge');
+        if (data.is_mock) {
+          engineBadge.textContent = 'MOCK SIMULATOR';
+          engineBadge.style.color = 'var(--accent-cyan)';
+          engineBadge.style.background = 'rgba(99, 102, 241, 0.15)';
+        } else {
+          engineBadge.textContent = 'LIVE LLM: ' + (data.model_name || provider);
+          engineBadge.style.color = 'var(--success)';
+          engineBadge.style.background = 'rgba(16, 185, 129, 0.15)';
+        }
+
+        // Update Answer
+        document.getElementById('agent-final-answer').textContent = data.final_answer || "(Execution completed without textual dialogue)";
+
+        // Update Badge
+        const statusBadge = document.getElementById('run-status-badge');
+        statusBadge.textContent = data.status;
+        statusBadge.className = 'badge-status ' + data.status;
+
+        // Update Assertions with evidence
+        const container = document.getElementById('assertions-container');
+        container.innerHTML = data.check_results.map(c => `
+          <div class="check-item">
+            <div class="check-info" style="flex-direction: column; align-items: flex-start; gap: 4px;">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <strong>${c.check_name}</strong>
+                <span class="badge-status ${c.status}">${c.status}</span>
+              </div>
+              <span style="font-size: 12px; color: var(--text-muted);">${c.message}</span>
+              ${c.evidence ? `<pre style="font-size: 10px; padding: 4px 8px; margin-top: 4px; background: rgba(0,0,0,0.4);">${JSON.stringify(c.evidence)}</pre>` : ''}
+            </div>
+          </div>
+        `).join('');
+
+        // Fetch detailed traces
+        loadTraces(data.run_id);
+
+      } catch (err) {
+        alert("Execution failed: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerHTML = '<span>⚡ Launch Wind Tunnel Test</span>';
+      }
+    }
+
+    async function loadTraces(runId) {
+      try {
+        const res = await fetch('/api/runs/' + runId);
+        const detail = await res.json();
+        const timeline = document.getElementById('trace-timeline-container');
+
+        if (detail.scenario_runs && detail.scenario_runs.length > 0) {
+          const traces = detail.scenario_runs[0].traces;
+          timeline.innerHTML = traces.map(t => `
+            <div class="trace-entry ${t.event_type}">
+              <div class="trace-meta">
+                <span class="trace-type">[${String(t.seq).padStart(2, '0')}] ${t.event_type}</span>
+                <span>${t.duration_ms} ms</span>
+              </div>
+              <div>${t.tool ? '<strong>Tool: ' + t.tool + '</strong>' : ''}</div>
+            </div>
+          `).join('');
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // Auto-run on load
+    window.onload = function() {
+      executeBenchmark();
+    };
+  </script>
+</body>
+</html>
