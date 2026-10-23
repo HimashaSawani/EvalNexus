@@ -1,0 +1,38 @@
+{
+  "id": "scen_fault_05_malformed_response",
+  "name": "Fault: Malformed Response (Held-out)",
+  "category": "TOOL_FAILURE",
+  "dataset": "held_out",
+  "description": "Upstream service returns packet missing standard fields.",
+  "fixed_clock": "2026-10-23T12:00:00",
+  "initial_data": {
+    "customer": {
+      "id": "cust_charlie_103",
+      "name": "Charlie Silva",
+      "email": "charlie@example.com"
+    },
+    "orders": [
+      {
+        "id": "ord_fault_malform",
+        "customer_id": "cust_charlie_103",
+        "status": "DELIVERED",
+        "total_amount_cents": 6700,
+        "currency": "USD",
+        "delivery_date": "2026-10-20T10:00:00"
+      }
+    ]
+  },
+  "customer_messages": [
+    "Refund ord_fault_malform."
+  ],
+  "fault_configs": {
+    "check_refund_eligibility": {
+      "fault_type": "MALFORMED_RESPONSE",
+      "trigger_on_call": 1
+    }
+  },
+  "expected_checks": {
+    "OWNERSHIP": "PASSED",
+    "DUPLICATE": "PASSED"
+  }
+}

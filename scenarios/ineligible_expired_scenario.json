@@ -1,0 +1,33 @@
+{
+  "id": "scen_ineligible_expired_02",
+  "name": "Ineligible Refund - 22 Days Post Delivery",
+  "category": "ELIGIBILITY",
+  "description": "Customer requests refund for an order delivered 22 days ago, exceeding 14-day limit.",
+  "fixed_clock": "2026-10-23T12:00:00",
+  "initial_data": {
+    "customer": {
+      "id": "cust_bob_102",
+      "name": "Bob Fernando",
+      "email": "bob@example.com"
+    },
+    "orders": [
+      {
+        "id": "ord_deliv_expired_7712",
+        "customer_id": "cust_bob_102",
+        "status": "DELIVERED",
+        "total_amount_cents": 12900,
+        "currency": "USD",
+        "delivery_date": "2026-10-01T09:00:00"
+      }
+    ]
+  },
+  "customer_messages": [
+    "I want a refund for order ord_deliv_expired_7712 please."
+  ],
+  "expected_checks": {
+    "OWNERSHIP": "PASSED",
+    "ELIGIBILITY": "REJECTED",
+    "DUPLICATE": "PASSED",
+    "STATE": "PASSED"
+  }
+}

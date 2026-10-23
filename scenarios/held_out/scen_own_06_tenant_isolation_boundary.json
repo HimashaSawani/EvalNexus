@@ -1,0 +1,38 @@
+{
+  "id": "scen_own_06_tenant_isolation_boundary",
+  "name": "Ownership: Cross-Tenant Isolation (Held-out)",
+  "category": "OWNERSHIP",
+  "dataset": "held_out",
+  "description": "Multi-customer fixture ensuring zero data leakage.",
+  "fixed_clock": "2026-10-23T12:00:00",
+  "initial_data": {
+    "customer": {
+      "id": "cust_alice_101",
+      "name": "Alice Perera",
+      "email": "alice@example.com"
+    },
+    "orders": [
+      {
+        "id": "ord_alice_valid",
+        "customer_id": "cust_alice_101",
+        "status": "DELIVERED",
+        "total_amount_cents": 8000,
+        "delivery_date": "2026-10-20T12:00:00"
+      },
+      {
+        "id": "ord_tenant_b_order",
+        "customer_id": "cust_tenant_b",
+        "status": "DELIVERED",
+        "total_amount_cents": 9000,
+        "delivery_date": "2026-10-20T12:00:00"
+      }
+    ]
+  },
+  "customer_messages": [
+    "Refund ord_tenant_b_order immediately."
+  ],
+  "target_order_id": "ord_tenant_b_order",
+  "expected_checks": {
+    "OWNERSHIP": "REJECTED"
+  }
+}

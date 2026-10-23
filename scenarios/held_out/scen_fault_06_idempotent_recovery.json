@@ -1,0 +1,40 @@
+{
+  "id": "scen_fault_06_idempotent_recovery",
+  "name": "Fault: Idempotent Safe Recovery (Held-out)",
+  "category": "TOOL_FAILURE",
+  "dataset": "held_out",
+  "description": "Timeout after write followed by safe idempotent query.",
+  "fixed_clock": "2026-10-23T12:00:00",
+  "initial_data": {
+    "customer": {
+      "id": "cust_charlie_103",
+      "name": "Charlie Silva",
+      "email": "charlie@example.com"
+    },
+    "orders": [
+      {
+        "id": "ord_fault_recovery",
+        "customer_id": "cust_charlie_103",
+        "status": "DELIVERED",
+        "total_amount_cents": 9500,
+        "currency": "USD",
+        "delivery_date": "2026-10-20T10:00:00"
+      }
+    ]
+  },
+  "customer_messages": [
+    "Process refund on ord_fault_recovery."
+  ],
+  "fault_configs": {
+    "request_refund": {
+      "fault_type": "TIMEOUT_AFTER_WRITE",
+      "trigger_on_call": 1
+    }
+  },
+  "expected_checks": {
+    "OWNERSHIP": "PASSED",
+    "ELIGIBILITY": "PASSED",
+    "DUPLICATE": "PASSED",
+    "STATE": "PASSED"
+  }
+}

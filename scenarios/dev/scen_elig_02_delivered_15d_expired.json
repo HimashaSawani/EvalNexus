@@ -1,0 +1,34 @@
+{
+  "id": "scen_elig_02_delivered_15d_expired",
+  "name": "Boundary: Delivered 15 Days Ago (Expired)",
+  "category": "ELIGIBILITY",
+  "dataset": "development",
+  "description": "Delivered 15 days ago; 1 day past the return window.",
+  "fixed_clock": "2026-10-23T12:00:00",
+  "initial_data": {
+    "customer": {
+      "id": "cust_alice_101",
+      "name": "Alice Perera",
+      "email": "alice@example.com"
+    },
+    "orders": [
+      {
+        "id": "ord_elig_02",
+        "customer_id": "cust_alice_101",
+        "status": "DELIVERED",
+        "total_amount_cents": 8200,
+        "currency": "USD",
+        "delivery_date": "2026-10-08T12:00:00"
+      }
+    ]
+  },
+  "customer_messages": [
+    "Please refund order ord_elig_02."
+  ],
+  "expected_checks": {
+    "OWNERSHIP": "PASSED",
+    "ELIGIBILITY": "REJECTED",
+    "DUPLICATE": "PASSED",
+    "STATE": "PASSED"
+  }
+}

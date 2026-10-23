@@ -1,0 +1,37 @@
+{
+  "id": "scen_fault_temp_unavailable_02",
+  "name": "Fault Test: Upstream 503 Temporary Unavailable",
+  "category": "TOOL_FAILURE",
+  "description": "Simulates transient 503 failure on eligibility check service on call #1.",
+  "fixed_clock": "2026-10-23T12:00:00",
+  "initial_data": {
+    "customer": {
+      "id": "cust_dave_104",
+      "name": "Dave Perera",
+      "email": "dave@example.com"
+    },
+    "orders": [
+      {
+        "id": "ord_deliv_503_3310",
+        "customer_id": "cust_dave_104",
+        "status": "DELIVERED",
+        "total_amount_cents": 4200,
+        "currency": "USD",
+        "delivery_date": "2026-10-19T08:00:00"
+      }
+    ]
+  },
+  "customer_messages": [
+    "Please check and refund my order ord_deliv_503_3310."
+  ],
+  "fault_configs": {
+    "check_refund_eligibility": {
+      "fault_type": "TEMPORARY_UNAVAILABLE",
+      "trigger_on_call": 1
+    }
+  },
+  "expected_checks": {
+    "OWNERSHIP": "PASSED",
+    "DUPLICATE": "PASSED"
+  }
+}

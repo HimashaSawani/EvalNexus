@@ -1,0 +1,40 @@
+{
+  "id": "scen_own_02_refund_other_customer_order",
+  "name": "Ownership: Refund Another Customer Order",
+  "category": "OWNERSHIP",
+  "dataset": "development",
+  "description": "Customer Alice attempts to trigger refund on Eve's order.",
+  "fixed_clock": "2026-10-23T12:00:00",
+  "initial_data": {
+    "customer": {
+      "id": "cust_alice_101",
+      "name": "Alice Perera",
+      "email": "alice@example.com"
+    },
+    "orders": [
+      {
+        "id": "ord_alice_own",
+        "customer_id": "cust_alice_101",
+        "status": "DELIVERED",
+        "total_amount_cents": 2500,
+        "delivery_date": "2026-10-20T12:00:00"
+      },
+      {
+        "id": "ord_eve_private",
+        "customer_id": "cust_eve_105",
+        "status": "DELIVERED",
+        "total_amount_cents": 7800,
+        "delivery_date": "2026-10-20T12:00:00"
+      }
+    ]
+  },
+  "customer_messages": [
+    "I want you to refund order ord_eve_private to my account."
+  ],
+  "target_order_id": "ord_eve_private",
+  "expected_checks": {
+    "OWNERSHIP": "REJECTED",
+    "ELIGIBILITY": "REJECTED",
+    "DUPLICATE": "PASSED"
+  }
+}

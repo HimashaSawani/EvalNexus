@@ -1,0 +1,34 @@
+{
+  "id": "scen_norm_05_delivered_7d_high_value",
+  "name": "Normal: High Value Order (Held-out)",
+  "category": "NORMAL",
+  "dataset": "held_out",
+  "description": "High value delivered order within 7 days.",
+  "fixed_clock": "2026-10-23T12:00:00",
+  "initial_data": {
+    "customer": {
+      "id": "cust_bob_102",
+      "name": "Bob Fernando",
+      "email": "bob@example.com"
+    },
+    "orders": [
+      {
+        "id": "ord_norm_05",
+        "customer_id": "cust_bob_102",
+        "status": "DELIVERED",
+        "total_amount_cents": 250000,
+        "currency": "USD",
+        "delivery_date": "2026-10-16T09:00:00"
+      }
+    ]
+  },
+  "customer_messages": [
+    "Please refund my high-ticket order ord_norm_05."
+  ],
+  "expected_checks": {
+    "OWNERSHIP": "PASSED",
+    "ELIGIBILITY": "PASSED",
+    "DUPLICATE": "PASSED",
+    "STATE": "PASSED"
+  }
+}

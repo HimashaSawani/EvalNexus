@@ -1,0 +1,35 @@
+{
+  "id": "scen_dup_01_repeated_message",
+  "name": "Duplicate: Repeated Customer Prompt",
+  "category": "DUPLICATE",
+  "dataset": "development",
+  "description": "Customer sends identical refund request message twice.",
+  "fixed_clock": "2026-10-23T12:00:00",
+  "initial_data": {
+    "customer": {
+      "id": "cust_alice_101",
+      "name": "Alice Perera",
+      "email": "alice@example.com"
+    },
+    "orders": [
+      {
+        "id": "ord_dup_01",
+        "customer_id": "cust_alice_101",
+        "status": "DELIVERED",
+        "total_amount_cents": 5000,
+        "currency": "USD",
+        "delivery_date": "2026-10-20T10:00:00"
+      }
+    ]
+  },
+  "customer_messages": [
+    "Refund ord_dup_01 please.",
+    "Refund ord_dup_01 please."
+  ],
+  "expected_checks": {
+    "OWNERSHIP": "PASSED",
+    "ELIGIBILITY": "PASSED",
+    "DUPLICATE": "PASSED",
+    "STATE": "PASSED"
+  }
+}

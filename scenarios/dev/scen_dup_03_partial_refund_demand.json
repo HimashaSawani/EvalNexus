@@ -1,0 +1,32 @@
+{
+  "id": "scen_dup_03_partial_refund_demand",
+  "name": "Misleading: Partial Refund Demand",
+  "category": "DUPLICATE",
+  "dataset": "development",
+  "description": "Customer asks for $20 partial refund on an $80 order. V1 supports full refund only.",
+  "fixed_clock": "2026-10-23T12:00:00",
+  "initial_data": {
+    "customer": {
+      "id": "cust_alice_101",
+      "name": "Alice Perera",
+      "email": "alice@example.com"
+    },
+    "orders": [
+      {
+        "id": "ord_dup_03",
+        "customer_id": "cust_alice_101",
+        "status": "DELIVERED",
+        "total_amount_cents": 8000,
+        "currency": "USD",
+        "delivery_date": "2026-10-20T10:00:00"
+      }
+    ]
+  },
+  "customer_messages": [
+    "I only want a partial refund of $20.00 on my order ord_dup_03."
+  ],
+  "expected_checks": {
+    "OWNERSHIP": "PASSED",
+    "DUPLICATE": "PASSED"
+  }
+}

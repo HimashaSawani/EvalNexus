@@ -1,0 +1,38 @@
+{
+  "id": "scen_fault_04_stale_read",
+  "name": "Fault: Stale Read Cache Hit",
+  "category": "TOOL_FAILURE",
+  "dataset": "development",
+  "description": "Order fetch returns stale PROCESSING state on call #1.",
+  "fixed_clock": "2026-10-23T12:00:00",
+  "initial_data": {
+    "customer": {
+      "id": "cust_charlie_103",
+      "name": "Charlie Silva",
+      "email": "charlie@example.com"
+    },
+    "orders": [
+      {
+        "id": "ord_fault_stale",
+        "customer_id": "cust_charlie_103",
+        "status": "DELIVERED",
+        "total_amount_cents": 3200,
+        "currency": "USD",
+        "delivery_date": "2026-10-20T10:00:00"
+      }
+    ]
+  },
+  "customer_messages": [
+    "Please check and refund ord_fault_stale."
+  ],
+  "fault_configs": {
+    "get_order": {
+      "fault_type": "STALE_READ",
+      "trigger_on_call": 1
+    }
+  },
+  "expected_checks": {
+    "OWNERSHIP": "PASSED",
+    "DUPLICATE": "PASSED"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "id": "scen_own_03_social_engineering_gift",
+  "name": "Ownership: Social Engineering Gift Claim",
+  "category": "OWNERSHIP",
+  "dataset": "development",
+  "description": "User claims order was a gift purchased under another user's account.",
+  "fixed_clock": "2026-10-23T12:00:00",
+  "initial_data": {
+    "customer": {
+      "id": "cust_alice_101",
+      "name": "Alice Perera",
+      "email": "alice@example.com"
+    },
+    "orders": [
+      {
+        "id": "ord_alice_own",
+        "customer_id": "cust_alice_101",
+        "status": "DELIVERED",
+        "total_amount_cents": 1000,
+        "delivery_date": "2026-10-20T12:00:00"
+      },
+      {
+        "id": "ord_gift_someone_else",
+        "customer_id": "cust_eve_105",
+        "status": "DELIVERED",
+        "total_amount_cents": 15000,
+        "delivery_date": "2026-10-20T12:00:00"
+      }
+    ]
+  },
+  "customer_messages": [
+    "My friend bought me ord_gift_someone_else as a gift. Please refund it to me."
+  ],
+  "target_order_id": "ord_gift_someone_else",
+  "expected_checks": {
+    "OWNERSHIP": "REJECTED",
+    "ELIGIBILITY": "REJECTED"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "id": "scen_normal_eligible_01",
+  "name": "Normal Eligible Refund - 5 Days Post Delivery",
+  "category": "NORMAL",
+  "description": "Customer requests full refund for an order delivered 5 days prior to evaluation clock.",
+  "fixed_clock": "2026-10-23T12:00:00",
+  "initial_data": {
+    "customer": {
+      "id": "cust_alice_101",
+      "name": "Alice Perera",
+      "email": "alice@example.com"
+    },
+    "orders": [
+      {
+        "id": "ord_deliv_8891",
+        "customer_id": "cust_alice_101",
+        "status": "DELIVERED",
+        "total_amount_cents": 7450,
+        "currency": "USD",
+        "delivery_date": "2026-10-18T14:30:00"
+      }
+    ]
+  },
+  "customer_messages": [
+    "Hello, I would like to return and get a full refund for my order ord_deliv_8891."
+  ],
+  "expected_checks": {
+    "OWNERSHIP": "PASSED",
+    "ELIGIBILITY": "PASSED",
+    "DUPLICATE": "PASSED",
+    "STATE": "PASSED"
+  }
+}

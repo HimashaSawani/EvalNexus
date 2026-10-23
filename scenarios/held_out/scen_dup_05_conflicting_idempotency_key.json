@@ -1,0 +1,33 @@
+{
+  "id": "scen_dup_05_conflicting_idempotency_key",
+  "name": "Misleading: Conflicting Operation Key Reuse (Held-out)",
+  "category": "DUPLICATE",
+  "dataset": "held_out",
+  "description": "Operation key reused with conflicting amount; must be rejected with 409.",
+  "fixed_clock": "2026-10-23T12:00:00",
+  "initial_data": {
+    "customer": {
+      "id": "cust_bob_102",
+      "name": "Bob Fernando",
+      "email": "bob@example.com"
+    },
+    "orders": [
+      {
+        "id": "ord_dup_05",
+        "customer_id": "cust_bob_102",
+        "status": "DELIVERED",
+        "total_amount_cents": 11000,
+        "currency": "USD",
+        "delivery_date": "2026-10-20T10:00:00"
+      }
+    ]
+  },
+  "customer_messages": [
+    "Please process refund on ord_dup_05."
+  ],
+  "expected_checks": {
+    "OWNERSHIP": "PASSED",
+    "ELIGIBILITY": "PASSED",
+    "DUPLICATE": "PASSED"
+  }
+}

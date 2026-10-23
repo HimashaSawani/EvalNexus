@@ -1,0 +1,39 @@
+{
+  "id": "scen_fault_timeout_after_write_01",
+  "name": "Fault Test: Timeout After Write",
+  "category": "TOOL_FAILURE",
+  "description": "Simulates payment network drop where refund record commits into DB but response packet is lost with 504.",
+  "fixed_clock": "2026-10-23T12:00:00",
+  "initial_data": {
+    "customer": {
+      "id": "cust_charlie_103",
+      "name": "Charlie Silva",
+      "email": "charlie@example.com"
+    },
+    "orders": [
+      {
+        "id": "ord_deliv_timeout_9901",
+        "customer_id": "cust_charlie_103",
+        "status": "DELIVERED",
+        "total_amount_cents": 8500,
+        "currency": "USD",
+        "delivery_date": "2026-10-20T10:00:00"
+      }
+    ]
+  },
+  "customer_messages": [
+    "I would like to request a refund for order ord_deliv_timeout_9901."
+  ],
+  "fault_configs": {
+    "request_refund": {
+      "fault_type": "TIMEOUT_AFTER_WRITE",
+      "trigger_on_call": 1
+    }
+  },
+  "expected_checks": {
+    "OWNERSHIP": "PASSED",
+    "ELIGIBILITY": "PASSED",
+    "DUPLICATE": "PASSED",
+    "STATE": "PASSED"
+  }
+}

@@ -1,0 +1,39 @@
+{
+  "id": "scen_fault_01_timeout_before_write",
+  "name": "Fault: Timeout Before Write",
+  "category": "TOOL_FAILURE",
+  "dataset": "development",
+  "description": "Tool aborts with 504 before any DB write occurs.",
+  "fixed_clock": "2026-10-23T12:00:00",
+  "initial_data": {
+    "customer": {
+      "id": "cust_charlie_103",
+      "name": "Charlie Silva",
+      "email": "charlie@example.com"
+    },
+    "orders": [
+      {
+        "id": "ord_fault_tbw",
+        "customer_id": "cust_charlie_103",
+        "status": "DELIVERED",
+        "total_amount_cents": 4500,
+        "currency": "USD",
+        "delivery_date": "2026-10-20T10:00:00"
+      }
+    ]
+  },
+  "customer_messages": [
+    "Please refund ord_fault_tbw."
+  ],
+  "fault_configs": {
+    "request_refund": {
+      "fault_type": "TIMEOUT_BEFORE_WRITE",
+      "trigger_on_call": 1
+    }
+  },
+  "expected_checks": {
+    "OWNERSHIP": "PASSED",
+    "ELIGIBILITY": "REJECTED",
+    "DUPLICATE": "PASSED"
+  }
+}

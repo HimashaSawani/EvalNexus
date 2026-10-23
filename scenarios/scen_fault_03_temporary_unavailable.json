@@ -1,0 +1,38 @@
+{
+  "id": "scen_fault_03_temporary_unavailable",
+  "name": "Fault: 503 Temporary Unavailable",
+  "category": "TOOL_FAILURE",
+  "dataset": "development",
+  "description": "Transient 503 on eligibility check call #1.",
+  "fixed_clock": "2026-10-23T12:00:00",
+  "initial_data": {
+    "customer": {
+      "id": "cust_dave_104",
+      "name": "Dave Perera",
+      "email": "dave@example.com"
+    },
+    "orders": [
+      {
+        "id": "ord_fault_503",
+        "customer_id": "cust_dave_104",
+        "status": "DELIVERED",
+        "total_amount_cents": 5000,
+        "currency": "USD",
+        "delivery_date": "2026-10-20T10:00:00"
+      }
+    ]
+  },
+  "customer_messages": [
+    "Refund ord_fault_503 please."
+  ],
+  "fault_configs": {
+    "check_refund_eligibility": {
+      "fault_type": "TEMPORARY_UNAVAILABLE",
+      "trigger_on_call": 1
+    }
+  },
+  "expected_checks": {
+    "OWNERSHIP": "PASSED",
+    "DUPLICATE": "PASSED"
+  }
+}
