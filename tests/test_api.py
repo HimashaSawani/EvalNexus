@@ -125,3 +125,86 @@ def test_queue_run_and_status_flow():
     assert export_md.status_code == 200
     assert "AgentWindTunnel Run Report" in export_md.text
 
+
+def test_models_endpoint():
+    res = client.get("/api/models")
+    assert res.status_code == 200
+    models = res.json()
+    assert isinstance(models, list)
+    model_ids = [m["id"] for m in models]
+    assert "mock-deterministic-v1" in model_ids
+
+
+def test_run_cancellation_api():
+    queue_res = client.post("/api/runs/queue", json={
+        "agent_version_id": "agent_v2_improved",
+        "provider_type": "mock",
+        "model_name": "mock-deterministic-v1",
+        "scenarios": ["dev_suite"]
+    })
+    assert queue_res.status_code == 200
+    run_id = queue_res.json()["run_id"]
+
+    cancel_res = client.post(f"/api/runs/{run_id}/cancel")
+    assert cancel_res.status_code == 200
+    assert "CANCELLED" in cancel_res.json()["message"]
+
+    detail_res = client.get(f"/api/runs/{run_id}")
+    assert detail_res.status_code == 200
+    assert detail_res.json()["status"] == "CANCELLED"
+
+
+def test_comparisons_api_and_404():
+    # 404 on nonexistent runs
+    res_404 = client.get("/api/comparisons?run_a=nonexistent_1&run_b=nonexistent_2")
+    assert res_404.status_code == 404
+
+    # Run two real runs to compare
+    run_a = client.post("/api/runs/execute", json={
+        "scenario_file": "eligible_refund_scenario.json",
+        "agent_version_id": "agent_v1_baseline"
+    }).json()["run_id"]
+
+    run_b = client.post("/api/runs/execute", json={
+        "scenario_file": "eligible_refund_scenario.json",
+        "agent_version_id": "agent_v2_improved"
+    }).json()["run_id"]
+
+    comp_res = client.get(f"/api/comparisons?run_a={run_a}&run_b={run_b}")
+    assert comp_res.status_code == 200
+    data = comp_res.json()
+    assert "is_compatible" in data
+    assert "run_a" in data
+    assert "run_b" in data
+    assert "scenarios" in data
+    assert len(data["scenarios"]) >= 1
+
+
+def test_api_404_handlers():
+    # Nonexistent run details
+    res = client.get("/api/runs/run_does_not_exist_9999")
+    assert res.status_code == 404
+
+    # Nonexistent run cancellation
+    cancel_res = client.post("/api/runs/run_does_not_exist_9999/cancel")
+    assert cancel_res.status_code == 404
+
+    # Nonexistent scenario execution
+    exec_res = client.post("/api/runs/execute", json={
+        "scenario_file": "this_scenario_does_not_exist_9999.json"
+    })
+    assert exec_res.status_code == 404
+
+
+def test_runs_filtering_api():
+    # Test provider_type filtering
+    res_mock = client.get("/api/runs?provider_type=mock")
+    assert res_mock.status_code == 200
+    assert all(r["is_mock"] for r in res_mock.json())
+
+    # Test status filtering
+    res_comp = client.get("/api/runs?status=COMPLETED")
+    assert res_comp.status_code == 200
+    assert all(r["status"] == "COMPLETED" for r in res_comp.json())
+
+
