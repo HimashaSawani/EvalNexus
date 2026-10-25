@@ -331,7 +331,6 @@ def run_all_tests():
         
         # Test Cancellation
         time.sleep(0.3)
-        page.on("dialog", lambda dialog: dialog.accept())
         page.locator("#btnCancelRun").click()
         page.wait_for_function(
             "() => document.querySelector('#panelRunStatusPill') && document.querySelector('#panelRunStatusPill').textContent.includes('CANCELLED')",
@@ -352,7 +351,7 @@ def run_all_tests():
         record_screenshot(page, "20_mobile_390px_overview.png")
 
         # Open mobile drawer
-        page.locator("button.mobile-toggle-btn").click()
+        page.locator("button.menu-btn").click()
         page.wait_for_selector("#appSidebar.mobile-open")
         record_screenshot(page, "21_mobile_390px_sidebar.png")
 

@@ -1,0 +1,58 @@
+{
+  "sections_tested": [
+    "Overview",
+    "Test Studio",
+    "Scenarios",
+    "Agent Versions",
+    "Run History",
+    "Comparisons",
+    "Settings"
+  ],
+  "mock_executions": [
+    {
+      "run_id": "run_fafe3f98ae",
+      "agent": "agent_v1_baseline",
+      "scenario": "eligible_refund_scenario.json",
+      "status": "COMPLETED"
+    },
+    {
+      "run_id": "run_1129f65bc9",
+      "agent": "agent_v2_improved",
+      "scenario": "fault_timeout_after_write.json",
+      "status": "COMPLETED"
+    }
+  ],
+  "history_verified": true,
+  "comparisons_verified": true,
+  "exports_verified": true,
+  "background_execution_verified": true,
+  "mobile_verified": true,
+  "console_errors": [],
+  "page_errors": [],
+  "failed_requests": [],
+  "screenshots": [
+    "docs/reports/screenshots/01_overview_desktop.png",
+    "docs/reports/screenshots/02_test_studio_initial.png",
+    "docs/reports/screenshots/03_scenarios_catalog.png",
+    "docs/reports/screenshots/04_scenarios_filtered.png",
+    "docs/reports/screenshots/05_agent_versions.png",
+    "docs/reports/screenshots/06_run_history.png",
+    "docs/reports/screenshots/07_run_history_filtered.png",
+    "docs/reports/screenshots/08_comparisons_loaded.png",
+    "docs/reports/screenshots/10_settings.png",
+    "docs/reports/screenshots/11_execution_v1_baseline_running.png",
+    "docs/reports/screenshots/12_execution_v1_baseline_completed.png",
+    "docs/reports/screenshots/13_execution_v1_checks.png",
+    "docs/reports/screenshots/14_execution_v1_timeline.png",
+    "docs/reports/screenshots/15_execution_v1_dbstate.png",
+    "docs/reports/screenshots/16_execution_v1_final_answer.png",
+    "docs/reports/screenshots/17_execution_v1_persisted_after_reload.png",
+    "docs/reports/screenshots/18_execution_v2_fault_completed.png",
+    "docs/reports/screenshots/08_comparisons_compatible.png",
+    "docs/reports/screenshots/09_comparisons_mismatch.png",
+    "docs/reports/screenshots/19_execution_cancelled.png",
+    "docs/reports/screenshots/20_mobile_390px_overview.png",
+    "docs/reports/screenshots/21_mobile_390px_sidebar.png",
+    "docs/reports/screenshots/22_mobile_390px_studio.png"
+  ]
+}
