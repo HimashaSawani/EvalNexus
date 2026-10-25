@@ -62,9 +62,11 @@ class AgentWindTunnelRunner:
     def run_agent_scenario(
         self,
         scenario_data: Dict[str, Any],
-        agent_version_id: str = "agent_v1_baseline"
+        agent_version_id: str = "agent_v1_baseline",
+        run_id: Optional[str] = None
     ) -> Dict[str, Any]:
-        run_id = f"run_{uuid.uuid4().hex[:8]}"
+        queue_owned = run_id is not None
+        run_id = run_id or f"run_{uuid.uuid4().hex[:8]}"
         scenario_run_id = f"scen_run_{uuid.uuid4().hex[:8]}"
         scenario_version_id = scenario_data.get("id", f"scen_{uuid.uuid4().hex[:6]}")
 
@@ -129,6 +131,9 @@ class AgentWindTunnelRunner:
             )
             self.db.add(run_record)
 
+        if run_record.execution_config:
+            execution_config.update(run_record.execution_config)
+
         scenario_run = ScenarioRun(
             id=scenario_run_id,
             run_id=run_id,
@@ -182,6 +187,7 @@ class AgentWindTunnelRunner:
             max_turns=execution_config["max_turns"],
             max_tool_calls=execution_config["max_tool_calls"],
             max_tokens_budget=execution_config["max_tokens_budget"],
+            tool_timeout_sec=execution_config.get("tool_timeout_sec", 5.0),
             scenario_timeout_sec=execution_config["scenario_timeout_sec"]
         )
 
@@ -221,10 +227,11 @@ class AgentWindTunnelRunner:
             scenario_run.finished_at = utc_now()
             scenario_run.duration_ms = total_duration_ms
 
-            run_record.status = "PROVIDER_ERROR"
-            run_record.finished_at = utc_now()
-            run_record.passed_scenarios = 0
-            run_record.failed_scenarios = 0
+            if not queue_owned:
+                run_record.status = "PROVIDER_ERROR"
+                run_record.finished_at = utc_now()
+                run_record.passed_scenarios = 0
+                run_record.failed_scenarios = 0
 
             # Mark all checks NOT_EVALUATED
             check_names = ["OWNERSHIP", "ELIGIBILITY", "DUPLICATE", "STATE", "COMPLETION"]
@@ -264,7 +271,7 @@ class AgentWindTunnelRunner:
             scenario_run.finished_at = utc_now()
             scenario_run.duration_ms = loop_res.get("duration_ms", total_duration_ms)
 
-            if (run_record.total_scenarios or 1) <= 1:
+            if not queue_owned and (run_record.total_scenarios or 1) <= 1:
                 run_record.status = "COMPLETED"
                 run_record.finished_at = utc_now()
                 if all_passed:
