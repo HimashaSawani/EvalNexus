@@ -119,7 +119,12 @@ class RefundService:
                 }
 
             delivery_dt = datetime.datetime.fromisoformat(delivery_date_str)
-            days_elapsed = (self.fixed_clock - delivery_dt).total_seconds() / 86400.0
+            clock = self.fixed_clock
+            if delivery_dt.tzinfo is not None and clock.tzinfo is None:
+                delivery_dt = delivery_dt.replace(tzinfo=None)
+            elif delivery_dt.tzinfo is None and clock.tzinfo is not None:
+                clock = clock.replace(tzinfo=None)
+            days_elapsed = (clock - delivery_dt).total_seconds() / 86400.0
 
             if days_elapsed < 0:
                 return {
