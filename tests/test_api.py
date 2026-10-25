@@ -41,6 +41,8 @@ def test_root_dashboard_html():
     response = client.get("/")
     assert response.status_code == 200
     assert "AgentWindTunnel" in response.text
+    assert "Configured (Verified)" not in response.text
+    assert "info.status || 'Configured (not validated)'" in response.text
 
 
 def test_agent_versions_endpoint():
@@ -122,5 +124,4 @@ def test_queue_run_and_status_flow():
     export_md = client.get(f"/api/runs/{run_id}/export?format=markdown")
     assert export_md.status_code == 200
     assert "AgentWindTunnel Run Report" in export_md.text
-
 
