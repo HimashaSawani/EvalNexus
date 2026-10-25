@@ -45,7 +45,10 @@ _embedded_worker_thread: Optional[threading.Thread] = None
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     global _embedded_worker, _embedded_worker_thread
-    _embedded_worker = QueueWorker(worker_id="embedded_api_worker", poll_interval_sec=1.0)
+    if os.getenv("AWT_EMBEDDED_WORKER", "1").lower() not in {"1", "true", "yes"}:
+        yield
+        return
+    _embedded_worker = QueueWorker(poll_interval_sec=1.0)
     _embedded_worker_thread = threading.Thread(target=_embedded_worker.run_forever, daemon=True)
     _embedded_worker_thread.start()
     yield
@@ -135,7 +138,7 @@ def list_agent_versions():
 
 @app.get("/api/models")
 def list_available_models():
-    """Discovers available models and returns verified options."""
+    """Discovers configured models; discovery does not verify tool-calling support."""
     models = [
         {
             "id": "mock-deterministic-v1",
@@ -155,7 +158,7 @@ def list_available_models():
                 "id": m,
                 "name": m,
                 "provider": "gemini",
-                "description": "Verified Google Gemini LLM with function calling",
+                "description": "Discovered Gemini model; tool-calling support is not verified",
                 "is_default": (m == "gemini-flash-lite-latest")
             })
     else:
@@ -206,7 +209,7 @@ def get_system_settings(db: Session = Depends(get_db)):
         "credentials": {
             "GEMINI_API_KEY": {
                 "configured": gemini_configured,
-                "status": "Configured (Verified)" if gemini_configured else "Not configured",
+                "status": "Configured (not validated)" if gemini_configured else "Not configured",
                 "source": ".env / environment" if gemini_configured else "Missing"
             },
             "OPENAI_API_KEY": {
@@ -623,6 +626,7 @@ def get_run_details(run_id: str, db: Session = Depends(get_db)):
 
     return {
         "run_id": run.id,
+        "error_message": run.queue_job.error_message if run.queue_job else None,
         "status": run.status,
         "agent_version_id": run.agent_version_id,
         "provider_type": run.provider_type,
@@ -689,6 +693,11 @@ def compare_runs(
     if record_a.is_mock != record_b.is_mock:
         config_diffs.append("Engine mismatch: One run is Mock Simulator, the other is Live Provider")
 
+    if record_a.execution_config != record_b.execution_config:
+        config_diffs.append("Execution configuration mismatch")
+    from collections import Counter
+    if Counter(s.scenario_version_id for s in record_a.scenario_runs) != Counter(s.scenario_version_id for s in record_b.scenario_runs):
+        config_diffs.append("Scenario selection mismatch")
     is_compatible = (len(config_diffs) == 0)
 
     # Compare scenario results

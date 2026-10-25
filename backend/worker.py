@@ -17,6 +17,7 @@ from backend.database.connection import SessionLocal, engine, Base
 from backend.database.models import QueueJob, Run, ScenarioRun, utc_now
 from backend.runner.agent_runner import AgentWindTunnelRunner
 from backend.runner.scripted_runner import ScriptedRunner
+from backend.agent.provider import sanitize_secret
 
 
 def get_scenario_data(scenario_ref: str) -> Optional[Dict[str, Any]]:
@@ -133,6 +134,10 @@ class QueueWorker:
                     run.status = "FAILED"
                     run.finished_at = now
 
+            # Interrupted scenario state is unknown; keep evidence without inventing checks.
+            db.query(ScenarioRun).filter(
+                ScenarioRun.run_id == job.run_id, ScenarioRun.status == "RUNNING"
+            ).update({ScenarioRun.status: "INTERRUPTED", ScenarioRun.finished_at: now})
             reaped_count += 1
 
         if reaped_count > 0:
@@ -184,6 +189,7 @@ class QueueWorker:
 
             passed_count = 0
             failed_count = 0
+            infrastructure_error = False
             is_cancelled = False
 
             try:
@@ -196,6 +202,8 @@ class QueueWorker:
 
                     scenario_data = get_scenario_data(scen_ref)
                     if not scenario_data:
+                        infrastructure_error = True
+                        job.error_message = "Selected scenario could not be loaded."
                         failed_count += 1
                         if run:
                             run.failed_scenarios = failed_count
@@ -208,7 +216,7 @@ class QueueWorker:
                         agent_type = job.agent_version_id
                         if agent_type == "scripted":
                             runner = ScriptedRunner(scen_db)
-                            res = runner.run_scenario(scenario_data)
+                            res = runner.run_scenario(scenario_data, agent_version_id=agent_type, run_id=job.run_id)
                         else:
                             runner = AgentWindTunnelRunner(
                                 scen_db,
@@ -221,12 +229,18 @@ class QueueWorker:
                                 run_id=job.run_id
                             )
 
+                        if res.get("status") == "PROVIDER_ERROR":
+                            infrastructure_error = True
+                            job.error_message = "Provider execution failed; inspect scenario checks and trace."
                         if res.get("status") == "PASSED":
                             passed_count += 1
                         else:
                             failed_count += 1
 
                     except Exception as e:
+                        infrastructure_error = True
+                        job.error_message = sanitize_secret(str(e))
+                        print(f"Scenario infrastructure error: {job.error_message}", flush=True)
                         failed_count += 1
                     finally:
                         scen_db.close()
@@ -248,10 +262,14 @@ class QueueWorker:
             db.refresh(job)
             db.refresh(run)
 
-            if is_cancelled:
+            if is_cancelled or job.status == "CANCELLED" or (run and run.status == "CANCELLED"):
                 job.status = "CANCELLED"
                 if run:
                     run.status = "CANCELLED"
+            elif infrastructure_error:
+                job.status = "FAILED"
+                if run:
+                    run.status = "FAILED"
             elif failed_count == 0 and passed_count > 0:
                 job.status = "COMPLETED"
                 if run:
