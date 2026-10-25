@@ -983,6 +983,22 @@
         padding: 16px;
       }
     }
+    td.empty-state { display: table-cell; text-align: center; }
+    main.workspace, .studio-panel { min-width: 0; }
+    @media (max-width: 1024px) {
+      body { flex-direction: column; }
+      .mobile-topbar { width: 100%; flex-shrink: 0; }
+      main.workspace { width: 100%; }
+      .content-container { min-width: 0; }
+    }
+    @media (max-width: 600px) {
+      .control-group { min-width: 0; width: 100%; flex-basis: 100%; }
+      .control-select-wrap select { max-width: 100%; }
+      .studio-split-view { grid-template-columns: minmax(0, 1fr); }
+      .page-header { flex-wrap: wrap; gap: 12px; }
+      .studio-panel { overflow: hidden; }
+      #agentVersionsGrid { grid-template-columns: minmax(0, 1fr) !important; }
+    }
   </style>
 </head>
 <body>
@@ -1501,7 +1517,7 @@
         <div class="top-header">
           <div class="title-area">
             <h1>Settings & Credential Safety</h1>
-            <p>Verified provider configurations, discovered models, and execution safeguards</p>
+            <p>Configured provider keys, discovered models, and execution safeguards</p>
           </div>
           <div class="header-right">
             <button class="btn-secondary" onclick="loadSettings()">Reload Status</button>
@@ -1628,7 +1644,7 @@
       if (parts[1]) {
         const params = new URLSearchParams(parts[1]);
         if (params.has('run')) {
-          loadSpecificRun(params.get('run'));
+          startPollingRun(params.get('run'));
         }
       }
     }
@@ -1721,6 +1737,7 @@
         select.innerHTML = models.map(m => `
           <option value="${m.id}" ${m.is_default ? 'selected' : ''}>${m.name} (${m.provider})</option>
         `).join('');
+        handleProviderChange();
       } catch (e) {
         console.error('Failed to load models:', e);
       }
@@ -1858,19 +1875,29 @@
       const poll = async () => {
         try {
           const res = await fetch(`/api/runs/${runId}`);
-          if (!res.ok) return;
+          if (!res.ok) {
+            clearInterval(pollIntervalTimer);
+            document.getElementById('panelRunStatusPill').textContent = `Unable to load run (HTTP ${res.status})`;
+            document.getElementById('detailTabContent').textContent = 'Run could not be loaded. Check the URL and try again.';
+            document.getElementById('btnRunTests').disabled = false;
+            document.getElementById('btnRunText').textContent = 'Run Tests';
+            document.getElementById('btnCancelRun').style.display = 'none';
+            return;
+          }
           const runData = await res.json();
           activeRun = runData;
 
           renderActiveRun(runData);
 
-          if (runData.status === 'COMPLETED' || runData.status === 'FAILED' || runData.status === 'CANCELLED') {
+          if (runData.status === 'COMPLETED' || runData.status === 'FAILED' || runData.status === 'CANCELLED' || runData.status === 'PROVIDER_ERROR') {
             clearInterval(pollIntervalTimer);
             document.getElementById('btnRunTests').disabled = false;
             document.getElementById('btnRunText').textContent = 'Run Tests';
             document.getElementById('btnCancelRun').style.display = 'none';
           }
         } catch (e) {
+          document.getElementById('panelRunStatusPill').textContent = 'Connection error; retrying';
+          document.getElementById('detailTabContent').textContent = 'Unable to reach the server. Progress will resume when the connection recovers.';
           console.error('Polling error:', e);
         }
       };
@@ -1924,6 +1951,7 @@
         `;
       }).join('');
 
+      if (!scens.some(s => s.scenario_run_id === currentSelectedScenarioId)) currentSelectedScenarioId = null;
       // Auto-select first scenario if none active
       if (!currentSelectedScenarioId && scens.length > 0) {
         selectScenarioRun(scens[0].scenario_run_id);
@@ -2052,12 +2080,19 @@
           </div>
         `;
       } else if (activeDetailTab === 'answer') {
-        // Find last user prompt and final assistant message in traces
+        // Find final assistant message or final answer in traces
         const traces = sr.traces || [];
+        const finalTrace = traces.slice().reverse().find(t => t.event_type === 'FINAL_ANSWER' || (t.event_type === 'MODEL_CALL' && t.result && (t.result.final_answer || t.result.content)));
+        let answerText = 'No final answer was produced.';
+        if (sr.status === 'PROVIDER_ERROR') {
+          answerText = 'None (Provider connection failed prior to turn loop execution)';
+        } else if (finalTrace && finalTrace.result) {
+          answerText = finalTrace.result.final_answer || finalTrace.result.content || answerText;
+        }
         container.innerHTML = `
           <div class="final-answer-callout">
             <strong>Agent Final Answer to User</strong>
-            <p>${sr.status === 'PROVIDER_ERROR' ? 'None (Provider connection failed prior to turn loop execution)' : 'Refund has been registered in the system with status: ' + (sr.refund_status || 'NOT_REFUNDED')}</p>
+            <p>${answerText}</p>
           </div>
         `;
       } else if (activeDetailTab === 'raw') {
@@ -2079,7 +2114,7 @@
     async function openRunInStudio(runId) {
       navigateView('test-studio');
       window.history.pushState(null, '', `#test-studio?run=${runId}`);
-      await loadSpecificRun(runId);
+      startPollingRun(runId);
     }
 
     async function loadSpecificRun(runId) {
@@ -2171,7 +2206,12 @@
     function runSingleScenarioFromCatalog(ref) {
       navigateView('test-studio');
       const suiteSelect = document.getElementById('suiteSelect');
-      // Set to custom scenario file or select
+      if (!Array.from(suiteSelect.options).some(o => o.value === ref)) {
+        const opt = document.createElement('option');
+        opt.value = ref;
+        opt.textContent = `Single: ${ref}`;
+        suiteSelect.appendChild(opt);
+      }
       suiteSelect.value = ref;
       updatePreflightInfo();
     }
@@ -2328,9 +2368,8 @@
         const tbody = document.getElementById('settingsCredentialsTbody');
         tbody.innerHTML = Object.keys(creds).map(k => {
           const info = creds[k];
-          const pill = info.configured
-            ? '<span class="badge-pill real">Configured (Verified)</span>'
-            : '<span class="badge-pill mock">Not Configured</span>';
+          const status = info.configured ? (info.status || 'Configured (not validated)') : 'Not configured';
+          const pill = `<span class="badge-pill ${info.configured ? 'real' : 'mock'}">${status}</span>`;
           return `
             <tr>
               <td><code>${k}</code></td>

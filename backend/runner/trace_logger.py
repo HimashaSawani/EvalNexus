@@ -1,5 +1,7 @@
 import datetime
 import time
+import threading
+import queue
 from typing import Optional, Dict, Any, List
 from sqlalchemy.orm import Session
 from backend.database.models import TraceEvent
@@ -10,7 +12,24 @@ class TraceLogger:
         self.db = db
         self.scenario_run_id = scenario_run_id
         self.seq_num = 0
+        self._owner_thread = threading.get_ident()
+        self._pending = queue.SimpleQueue()
+        self._draining = False
         self.events: List[Dict[str, Any]] = []
+
+    def flush_pending(self):
+        if threading.get_ident() != self._owner_thread or self._draining:
+            return
+        self._draining = True
+        try:
+            while True:
+                try:
+                    payload = self._pending.get_nowait()
+                except queue.Empty:
+                    return
+                self.log_event(**payload)
+        finally:
+            self._draining = False
 
     def log_event(
         self,
@@ -23,6 +42,13 @@ class TraceLogger:
         token_usage: Optional[Dict[str, int]] = None,
         cost_estimate: int = 0
     ) -> TraceEvent:
+        if threading.get_ident() != self._owner_thread:
+            self._pending.put(dict(event_type=event_type, tool_name=tool_name,
+                tool_arguments=tool_arguments, tool_result=tool_result,
+                error_message=error_message, duration_ms=duration_ms,
+                token_usage=token_usage, cost_estimate=cost_estimate))
+            return None
+        self.flush_pending()
         self.seq_num += 1
         event_id = f"trc_{self.scenario_run_id}_{self.seq_num}"
 
