@@ -1871,6 +1871,8 @@
 
       document.getElementById('runProgressBox').style.display = 'flex';
       document.getElementById('activeRunIdCode').textContent = runId;
+      document.getElementById('panelRunStatusPill').className = 'status-pill queued';
+      document.getElementById('panelRunStatusPill').textContent = 'QUEUED';
 
       const poll = async () => {
         try {

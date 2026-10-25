@@ -24,8 +24,17 @@ report_data = {
     "screenshots": [],
 }
 
+try:
+    sys.stdout.reconfigure(encoding='utf-8')
+except Exception:
+    pass
+
 def log(msg):
-    print(f"[E2E] {msg}", flush=True)
+    try:
+        print(f"[E2E] {msg}", flush=True)
+    except Exception:
+        safe_msg = str(msg).encode('ascii', errors='replace').decode('ascii')
+        print(f"[E2E] {safe_msg}", flush=True)
 
 def record_screenshot(page, filename, full_page=True):
     filepath = SCREENSHOTS_DIR / filename
