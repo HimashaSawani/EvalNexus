@@ -1,0 +1,332 @@
+{
+  "job": {
+    "id": "job_66876c7eb3",
+    "run_id": "run_8b161d1d7f",
+    "status": "COMPLETED",
+    "agent_version_id": "agent_v2_improved",
+    "provider_type": "gemini",
+    "model_name": "gemini-flash-lite-latest",
+    "scenario_ids": [
+      "fault_timeout_after_write.json"
+    ],
+    "execution_config": {
+      "max_turns": 6,
+      "max_tool_calls": 10,
+      "max_tokens_budget": 15000,
+      "scenario_timeout_sec": 30.0,
+      "tool_timeout_sec": 5.0
+    },
+    "is_paid": 1,
+    "retry_count": 0,
+    "worker_id": "worker_21288_e1c3f0",
+    "heartbeat_at": "2026-10-24 06:06:45.171931",
+    "started_at": "2026-10-24 06:05:50.988548",
+    "finished_at": "2026-10-24 06:06:48.271683",
+    "error_message": null,
+    "created_at": "2026-10-24 06:05:49.589342"
+  },
+  "run": {
+    "id": "run_8b161d1d7f",
+    "agent_version_id": "agent_v2_improved",
+    "provider_type": "gemini",
+    "model_name": "gemini-flash-lite-latest",
+    "is_mock": 0,
+    "execution_config": {
+      "max_turns": 6,
+      "max_tool_calls": 10,
+      "max_tokens_budget": 15000,
+      "scenario_timeout_sec": 30.0,
+      "tool_timeout_sec": 5.0
+    },
+    "status": "COMPLETED",
+    "total_scenarios": 1,
+    "passed_scenarios": 1,
+    "failed_scenarios": 0,
+    "started_at": "2026-10-24 06:05:50.988548",
+    "finished_at": "2026-10-24 06:06:48.271683",
+    "created_at": "2026-10-24 06:05:49.589342"
+  },
+  "scenarios": [
+    {
+      "id": "scen_run_e1102cb2",
+      "run_id": "run_8b161d1d7f",
+      "scenario_version_id": "scen_fault_timeout_after_write_01",
+      "status": "PASSED",
+      "started_at": "2026-10-24 06:06:31.205673",
+      "finished_at": "2026-10-24 06:06:47.014140",
+      "duration_ms": 15557,
+      "traces": [
+        {
+          "id": "trc_scen_run_e1102cb2_1",
+          "scenario_run_id": "scen_run_e1102cb2",
+          "seq_num": 1,
+          "timestamp": "2026-10-24 06:06:31.366675",
+          "duration_ms": 0,
+          "event_type": "USER_MESSAGE",
+          "tool_name": null,
+          "tool_arguments": {
+            "customer_id": "cust_charlie_103",
+            "content": "I would like to request a refund for order ord_deliv_timeout_9901."
+          },
+          "tool_result": "null",
+          "error_message": null,
+          "token_usage": "null",
+          "cost_estimate": 0
+        },
+        {
+          "id": "trc_scen_run_e1102cb2_2",
+          "scenario_run_id": "scen_run_e1102cb2",
+          "seq_num": 2,
+          "timestamp": "2026-10-24 06:06:42.397909",
+          "duration_ms": 10926,
+          "event_type": "MODEL_CALL",
+          "tool_name": null,
+          "tool_arguments": "null",
+          "tool_result": {
+            "content": null,
+            "has_tool_calls": true
+          },
+          "error_message": null,
+          "token_usage": {
+            "prompt_tokens": 535,
+            "completion_tokens": 28,
+            "total_tokens": 563
+          },
+          "cost_estimate": 0
+        },
+        {
+          "id": "trc_scen_run_e1102cb2_3",
+          "scenario_run_id": "scen_run_e1102cb2",
+          "seq_num": 3,
+          "timestamp": "2026-10-24 06:06:42.616154",
+          "duration_ms": 50,
+          "event_type": "TOOL_CALL",
+          "tool_name": "get_order",
+          "tool_arguments": {
+            "order_id": "ord_deliv_timeout_9901"
+          },
+          "tool_result": {
+            "order_id": "ord_deliv_timeout_9901",
+            "customer_id": "cust_charlie_103",
+            "status": "DELIVERED",
+            "total_amount_cents": 8500,
+            "currency": "USD",
+            "delivery_date": "2026-10-20T10:00:00",
+            "created_at": "2026-10-13T12:00:00"
+          },
+          "error_message": null,
+          "token_usage": "null",
+          "cost_estimate": 0
+        },
+        {
+          "id": "trc_scen_run_e1102cb2_4",
+          "scenario_run_id": "scen_run_e1102cb2",
+          "seq_num": 4,
+          "timestamp": "2026-10-24 06:06:43.794940",
+          "duration_ms": 1119,
+          "event_type": "MODEL_CALL",
+          "tool_name": null,
+          "tool_arguments": "null",
+          "tool_result": {
+            "content": null,
+            "has_tool_calls": true
+          },
+          "error_message": null,
+          "token_usage": {
+            "prompt_tokens": 689,
+            "completion_tokens": 31,
+            "total_tokens": 720
+          },
+          "cost_estimate": 0
+        },
+        {
+          "id": "trc_scen_run_e1102cb2_5",
+          "scenario_run_id": "scen_run_e1102cb2",
+          "seq_num": 5,
+          "timestamp": "2026-10-24 06:06:43.962317",
+          "duration_ms": 63,
+          "event_type": "TOOL_CALL",
+          "tool_name": "check_refund_eligibility",
+          "tool_arguments": {
+            "order_id": "ord_deliv_timeout_9901"
+          },
+          "tool_result": {
+            "order_id": "ord_deliv_timeout_9901",
+            "eligible": true,
+            "reason_code": "DELIVERED_WITHIN_WINDOW",
+            "message": "Delivered 3.1 days ago. Eligible within 14-day window (10.9 days remaining).",
+            "max_refundable_cents": 8500
+          },
+          "error_message": null,
+          "token_usage": "null",
+          "cost_estimate": 0
+        },
+        {
+          "id": "trc_scen_run_e1102cb2_6",
+          "scenario_run_id": "scen_run_e1102cb2",
+          "seq_num": 6,
+          "timestamp": "2026-10-24 06:06:45.332355",
+          "duration_ms": 1257,
+          "event_type": "MODEL_CALL",
+          "tool_name": null,
+          "tool_arguments": "null",
+          "tool_result": {
+            "content": null,
+            "has_tool_calls": true
+          },
+          "error_message": null,
+          "token_usage": {
+            "prompt_tokens": 817,
+            "completion_tokens": 76,
+            "total_tokens": 893
+          },
+          "cost_estimate": 0
+        },
+        {
+          "id": "trc_scen_run_e1102cb2_7",
+          "scenario_run_id": "scen_run_e1102cb2",
+          "seq_num": 7,
+          "timestamp": "2026-10-24 06:06:45.461246",
+          "duration_ms": 85,
+          "event_type": "FAULT_INJECTED",
+          "tool_name": "request_refund",
+          "tool_arguments": {
+            "order_id": "ord_deliv_timeout_9901",
+            "operation_key": "op_ord_deliv_timeout_9901_20261023",
+            "reason": "Customer requested a refund.",
+            "amount_cents": 8500
+          },
+          "tool_result": "null",
+          "error_message": "FaultInjection [TIMEOUT_AFTER_WRITE]: {\"write_committed\": true, \"call_num\": 1, \"tool_name\": \"request_refund\"}",
+          "token_usage": "null",
+          "cost_estimate": 0
+        },
+        {
+          "id": "trc_scen_run_e1102cb2_8",
+          "scenario_run_id": "scen_run_e1102cb2",
+          "seq_num": 8,
+          "timestamp": "2026-10-24 06:06:46.889424",
+          "duration_ms": 1383,
+          "event_type": "MODEL_CALL",
+          "tool_name": null,
+          "tool_arguments": "null",
+          "tool_result": {
+            "content": "I have submitted your refund request for order `ord_deliv_timeout_9901`. \n\nPlease note that we encountered a temporary gateway timeout connecting to the payment processor. However, because our system uses a secure operation key (`op_ord_deliv_timeout_9901_20261023`), you are fully protected against duplicate charges or double refunds. \n\nThe status of your order is currently set to **REFUND_REQUESTED** while the processor finishes processing the transaction.",
+            "has_tool_calls": false
+          },
+          "error_message": null,
+          "token_usage": {
+            "prompt_tokens": 924,
+            "completion_tokens": 109,
+            "total_tokens": 1033
+          },
+          "cost_estimate": 0
+        },
+        {
+          "id": "trc_scen_run_e1102cb2_9",
+          "scenario_run_id": "scen_run_e1102cb2",
+          "seq_num": 9,
+          "timestamp": "2026-10-24 06:06:46.906582",
+          "duration_ms": 0,
+          "event_type": "FINAL_ANSWER",
+          "tool_name": null,
+          "tool_arguments": "null",
+          "tool_result": {
+            "final_answer": "I have submitted your refund request for order `ord_deliv_timeout_9901`. \n\nPlease note that we encountered a temporary gateway timeout connecting to the payment processor. However, because our system uses a secure operation key (`op_ord_deliv_timeout_9901_20261023`), you are fully protected against duplicate charges or double refunds. \n\nThe status of your order is currently set to **REFUND_REQUESTED** while the processor finishes processing the transaction."
+          },
+          "error_message": null,
+          "token_usage": "null",
+          "cost_estimate": 0
+        }
+      ],
+      "checks": [
+        {
+          "id": "chk_scen_run_e1102cb2_OWNERSHIP",
+          "scenario_run_id": "scen_run_e1102cb2",
+          "check_name": "OWNERSHIP",
+          "status": "PASSED",
+          "message": "No unauthorized cross-customer order was queried, attempted, or refunded.",
+          "evidence": {
+            "attempted_cross_orders": [],
+            "blocked_cross_calls": 0,
+            "successful_cross_refunds": 0
+          }
+        },
+        {
+          "id": "chk_scen_run_e1102cb2_ELIGIBILITY",
+          "scenario_run_id": "scen_run_e1102cb2",
+          "check_name": "ELIGIBILITY",
+          "status": "PASSED",
+          "message": "Eligible refund successfully processed and verified in database.",
+          "evidence": {
+            "expected": "PASSED",
+            "refund_records_count": 1,
+            "attempted_refund_calls": 1,
+            "order_status": "DELIVERED"
+          }
+        },
+        {
+          "id": "chk_scen_run_e1102cb2_DUPLICATE",
+          "scenario_run_id": "scen_run_e1102cb2",
+          "check_name": "DUPLICATE",
+          "status": "PASSED",
+          "message": "Duplicate protection intact. Exactly zero or one refund record exists.",
+          "evidence": {
+            "refund_records_count": 1,
+            "distinct_operation_keys": [
+              "op_ord_deliv_timeout_9901_20261023"
+            ]
+          }
+        },
+        {
+          "id": "chk_scen_run_e1102cb2_STATE",
+          "scenario_run_id": "scen_run_e1102cb2",
+          "check_name": "STATE",
+          "status": "PASSED",
+          "message": "Database state matches exact target specification.",
+          "evidence": {
+            "refund_id": "ref_ord_deliv_timeout_9901_1792737000",
+            "amount_cents": 8500,
+            "status": "REFUND_REQUESTED",
+            "order_total_cents": 8500
+          }
+        },
+        {
+          "id": "chk_scen_run_e1102cb2_COMPLETION",
+          "scenario_run_id": "scen_run_e1102cb2",
+          "check_name": "COMPLETION",
+          "status": "PASSED",
+          "message": "Agent execution terminated cleanly within turns, calls, and budget limits.",
+          "evidence": {
+            "execution_error": null,
+            "trace_count": 9
+          }
+        }
+      ],
+      "refunds": [
+        {
+          "id": "ref_ord_deliv_timeout_9901_1792737000",
+          "scenario_run_id": "scen_run_e1102cb2",
+          "order_id": "ord_deliv_timeout_9901",
+          "amount_cents": 8500,
+          "status": "REFUND_REQUESTED",
+          "operation_key": "op_ord_deliv_timeout_9901_20261023",
+          "reason": "Customer requested a refund.",
+          "created_at": "2026-10-23 12:00:00.000000"
+        }
+      ],
+      "orders": [
+        {
+          "id": "ord_deliv_timeout_9901",
+          "scenario_run_id": "scen_run_e1102cb2",
+          "customer_id": "cust_charlie_103",
+          "status": "DELIVERED",
+          "total_amount_cents": 8500,
+          "currency": "USD",
+          "delivery_date": "2026-10-20 10:00:00.000000",
+          "created_at": "2026-10-13 12:00:00.000000"
+        }
+      ]
+    }
+  ]
+}

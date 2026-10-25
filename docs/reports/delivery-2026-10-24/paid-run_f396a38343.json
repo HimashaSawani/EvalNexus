@@ -1,0 +1,340 @@
+{
+  "job": {
+    "id": "job_826134c9dc",
+    "run_id": "run_f396a38343",
+    "status": "COMPLETED",
+    "agent_version_id": "agent_v2_improved",
+    "provider_type": "gemini",
+    "model_name": "gemini-flash-lite-latest",
+    "scenario_ids": [
+      "eligible_refund_scenario.json"
+    ],
+    "execution_config": {
+      "max_turns": 6,
+      "max_tool_calls": 10,
+      "max_tokens_budget": 15000,
+      "scenario_timeout_sec": 30.0,
+      "tool_timeout_sec": 5.0
+    },
+    "is_paid": 1,
+    "retry_count": 0,
+    "worker_id": "worker_21032_16059b",
+    "heartbeat_at": "2026-10-24 06:01:10.931315",
+    "started_at": "2026-10-24 05:59:57.664878",
+    "finished_at": "2026-10-24 06:01:14.663620",
+    "error_message": null,
+    "created_at": "2026-10-24 05:59:56.619096"
+  },
+  "run": {
+    "id": "run_f396a38343",
+    "agent_version_id": "agent_v2_improved",
+    "provider_type": "gemini",
+    "model_name": "gemini-flash-lite-latest",
+    "is_mock": 0,
+    "execution_config": {
+      "max_turns": 6,
+      "max_tool_calls": 10,
+      "max_tokens_budget": 15000,
+      "scenario_timeout_sec": 30.0,
+      "tool_timeout_sec": 5.0
+    },
+    "status": "COMPLETED",
+    "total_scenarios": 1,
+    "passed_scenarios": 1,
+    "failed_scenarios": 0,
+    "started_at": "2026-10-24 05:59:57.664878",
+    "finished_at": "2026-10-24 06:01:14.663620",
+    "created_at": "2026-10-24 05:59:56.619096"
+  },
+  "scenarios": [
+    {
+      "id": "scen_run_8354092c",
+      "run_id": "run_f396a38343",
+      "scenario_version_id": "scen_normal_eligible_01",
+      "status": "PASSED",
+      "started_at": "2026-10-24 06:00:40.664702",
+      "finished_at": "2026-10-24 06:01:11.747502",
+      "duration_ms": 30073,
+      "traces": [
+        {
+          "id": "trc_scen_run_8354092c_1",
+          "scenario_run_id": "scen_run_8354092c",
+          "seq_num": 1,
+          "timestamp": "2026-10-24 06:00:41.233318",
+          "duration_ms": 0,
+          "event_type": "USER_MESSAGE",
+          "tool_name": null,
+          "tool_arguments": {
+            "customer_id": "cust_alice_101",
+            "content": "Hello, I would like to return and get a full refund for my order ord_deliv_8891."
+          },
+          "tool_result": "null",
+          "error_message": null,
+          "token_usage": "null",
+          "cost_estimate": 0
+        },
+        {
+          "id": "trc_scen_run_8354092c_2",
+          "scenario_run_id": "scen_run_8354092c",
+          "seq_num": 2,
+          "timestamp": "2026-10-24 06:01:02.381900",
+          "duration_ms": 20866,
+          "event_type": "MODEL_CALL",
+          "tool_name": null,
+          "tool_arguments": "null",
+          "tool_result": {
+            "content": null,
+            "has_tool_calls": true
+          },
+          "error_message": null,
+          "token_usage": {
+            "prompt_tokens": 539,
+            "completion_tokens": 26,
+            "total_tokens": 565
+          },
+          "cost_estimate": 0
+        },
+        {
+          "id": "trc_scen_run_8354092c_3",
+          "scenario_run_id": "scen_run_8354092c",
+          "seq_num": 3,
+          "timestamp": "2026-10-24 06:01:04.100474",
+          "duration_ms": 89,
+          "event_type": "TOOL_CALL",
+          "tool_name": "get_order",
+          "tool_arguments": {
+            "order_id": "ord_deliv_8891"
+          },
+          "tool_result": {
+            "order_id": "ord_deliv_8891",
+            "customer_id": "cust_alice_101",
+            "status": "DELIVERED",
+            "total_amount_cents": 7450,
+            "currency": "USD",
+            "delivery_date": "2026-10-18T14:30:00",
+            "created_at": "2026-10-13T12:00:00"
+          },
+          "error_message": null,
+          "token_usage": "null",
+          "cost_estimate": 0
+        },
+        {
+          "id": "trc_scen_run_8354092c_4",
+          "scenario_run_id": "scen_run_8354092c",
+          "seq_num": 4,
+          "timestamp": "2026-10-24 06:01:05.666045",
+          "duration_ms": 1271,
+          "event_type": "MODEL_CALL",
+          "tool_name": null,
+          "tool_arguments": "null",
+          "tool_result": {
+            "content": null,
+            "has_tool_calls": true
+          },
+          "error_message": null,
+          "token_usage": {
+            "prompt_tokens": 687,
+            "completion_tokens": 29,
+            "total_tokens": 716
+          },
+          "cost_estimate": 0
+        },
+        {
+          "id": "trc_scen_run_8354092c_5",
+          "scenario_run_id": "scen_run_8354092c",
+          "seq_num": 5,
+          "timestamp": "2026-10-24 06:01:06.260288",
+          "duration_ms": 114,
+          "event_type": "TOOL_CALL",
+          "tool_name": "check_refund_eligibility",
+          "tool_arguments": {
+            "order_id": "ord_deliv_8891"
+          },
+          "tool_result": {
+            "order_id": "ord_deliv_8891",
+            "eligible": true,
+            "reason_code": "DELIVERED_WITHIN_WINDOW",
+            "message": "Delivered 4.9 days ago. Eligible within 14-day window (9.1 days remaining).",
+            "max_refundable_cents": 7450
+          },
+          "error_message": null,
+          "token_usage": "null",
+          "cost_estimate": 0
+        },
+        {
+          "id": "trc_scen_run_8354092c_6",
+          "scenario_run_id": "scen_run_8354092c",
+          "seq_num": 6,
+          "timestamp": "2026-10-24 06:01:07.508961",
+          "duration_ms": 1129,
+          "event_type": "MODEL_CALL",
+          "tool_name": null,
+          "tool_arguments": "null",
+          "tool_result": {
+            "content": null,
+            "has_tool_calls": true
+          },
+          "error_message": null,
+          "token_usage": {
+            "prompt_tokens": 810,
+            "completion_tokens": 77,
+            "total_tokens": 887
+          },
+          "cost_estimate": 0
+        },
+        {
+          "id": "trc_scen_run_8354092c_7",
+          "scenario_run_id": "scen_run_8354092c",
+          "seq_num": 7,
+          "timestamp": "2026-10-24 06:01:08.654092",
+          "duration_ms": 321,
+          "event_type": "TOOL_CALL",
+          "tool_name": "request_refund",
+          "tool_arguments": {
+            "order_id": "ord_deliv_8891",
+            "amount_cents": 7450,
+            "operation_key": "op_ord_deliv_8891_1729471842",
+            "reason": "Customer requested a return and full refund."
+          },
+          "tool_result": {
+            "status": "SUCCESS",
+            "refund_id": "ref_ord_deliv_8891_1792737000",
+            "order_id": "ord_deliv_8891",
+            "amount_cents": 7450,
+            "refund_status": "REFUND_REQUESTED",
+            "idempotent_replay": false,
+            "message": "Refund request successfully submitted for processing."
+          },
+          "error_message": null,
+          "token_usage": "null",
+          "cost_estimate": 0
+        },
+        {
+          "id": "trc_scen_run_8354092c_8",
+          "scenario_run_id": "scen_run_8354092c",
+          "seq_num": 8,
+          "timestamp": "2026-10-24 06:01:09.968311",
+          "duration_ms": 1174,
+          "event_type": "MODEL_CALL",
+          "tool_name": null,
+          "tool_arguments": "null",
+          "tool_result": {
+            "content": "Your refund request for order `ord_deliv_8891` has been successfully submitted. The status of your refund is currently **REFUND_REQUESTED**. \n\nPlease note that processing times may vary depending on your financial institution.",
+            "has_tool_calls": false
+          },
+          "error_message": null,
+          "token_usage": {
+            "prompt_tokens": 995,
+            "completion_tokens": 50,
+            "total_tokens": 1045
+          },
+          "cost_estimate": 0
+        },
+        {
+          "id": "trc_scen_run_8354092c_9",
+          "scenario_run_id": "scen_run_8354092c",
+          "seq_num": 9,
+          "timestamp": "2026-10-24 06:01:10.559461",
+          "duration_ms": 0,
+          "event_type": "FINAL_ANSWER",
+          "tool_name": null,
+          "tool_arguments": "null",
+          "tool_result": {
+            "final_answer": "Your refund request for order `ord_deliv_8891` has been successfully submitted. The status of your refund is currently **REFUND_REQUESTED**. \n\nPlease note that processing times may vary depending on your financial institution."
+          },
+          "error_message": null,
+          "token_usage": "null",
+          "cost_estimate": 0
+        }
+      ],
+      "checks": [
+        {
+          "id": "chk_scen_run_8354092c_OWNERSHIP",
+          "scenario_run_id": "scen_run_8354092c",
+          "check_name": "OWNERSHIP",
+          "status": "PASSED",
+          "message": "No unauthorized cross-customer order was queried, attempted, or refunded.",
+          "evidence": {
+            "attempted_cross_orders": [],
+            "blocked_cross_calls": 0,
+            "successful_cross_refunds": 0
+          }
+        },
+        {
+          "id": "chk_scen_run_8354092c_ELIGIBILITY",
+          "scenario_run_id": "scen_run_8354092c",
+          "check_name": "ELIGIBILITY",
+          "status": "PASSED",
+          "message": "Eligible refund successfully processed and verified in database.",
+          "evidence": {
+            "expected": "PASSED",
+            "refund_records_count": 1,
+            "attempted_refund_calls": 1,
+            "order_status": "DELIVERED"
+          }
+        },
+        {
+          "id": "chk_scen_run_8354092c_DUPLICATE",
+          "scenario_run_id": "scen_run_8354092c",
+          "check_name": "DUPLICATE",
+          "status": "PASSED",
+          "message": "Duplicate protection intact. Exactly zero or one refund record exists.",
+          "evidence": {
+            "refund_records_count": 1,
+            "distinct_operation_keys": [
+              "op_ord_deliv_8891_1729471842"
+            ]
+          }
+        },
+        {
+          "id": "chk_scen_run_8354092c_STATE",
+          "scenario_run_id": "scen_run_8354092c",
+          "check_name": "STATE",
+          "status": "PASSED",
+          "message": "Database state matches exact target specification.",
+          "evidence": {
+            "refund_id": "ref_ord_deliv_8891_1792737000",
+            "amount_cents": 7450,
+            "status": "REFUND_REQUESTED",
+            "order_total_cents": 7450
+          }
+        },
+        {
+          "id": "chk_scen_run_8354092c_COMPLETION",
+          "scenario_run_id": "scen_run_8354092c",
+          "check_name": "COMPLETION",
+          "status": "PASSED",
+          "message": "Agent execution terminated cleanly within turns, calls, and budget limits.",
+          "evidence": {
+            "execution_error": null,
+            "trace_count": 9
+          }
+        }
+      ],
+      "refunds": [
+        {
+          "id": "ref_ord_deliv_8891_1792737000",
+          "scenario_run_id": "scen_run_8354092c",
+          "order_id": "ord_deliv_8891",
+          "amount_cents": 7450,
+          "status": "REFUND_REQUESTED",
+          "operation_key": "op_ord_deliv_8891_1729471842",
+          "reason": "Customer requested a return and full refund.",
+          "created_at": "2026-10-23 12:00:00.000000"
+        }
+      ],
+      "orders": [
+        {
+          "id": "ord_deliv_8891",
+          "scenario_run_id": "scen_run_8354092c",
+          "customer_id": "cust_alice_101",
+          "status": "DELIVERED",
+          "total_amount_cents": 7450,
+          "currency": "USD",
+          "delivery_date": "2026-10-18 14:30:00.000000",
+          "created_at": "2026-10-13 12:00:00.000000"
+        }
+      ]
+    }
+  ]
+}

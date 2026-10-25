@@ -1,0 +1,6 @@
+[
+  {
+    "run_id": "run_04f628187d",
+    "error_message": "Abandoned job reaped (no heartbeat for >30.0s). Worker process terminated unexpectedly."
+  }
+]
