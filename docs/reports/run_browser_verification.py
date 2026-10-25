@@ -43,6 +43,7 @@ def run_all_tests():
         page.on("console", lambda msg: report_data["console_errors"].append(msg.text) if msg.type in ["error"] else None)
         page.on("pageerror", lambda err: report_data["page_errors"].append(str(err)))
         page.on("requestfailed", lambda req: report_data["failed_requests"].append({"url": req.url, "failure": req.failure}))
+        page.on("dialog", lambda dialog: dialog.accept())
 
         # -------------------------------------------------------------
         # STEP 1: Verify all 7 sections (Desktop)
@@ -148,7 +149,8 @@ def run_all_tests():
 
         # Wait for terminal status
         page.wait_for_function(
-            "() => document.querySelector('#panelRunStatusPill') && (document.querySelector('#panelRunStatusPill').textContent.includes('COMPLETED') || document.querySelector('#panelRunStatusPill').textContent.includes('FAILED'))",
+            "(id) => { const code = document.querySelector('#activeRunIdCode'); const pill = document.querySelector('#panelRunStatusPill'); return code && code.textContent.trim() === id && pill && (pill.textContent.includes('COMPLETED') || pill.textContent.includes('FAILED')); }",
+            arg=run_v1_id,
             timeout=60000
         )
         status_v1 = page.locator("#panelRunStatusPill").text_content()
@@ -217,7 +219,8 @@ def run_all_tests():
         log(f"Flow B: Queued run {run_v2_id}")
 
         page.wait_for_function(
-            "() => document.querySelector('#panelRunStatusPill') && (document.querySelector('#panelRunStatusPill').textContent.includes('COMPLETED') || document.querySelector('#panelRunStatusPill').textContent.includes('FAILED'))",
+            "(id) => { const code = document.querySelector('#activeRunIdCode'); const pill = document.querySelector('#panelRunStatusPill'); return code && code.textContent.trim() === id && pill && (pill.textContent.includes('COMPLETED') || pill.textContent.includes('FAILED')); }",
+            arg=run_v2_id,
             timeout=60000
         )
         status_v2 = page.locator("#panelRunStatusPill").text_content()
@@ -254,17 +257,20 @@ def run_all_tests():
             page.locator("#btnRunTests").click()
         run_compat_id = resp_info_compat.value.json()["run_id"]
         page.wait_for_function(
-            "() => document.querySelector('#panelRunStatusPill') && document.querySelector('#panelRunStatusPill').textContent.includes('COMPLETED')",
+            "(id) => { const code = document.querySelector('#activeRunIdCode'); const pill = document.querySelector('#panelRunStatusPill'); return code && code.textContent.trim() === id && pill && (pill.textContent.includes('COMPLETED') || pill.textContent.includes('FAILED')); }",
+            arg=run_compat_id,
             timeout=60000
         )
 
-        page.locator("#nav-comparisons").click()
+        with page.expect_response(lambda r: "/api/runs" in r.url):
+            page.locator("#nav-comparisons").click()
         page.wait_for_function('(id) => Array.from(document.querySelectorAll("#compRunASelect option")).some(o => o.value === id)', arg=run_compat_id)
         
         # Test Compatible Comparison
         page.select_option("#compRunASelect", run_v1_id)
         page.select_option("#compRunBSelect", run_compat_id)
-        page.locator("button:has-text('Compare Runs')").click()
+        with page.expect_response(lambda r: "/api/comparisons" in r.url):
+            page.locator("button:has-text('Compare Runs')").click()
         page.wait_for_function('() => document.querySelector("#compCompatibilityBanner") && document.querySelector("#compCompatibilityBanner").textContent.includes("Runs Compatible")')
         compat_banner_text = page.locator("#compCompatibilityBanner").text_content()
         log(f"Compatible comparison banner: {compat_banner_text}")
@@ -273,7 +279,8 @@ def run_all_tests():
         # Test Mismatched Comparison (different scenarios)
         page.select_option("#compRunASelect", run_v1_id)
         page.select_option("#compRunBSelect", run_v2_id)
-        page.locator("button:has-text('Compare Runs')").click()
+        with page.expect_response(lambda r: "/api/comparisons" in r.url):
+            page.locator("button:has-text('Compare Runs')").click()
         page.wait_for_function('() => document.querySelector("#compCompatibilityBanner") && (document.querySelector("#compCompatibilityBanner").textContent.includes("Configuration Difference") || document.querySelector("#compCompatibilityBanner").textContent.includes("Scenario selection mismatch"))')
         mismatch_banner_text = page.locator("#compCompatibilityBanner").text_content()
         log(f"Mismatch comparison banner: {mismatch_banner_text}")
