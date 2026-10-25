@@ -1,0 +1,50 @@
+{
+  "job": {
+    "id": "job_43ccddc03d",
+    "run_id": "run_1db4209531",
+    "status": "FAILED",
+    "agent_version_id": "agent_v2_improved",
+    "provider_type": "gemini",
+    "model_name": "gemini-flash-lite-latest",
+    "scenario_ids": [
+      "ineligible_expired_scenario.json"
+    ],
+    "execution_config": {
+      "max_turns": 6,
+      "max_tool_calls": 10,
+      "max_tokens_budget": 15000,
+      "scenario_timeout_sec": 30.0,
+      "tool_timeout_sec": 5.0
+    },
+    "is_paid": 1,
+    "retry_count": 0,
+    "worker_id": "worker_21032_16059b",
+    "heartbeat_at": "2026-10-24 06:01:28.496111",
+    "started_at": "2026-10-24 06:01:23.999468",
+    "finished_at": "2026-10-24 06:01:44.483268",
+    "error_message": "(sqlite3.OperationalError) database is locked\n[SQL: SELECT agent_versions.id AS agent_versions_id, agent_versions.name AS agent_versions_name, agent_versions.description AS agent_versions_description, agent_versions.system_prompt AS agent_versions_system_prompt, agent_versions.model_name AS agent_versions_model_name, agent_versions.temperature AS agent_versions_temperature, agent_versions.tool_schema_version AS agent_versions_tool_schema_version, agent_versions.created_at AS agent_versions_created_at \nFROM agent_versions \nWHERE agent_versions.id = ?\n LIMIT ? OFFSET ?]\n[parameters: ('agent_v2_improved', 1, 0)]\n(Background on this error at: https://sqlalche.me/e/20/e3q8)",
+    "created_at": "2026-10-24 06:01:20.025769"
+  },
+  "run": {
+    "id": "run_1db4209531",
+    "agent_version_id": "agent_v2_improved",
+    "provider_type": "gemini",
+    "model_name": "gemini-flash-lite-latest",
+    "is_mock": 0,
+    "execution_config": {
+      "max_turns": 6,
+      "max_tool_calls": 10,
+      "max_tokens_budget": 15000,
+      "scenario_timeout_sec": 30.0,
+      "tool_timeout_sec": 5.0
+    },
+    "status": "FAILED",
+    "total_scenarios": 1,
+    "passed_scenarios": 0,
+    "failed_scenarios": 1,
+    "started_at": "2026-10-24 06:01:23.999468",
+    "finished_at": "2026-10-24 06:01:44.483268",
+    "created_at": "2026-10-24 06:01:20.025769"
+  },
+  "scenarios": []
+}
