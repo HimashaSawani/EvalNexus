@@ -1,9 +1,49 @@
+# Environment and Credentials
 .env
-__pycache__/
-*.pyc
-.pytest_cache/
-*.db
+.env.*
+!.env.example
 
+# Python Cache and Bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyc
+
+# Virtual Environments
+.venv/
+.venv*/
+venv/
+env/
+
+# Databases and SQLite artifacts
+*.db
 *.db-wal
 *.db-shm
-.venv*/
+*.sqlite
+*.sqlite3
+
+# Test caches and coverage
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Server and Runtime Logs
+*.log
+logs/
+*.log.*
+
+# Temporary / Scratch storage
+scratch/
+.tempmediaStorage/
+*.bundle
+
+# IDE and Editor directories
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS Generated Files
+.DS_Store
+Thumbs.db
