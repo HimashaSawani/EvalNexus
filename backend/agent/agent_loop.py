@@ -64,6 +64,7 @@ class AgentLoop:
         self.scenario_timeout_sec = scenario_timeout_sec
         self.provider_timeout_sec = getattr(provider, "provider_timeout_sec", provider_timeout_sec)
         self.unresolved_tasks: List[Dict[str, Any]] = []
+        self.pending_timeout_events: List[Dict[str, Any]] = []
         self.active_executors: List[concurrent.futures.ThreadPoolExecutor] = []
         self.active_futures: List[concurrent.futures.Future] = []
 
@@ -142,6 +143,12 @@ class AgentLoop:
                 }
             )
 
+            # A final response must not bypass the scenario deadline after a slow provider or trace commit.
+            if time.time() - start_time >= self.scenario_timeout_sec:
+                raise AgentExecutionLimitError(
+                    limit_type="SCENARIO_TIMEOUT",
+                    message=f"Scenario exceeded execution time limit of {self.scenario_timeout_sec}s after model response."
+                )
             # If model produced a final text response without tool calls, loop terminates
             if not llm_res.tool_calls:
                 final_answer = llm_res.content
@@ -233,29 +240,33 @@ class AgentLoop:
         to defend against indeterminate states.
         """
         active_timeout = timeout_sec if timeout_sec is not None else self.tool_timeout_sec
+        tool_deadline = time.monotonic() + active_timeout
         token = CancellationToken()
         if hasattr(self.service, "cancel_token"):
             self.service.cancel_token = token
 
         executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
-        future = executor.submit(self._execute_tool_internal, customer_id, tool_name, arguments)
+        future = executor.submit(self._execute_tool_in_session, customer_id, tool_name, arguments, token)
         self.active_executors.append(executor)
         self.active_futures.append(future)
 
         try:
-            return future.result(timeout=active_timeout)
+            result = future.result(timeout=max(0.0, tool_deadline - time.monotonic()))
+            if hasattr(self.trace_logger, "flush_pending"):
+                self.trace_logger.flush_pending()
+            return result
         except concurrent.futures.TimeoutError:
             token.cancel()
             executor.shutdown(wait=False, cancel_futures=True)
             duration = int(active_timeout * 1000)
             timeout_msg = f"Gateway Timeout: Tool '{tool_name}' timed out after {active_timeout:g}s."
-            self.trace_logger.log_event(
+            self.pending_timeout_events.append(dict(
                 event_type="TOOL_TIMEOUT",
                 tool_name=tool_name,
                 tool_arguments=arguments,
                 error_message=f"Active tool timeout interrupted after {active_timeout:.2f}s (recorded for indeterminate state tracking)",
                 duration_ms=duration
-            )
+            ))
             # Track unresolved task
             is_write = (tool_name == "request_refund")
             self.unresolved_tasks.append({
@@ -276,6 +287,10 @@ class AgentLoop:
         Attempts to wait up to timeout_sec for thread settlement.
         Any tasks still running are tracked as unresolved.
         """
+        # Persist timeout evidence outside the deadline-sensitive return path.
+        for event in self.pending_timeout_events:
+            self.trace_logger.log_event(**event)
+        self.pending_timeout_events.clear()
         for fut in self.active_futures:
             if not fut.done():
                 if hasattr(self.service, "cancel_token") and self.service.cancel_token:
@@ -290,16 +305,33 @@ class AgentLoop:
             except Exception:
                 pass
 
+        if hasattr(self.trace_logger, "flush_pending"):
+            self.trace_logger.flush_pending()
+
+    def _execute_tool_in_session(self, customer_id, tool_name, arguments, token):
+        # A timed-out future must never share the runner's SQLAlchemy Session.
+        if type(self.service) is RefundService:
+            isolated_db = Session(bind=self.service.db.get_bind())
+            isolated_service = RefundService(isolated_db, self.service.scenario_run_id,
+                                             self.service.fixed_clock, cancel_token=token)
+            try:
+                return self._execute_tool_internal(customer_id, tool_name, arguments, service=isolated_service)
+            finally:
+                isolated_db.close()
+        return self._execute_tool_internal(customer_id, tool_name, arguments)
+
     def _execute_tool_internal(
         self,
         customer_id: str,
         tool_name: str,
-        arguments: Dict[str, Any]
+        arguments: Dict[str, Any],
+        service=None
     ) -> (Optional[Dict[str, Any]], Optional[str]):
         """
         Executes domain tool with FaultInjector hooks.
         CRITICAL: Never leaks internal fault names or 'write committed' status into agent observation!
         """
+        service = service or self.service
         t0 = time.time()
         tool_output = None
         agent_visible_error = None
@@ -321,17 +353,17 @@ class AgentLoop:
 
             # 2. Tool Execution (Shop Backend)
             if tool_name == "get_order":
-                raw_res = self.service.get_order(
+                raw_res = service.get_order(
                     session_customer_id=customer_id,
                     order_id=arguments["order_id"]
                 )
             elif tool_name == "check_refund_eligibility":
-                raw_res = self.service.check_refund_eligibility(
+                raw_res = service.check_refund_eligibility(
                     session_customer_id=customer_id,
                     order_id=arguments["order_id"]
                 )
             elif tool_name == "request_refund":
-                raw_res = self.service.request_refund(
+                raw_res = service.request_refund(
                     session_customer_id=customer_id,
                     order_id=arguments["order_id"],
                     amount_cents=arguments["amount_cents"],

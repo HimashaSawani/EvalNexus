@@ -305,7 +305,7 @@ class RealOpenAIProvider(BaseLLMProvider):
         self.model_name = model_name
         self.provider_type = provider_type
         self.provider_timeout_sec = provider_timeout_sec
-        self.client = openai.OpenAI(api_key=api_key, base_url=base_url, timeout=provider_timeout_sec)
+        self.client = openai.OpenAI(api_key=api_key, base_url=base_url, timeout=provider_timeout_sec, max_retries=0)
 
     def generate(
         self,
