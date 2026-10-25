@@ -21,7 +21,7 @@ COPY scenarios/ ./scenarios/
 COPY docs/ ./docs/
 
 # Create unprivileged user
-RUN useradd -m appuser && chown -R appuser /app
+RUN useradd -m appuser && mkdir -p /data && chown -R appuser /app /data
 USER appuser
 
 EXPOSE 8000
