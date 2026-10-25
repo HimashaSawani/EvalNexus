@@ -117,12 +117,12 @@ The `DeterministicEvaluator` checks five core assertions per scenario:
 
 ## 5. Automated Tests & Browser Verification
 
-### Run Pytest Suite (67 Tests)
+### Run Pytest Suite (72 Tests)
 ```powershell
 Set-Location D:\AgentWindTunnel
 python -m pytest tests/ -v
 ```
-All 67 tests pass cleanly, covering agent loops, API endpoints, UI regressions, delivery assertions, evaluator negative tests, execution limits, fault behaviors, queue workers, refund domain services, and operational readiness.
+All 72 tests pass cleanly (100% pass rate in ~10.5s), covering agent loops, API endpoints (CRUD, cancellation, filtering, comparisons, 404 handling), UI regressions, delivery assertions, evaluator negative tests, execution limits, fault behaviors, queue workers, refund domain services, and operational readiness.
 
 ### Run Playwright Browser E2E Suite
 ```powershell
@@ -161,23 +161,33 @@ Before any internet-facing deployment:
 
 ---
 
-## 8. Three-Minute Demonstration Script
+## 8. Visual Showcase (Dashboard Screenshots)
 
-1. **0:00–0:45 (Overview & Catalog):**
-   - Open `http://127.0.0.1:8001/#overview`.
-   - Explain live database statistics (Total Runs, Pass Rate, Completion Rate, Mock vs Live Real breakdown).
-   - Switch to **Scenarios Catalog** (`#scenarios`), filter by category, and explain fixed fixtures, deterministic clocks, and simulated refund semantics.
-2. **0:45–1:30 (Mock Execution & Trace Inspection):**
-   - Click **Test in Studio** on `eligible_refund_scenario.json`.
-   - Select `agent_v1_baseline` and click **Run Tests**.
-   - Watch live progress bar transition to `COMPLETED`.
-   - Inspect **Evaluator Checks** (all 5 checks passed), **Trace Timeline** (ordered stepper), **Database State** (isolated customer & ledger record), and **Final Answer** (authentic agent response).
-3. **1:30–2:15 (Fault Injection, Recovery & Reload):**
-   - Select `agent_v2_improved` and run `fault_timeout_after_write.json`.
-   - Inspect fault trace: explain how upstream 504 timeout was safely handled via operation key idempotency.
-   - Refresh browser (`F5`); demonstrate deep-linked state restoration via URL hash (`#test-studio?run=...`).
-4. **2:15–3:00 (History, Comparisons & Settings):**
-   - Navigate to **Run History** (`#run-history`); show persisted execution records and filter by provider.
-   - Open **Comparisons** (`#comparisons`); select baseline vs improved runs and inspect the green compatibility banner and delta matrix.
-   - Click **Export JSON** and **Export Markdown** to demonstrate sanitized report downloads.
-   - Open **Settings** (`#settings`) to show masked API key presence indicators and zero credential leakage.
+### System Overview
+Real-time reliability metrics, provider distribution (Mock Simulator vs. Live Real), behavioral pass rate, and recent execution logs.
+![System Overview](docs/reports/screenshots/01_overview_desktop.png)
+
+### Test Studio & Runner
+Execute and inspect agent behavior under simulated real-world conditions, execution budgets, and fault injections with real-time status polling.
+![Test Studio](docs/reports/screenshots/02_test_studio_initial.png)
+
+### Scenarios Catalog
+Comprehensive 30-scenario benchmark library covering normal refund paths, 14-day boundary edge cases, and all 5 fault modes with instant "Test in Studio" routing.
+![Scenarios Catalog](docs/reports/screenshots/03_scenarios_catalog.png)
+
+### Agent Versions & System Prompts
+Direct side-by-side comparison of baseline (`agent_v1_baseline`) vs. robust fault-compliant (`agent_v2_improved`) system prompts and policy directives.
+![Agent Versions](docs/reports/screenshots/05_agent_versions.png)
+
+### Run History & Saved Evidence
+Immutable execution records persisted in SQLite database (WAL mode), filterable by engine mode and status, with deep inspection and JSON/Markdown export.
+![Run History](docs/reports/screenshots/06_run_history.png)
+
+### Run Comparisons & Compatibility Analysis
+Evaluates behavioral deltas, execution duration, and check results with automated compatibility verification.
+![Run Comparisons](docs/reports/screenshots/08_comparisons_compatible.png)
+
+### Settings & Redacted Configuration
+Displays runtime execution limits (30s timeout, 6 turns, 15,000 token budget), worker heartbeats, and credential masking (zero secret leakage).
+![Settings & Safety](docs/reports/screenshots/10_settings.png)
+
