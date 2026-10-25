@@ -1,0 +1,30 @@
+{
+  "checks": [
+    "Fresh SQLite database: empty history state visible",
+    "Catalog empty search state visible",
+    "After WAL configuration, mock execution survives refresh and completes",
+    "Final-code comparison of two identical scenario selections is compatible",
+    "Mobile navigation and full content width: overview",
+    "Mobile navigation and full content width: test-studio",
+    "Mobile navigation and full content width: scenarios",
+    "Mobile navigation and full content width: agent-versions",
+    "Mobile navigation and full content width: run-history",
+    "Mobile navigation and full content width: comparisons",
+    "Mobile navigation and full content width: settings",
+    "Injected network failure produces visible retry state; failed request is expected",
+    "Polling recovers after network access is restored"
+  ],
+  "errors": [],
+  "failed_requests": [
+    {
+      "url": "http://127.0.0.1:8765/api/runs/run_59f8f461c6",
+      "error": "net::ERR_FAILED"
+    }
+  ],
+  "mobile_bounds": {
+    "x": 0,
+    "y": 49,
+    "width": 390,
+    "height": 795
+  }
+}

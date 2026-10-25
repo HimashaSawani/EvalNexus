@@ -1,0 +1,7 @@
+{
+  "env_tracked": false,
+  "env_ignored": true,
+  "project_secret_values_checked": 1,
+  "redacted_files": [],
+  "public_exposure": "Blocked pending authentication, admission/spend limits, hosting and TLS"
+}
