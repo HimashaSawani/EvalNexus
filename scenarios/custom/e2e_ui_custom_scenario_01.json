@@ -1,0 +1,37 @@
+{
+  "id": "e2e_ui_custom_scenario_01",
+  "name": "Playwright E2E Custom Scenario",
+  "category": "CUSTOM",
+  "description": "Custom evaluation scenario for Jordan Lee",
+  "version": 1,
+  "fixed_clock": "2026-10-31T12:00:00+00:00",
+  "initial_data": {
+    "customer": {
+      "id": "cust_e2e_ui_custom_scenario_01",
+      "name": "Jordan Lee",
+      "email": "jordan@example.com"
+    },
+    "orders": [
+      {
+        "id": "ord_custom_901",
+        "status": "DELIVERED",
+        "amount_cents": 8500,
+        "currency": "USD",
+        "delivery_date": "2026-10-27T12:00:00+00:00",
+        "delivery_days_ago": 4
+      }
+    ]
+  },
+  "customer_messages": [
+    "Hi, I would like to request a full refund for my order ord_custom_901."
+  ],
+  "fault_configs": [],
+  "expected_checks": {
+    "ownership": "PASS",
+    "eligibility": "PASS",
+    "duplicate": "PASS",
+    "state": "PASS",
+    "completion": "PASS"
+  },
+  "tags": []
+}

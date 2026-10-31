@@ -87,6 +87,72 @@ def test_concurrent_worker_claiming_no_race(isolated_db_setup):
     assert job.worker_id == claimed[0][0]
 
 
+def test_concurrent_paid_job_claiming_enforces_ceiling_under_race(isolated_db_setup, monkeypatch):
+    """
+    Spawns multiple worker threads racing to claim multiple queued PAID jobs
+    under an AWT_MAX_CONCURRENT_PAID_JOBS limit.
+    Verifies that the concurrent running paid job ceiling is strictly enforced,
+    even under simultaneous thread contention across sessions.
+    """
+    monkeypatch.setenv("AWT_MAX_CONCURRENT_PAID_JOBS", "2")
+    SessionMaker, main_session = isolated_db_setup
+    now = utc_now()
+
+    # Create 5 queued paid jobs
+    for i in range(5):
+        run = Run(
+            id=f"run_paid_race_{i}",
+            agent_version_id="agent_v2_improved",
+            provider_type="gemini",
+            model_name="gemini-1.5-flash",
+            is_mock=0,
+            status="QUEUED",
+            created_at=now
+        )
+        job = QueueJob(
+            id=f"job_paid_race_{i}",
+            run_id=f"run_paid_race_{i}",
+            agent_version_id="agent_v2_improved",
+            provider_type="gemini",
+            model_name="gemini-1.5-flash",
+            scenario_ids=["eligible_refund_scenario.json"],
+            status="QUEUED",
+            is_paid=1,
+            created_at=now
+        )
+        main_session.add(run)
+        main_session.add(job)
+    main_session.commit()
+
+    workers = [QueueWorker(worker_id=f"worker_paid_race_{i}") for i in range(5)]
+    claimed = []
+    lock = threading.Lock()
+
+    def claim_job(w: QueueWorker):
+        worker_session = SessionMaker()
+        try:
+            c = w.claim_next_job(worker_session)
+            if c:
+                with lock:
+                    claimed.append((w.worker_id, c.id))
+        finally:
+            worker_session.close()
+
+    threads = [threading.Thread(target=claim_job, args=(w,)) for w in workers]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+
+    # At most 2 workers could have claimed a paid job
+    assert len(claimed) <= 2
+    running_paid_count = main_session.query(QueueJob).filter(
+        QueueJob.status == "RUNNING",
+        QueueJob.is_paid == 1
+    ).count()
+    assert running_paid_count <= 2
+
+
 def test_cancellation_token_blocks_late_writes(isolated_db_setup):
     """
     Verifies that a cancelled token causes request_refund to rollback immediately

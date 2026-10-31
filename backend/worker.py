@@ -108,6 +108,18 @@ class QueueWorker:
                         db.rollback()
                         return None
 
+                    # Post-claim invariant check for paid jobs across concurrent worker processes
+                    if candidate.is_paid == 1:
+                        running_paid_count = db.query(QueueJob).filter(
+                            QueueJob.is_paid == 1,
+                            QueueJob.status == "RUNNING"
+                        ).count()
+                        if running_paid_count > max_concurrent_paid:
+                            # Race condition detected across concurrent processes:
+                            # Rolled back claim immediately to strictly enforce spending ceiling.
+                            db.rollback()
+                            continue
+
                     # Update associated Run record
                     run = db.query(Run).filter(Run.id == candidate.run_id).first()
                     if run:

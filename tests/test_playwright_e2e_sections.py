@@ -113,17 +113,36 @@ def test_playwright_all_eleven_sections(live_server_proc):
         page.wait_for_selector("#settingsCredentialsTbody", timeout=5000)
         assert page.locator("#settingsCredentialsTbody").is_visible()
 
-        # 8. Custom Agent Registry Section (Stage 2)
+        # 8. Custom Agent Registry Section (Stage 2) - Form Interaction
         page.locator("#nav-custom-agents").click()
         page.wait_for_selector("#customAgentUrl", timeout=5000)
         assert page.locator("#customAgentUrl").is_visible()
         assert page.locator("#btnSaveCustomAgent").is_visible()
 
-        # 9. Scenario Builder Section (Stage 3)
+        # Test actual user interaction: Register a custom agent
+        page.fill("#customAgentName", "Playwright E2E External Agent")
+        page.fill("#customAgentUrl", "https://api.test-agent.example.com/v1/generate")
+        page.fill("#customAgentHeader", "Authorization")
+        page.fill("#customAgentToken", "test-secret-token-12345")
+        page.fill("#customAgentTimeout", "10")
+        page.locator("#btnSaveCustomAgent").click()
+        page.wait_for_selector("#customAgentSaveFeedback", timeout=5000)
+        feedback_text = page.locator("#customAgentSaveFeedback").text_content()
+        assert "Saved custom agent" in feedback_text or "Error" not in feedback_text
+
+        # 9. Scenario Builder Section (Stage 3) - Form Interaction
         page.locator("#nav-scenario-builder").click()
         page.wait_for_selector("#scenBuilderId", timeout=5000)
         assert page.locator("#scenBuilderId").is_visible()
         assert page.locator("#btnSaveScenario").is_visible()
+
+        # Test actual user interaction: Save a custom scenario
+        page.fill("#scenBuilderId", "e2e_ui_custom_scenario_01")
+        page.fill("#scenBuilderName", "Playwright E2E Custom Scenario")
+        page.locator("#btnSaveScenario").click()
+        page.wait_for_selector("#scenBuilderStatus", timeout=5000)
+        status_text = page.locator("#scenBuilderStatus").text_content()
+        assert "Saved custom scenario" in status_text or "saved" in status_text.lower()
 
         # 10. Regression Testing & Scorecards Section (Stage 4)
         page.locator("#nav-regression-testing").click()
@@ -131,11 +150,13 @@ def test_playwright_all_eleven_sections(live_server_proc):
         assert page.locator("#regBaselineSelect").is_visible()
         assert page.locator("#btnRunRegression").is_visible()
 
-        # 11. Failure Analysis Section (Stage 5)
+        # 11. Failure Analysis Section (Stage 5) - Filter Interaction
         page.locator("#nav-failure-analysis").click()
         page.wait_for_selector("#faCategoryFilter", timeout=5000)
         assert page.locator("#faCategoryFilter").is_visible()
         assert page.locator("#faPolicyCount").is_visible()
+        # Test actual user interaction: changing filter selection
+        page.select_option("#faCategoryFilter", "BEHAVIORAL_POLICY_VIOLATION")
 
         browser.close()
         assert len(console_errors) == 0, f"Uncaught browser console errors: {console_errors}"

@@ -13,8 +13,8 @@ V2 covers three simulated refund tools (`get_order`, `check_refund_eligibility`,
 - **Automated Regression Testing & Scorecards:** Compares baseline vs candidate agent runs, identifies behavioral tool-call sequence drift, classifies regressions (`REGRESSION_DETECTED`, `IMPROVED`, `PARITY`), calculates latency percentiles ($p50$/$p90$), and computes token/cost deltas with explicit disclaimers and sample-size statistical warnings.
 - **Root-Cause Failure Analysis:** Visual breakdown and filterable audit logs categorizing failures into Behavioral Policy Violations, Operational Limits Exceeded, and Provider Transport Outages.
 - **Configurable API Authentication & Rate Limiting:** API key / Bearer token security (`AWT_API_KEY`, `AWT_REQUIRE_AUTH`), sliding-window rate limiting, and trusted CORS origin enforcement (`AWT_ALLOWED_ORIGINS`).
-- **Multi-Process Concurrency & Spending Controls:** Database-backed `PaidProviderGuard` and atomic queue claiming preventing runaway cloud spend and race conditions across multiple worker processes.
-- **Automated Verification:** **102 passing automated tests** (100% pass rate, 0 failures, 0 deprecation warnings) across unit, API, database isolation, security hardening, custom adapters, regression engines, Alembic migration verification, and Playwright browser E2E suites covering all 11 dashboard sections.
+- **Multi-Process Concurrency & Spending Controls:** Database-backed `PaidProviderGuard`, atomic post-update ceiling checks, and atomic queue claiming preventing runaway cloud spend and race conditions across multiple worker processes.
+- **Automated Verification:** **103 passing automated tests** (100% pass rate, 0 failures, 0 deprecation warnings) across unit, API, database isolation, security hardening, custom adapters, regression engines, Alembic migration verification, and Playwright browser E2E suites covering all 11 dashboard sections.
 
 ---
 
@@ -128,22 +128,22 @@ Scenarios that do not pass are classified into structured failure categories:
 
 ---
 
-## 6. Automated Verification Suites (102 Tests)
+## 6. Automated Verification Suites (103 Tests)
 
 ### Run Full Pytest Test Suite
 ```powershell
 Set-Location D:\AgentWindTunnel\AgentWindTunnel
 python -m pytest tests/ -v
 ```
-All **102 tests pass** cleanly with **0 failures and 0 warnings**:
+All **103 tests pass** cleanly with **0 failures and 0 warnings**:
 - Unit and domain logic (`test_agent_runner.py`, `test_refund_service.py`)
 - API endpoints & 404 routing (`test_api.py`)
 - Custom Agent HTTP Adapter lifecycle & SSRF/redirect protection (`test_custom_http_agent.py`)
 - Custom Scenario Builder validation, path traversal prevention, & import/export (`test_custom_scenario_builder.py`)
 - Automated Regression Comparator, latency percentiles, & scorecards (`test_regression_comparison.py`)
 - Security hardening, credential redaction, rate limiting, and multi-process paid guards (`test_security_hardening.py`)
-- Multi-process worker concurrency & atomic claiming (`test_database_worker_reliability.py`)
-- Playwright browser E2E test covering all 11 dashboard sections (`test_playwright_e2e_sections.py`)
+- Multi-process worker concurrency, atomic claiming, and race ceiling enforcement (`test_database_worker_reliability.py`)
+- Playwright browser E2E test covering all 11 dashboard sections and interactive workflows (`test_playwright_e2e_sections.py`)
 - Evaluator negative leak detection (`test_evaluator_negative.py`)
 - Fault injection and late-write blocking (`test_fault_behaviors.py`)
 - Playwright browser E2E verification across all 11 dashboard sections (`test_playwright_e2e_sections.py`)
