@@ -8,7 +8,7 @@ from backend.domain.refund_service import RefundService, RefundDomainError
 from backend.runner.trace_logger import TraceLogger
 from backend.faults.fault_injector import FaultInjector, FaultInjectionError
 from backend.agent.tools_schema import TOOLS_SPEC, validate_tool_arguments
-from backend.agent.provider import BaseLLMProvider
+from backend.agent.provider import BaseLLMProvider, calculate_cost_microcents
 
 
 class AgentExecutionLimitError(Exception):
@@ -90,6 +90,7 @@ class AgentLoop:
         turns = 0
         total_tool_calls = 0
         total_tokens = 0
+        total_cost_microcents = 0
         final_answer = None
 
         while turns < self.max_turns:
@@ -130,6 +131,14 @@ class AgentLoop:
             d_model = int((time.time() - t_model_start) * 1000)
             total_tokens += llm_res.total_tokens
 
+            step_cost = calculate_cost_microcents(
+                getattr(self.provider, "provider_type", "mock"),
+                getattr(self.provider, "model_name", "mock-deterministic-v1"),
+                llm_res.prompt_tokens,
+                llm_res.completion_tokens
+            )
+            total_cost_microcents += step_cost
+
             # Trace log model call
             self.trace_logger.log_event(
                 event_type="MODEL_CALL",
@@ -140,7 +149,8 @@ class AgentLoop:
                     "prompt_tokens": llm_res.prompt_tokens,
                     "completion_tokens": llm_res.completion_tokens,
                     "total_tokens": llm_res.total_tokens
-                }
+                },
+                cost_estimate=step_cost
             )
 
             # A final response must not bypass the scenario deadline after a slow provider or trace commit.
@@ -216,6 +226,8 @@ class AgentLoop:
             "turns": turns,
             "total_tool_calls": total_tool_calls,
             "total_tokens": total_tokens,
+            "total_cost_microcents": total_cost_microcents,
+            "cost_usd": round(total_cost_microcents / 100_000_000.0, 6),
             "duration_ms": int((time.time() - start_time) * 1000),
             "unresolved_tasks": [
                 {

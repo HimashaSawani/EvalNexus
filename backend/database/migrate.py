@@ -1,27 +1,37 @@
-import sqlite3
+"""
+AgentWindTunnel Database Migration & Initialization Utility
+Supports both Alembic-driven migrations and direct schema initialization for SQLite and PostgreSQL.
+"""
+
 import os
+import sys
+from pathlib import Path
+from alembic.config import Config
+from alembic import command
 
-db_path = "agent_wind_tunnel.db"
-if os.path.exists(db_path):
-    conn = sqlite3.connect(db_path)
-    cursor = conn.cursor()
-    cursor.execute("PRAGMA table_info(runs)")
-    existing_cols = [row[1] for row in cursor.fetchall()]
+from backend.database.connection import engine, Base
 
-    new_cols = {
-        "provider_type": "VARCHAR(32) DEFAULT 'mock'",
-        "model_name": "VARCHAR(64) DEFAULT 'mock-deterministic-v1'",
-        "is_mock": "INTEGER DEFAULT 1",
-        "execution_config": "JSON"
-    }
 
-    for col, col_def in new_cols.items():
-        if col not in existing_cols:
-            cursor.execute(f"ALTER TABLE runs ADD COLUMN {col} {col_def}")
-            print(f"Added column {col} to runs table.")
+def run_migrations():
+    """Runs Alembic migrations up to head, or initializes schema directly if needed."""
+    root_dir = Path(__file__).resolve().parent.parent.parent
+    alembic_ini = root_dir / "alembic.ini"
 
-    conn.commit()
-    conn.close()
-    print("Database migration finished successfully.")
-else:
-    print("Database file does not exist yet. It will be initialized on first run.")
+    if alembic_ini.exists():
+        try:
+            print("Running Alembic migrations to head...")
+            alembic_cfg = Config(str(alembic_ini))
+            command.upgrade(alembic_cfg, "head")
+            print("Alembic migrations completed successfully.")
+            return
+        except Exception as e:
+            print(f"Alembic migration encountered notice: {e}. Ensuring schema tables exist...")
+
+    # Fallback to direct SQLAlchemy table creation
+    print("Ensuring all database tables are created via SQLAlchemy metadata...")
+    Base.metadata.create_all(bind=engine)
+    print("Database tables initialized successfully.")
+
+
+if __name__ == "__main__":
+    run_migrations()

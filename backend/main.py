@@ -21,6 +21,8 @@ from backend.database.models import (
     Order,
     RefundRequest,
     QueueJob,
+    CustomAgent,
+    CustomScenario,
     utc_now
 )
 from backend.runner.scripted_runner import ScriptedRunner
@@ -28,8 +30,19 @@ from backend.runner.agent_runner import AgentWindTunnelRunner, DEFAULT_PROMPTS
 from backend.agent.provider import (
     discover_available_gemini_models,
     validate_model_name,
-    sanitize_secret
+    sanitize_secret,
+    COST_DISCLAIMER
 )
+from backend.agent.custom_adapter import CustomAgentRegistration, CustomHTTPAgentProvider
+from backend.scenarios.custom_scenario_service import (
+    save_custom_scenario,
+    list_custom_scenarios,
+    get_custom_scenario,
+    delete_custom_scenario,
+    export_custom_scenario,
+    import_custom_scenario
+)
+from backend.runner.regression_comparator import RegressionComparator
 from backend.worker import QueueWorker
 
 # Initialize DB tables
@@ -63,13 +76,39 @@ app = FastAPI(
     lifespan=lifespan
 )
 
+from backend.security import (
+    get_allowed_origins,
+    verify_api_key,
+    general_limiter,
+    execution_limiter,
+    paid_guard,
+    is_auth_required
+)
+from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.responses import JSONResponse
+
+allowed_origins = get_allowed_origins()
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allow_headers=["*"],
 )
+
+class SecurityRateLimitMiddleware(BaseHTTPMiddleware):
+    async def dispatch(self, request, call_next):
+        path = request.url.path
+        if path.startswith("/api/"):
+            client_ip = request.client.host if request.client else "unknown"
+            if not general_limiter.check(client_ip):
+                return JSONResponse(
+                    status_code=429,
+                    content={"detail": "Rate limit exceeded. Please slow down your requests."}
+                )
+        return await call_next(request)
+
+app.add_middleware(SecurityRateLimitMiddleware)
 
 
 @app.get("/")
@@ -113,7 +152,7 @@ def readiness_check(db: Session = Depends(get_db)):
 # -------------------------------------------------------------
 
 @app.get("/api/agent-versions")
-def list_agent_versions():
+def list_agent_versions(_auth: str = Depends(verify_api_key)):
     return [
         {
             "id": "agent_v1_baseline",
@@ -137,7 +176,7 @@ def list_agent_versions():
 
 
 @app.get("/api/models")
-def list_available_models():
+def list_available_models(_auth: str = Depends(verify_api_key)):
     """Discovers configured models; discovery does not verify tool-calling support."""
     models = [
         {
@@ -192,7 +231,7 @@ def list_available_models():
 
 
 @app.get("/api/settings")
-def get_system_settings(db: Session = Depends(get_db)):
+def get_system_settings(db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
     """
     Returns sanitized configuration status, secret readiness, and execution limits.
     CRITICAL: Never exposes secret keys!
@@ -241,7 +280,7 @@ def _load_all_scenarios() -> List[Dict[str, Any]]:
     scenarios = []
     seen_ids = set()
 
-    search_dirs = ["scenarios", os.path.join("scenarios", "dev")]
+    search_dirs = ["scenarios", os.path.join("scenarios", "dev"), os.path.join("scenarios", "custom")]
     for sdir in search_dirs:
         if os.path.exists(sdir):
             for fname in os.listdir(sdir):
@@ -255,6 +294,7 @@ def _load_all_scenarios() -> List[Dict[str, Any]]:
                                 seen_ids.add(sid)
                                 data["file_ref"] = fname
                                 data["is_dev_suite"] = ("dev" in sdir or "scen_" in fname)
+                                data["is_custom"] = ("custom" in sdir)
                                 scenarios.append(data)
                     except Exception:
                         pass
@@ -262,7 +302,7 @@ def _load_all_scenarios() -> List[Dict[str, Any]]:
 
 
 @app.get("/api/scenarios")
-def list_scenarios():
+def list_scenarios(_auth: str = Depends(verify_api_key)):
     return _load_all_scenarios()
 
 
@@ -271,7 +311,7 @@ def list_scenarios():
 # -------------------------------------------------------------
 
 @app.get("/api/overview/metrics")
-def get_overview_metrics(db: Session = Depends(get_db)):
+def get_overview_metrics(db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
     """
     Computes real metrics from the database without any hardcoded numbers.
     Distinguishes mock runs vs real provider runs.
@@ -349,7 +389,8 @@ def list_runs(
     provider_type: Optional[str] = Query(None),
     status: Optional[str] = Query(None),
     limit: int = 50,
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _auth: Optional[str] = Depends(verify_api_key)
 ):
     query = db.query(Run)
     if provider_type and provider_type != "all":
@@ -388,7 +429,7 @@ def list_runs(
 
 
 @app.post("/api/runs/execute")
-def execute_benchmark_run(payload: Dict[str, Any], db: Session = Depends(get_db)):
+def execute_benchmark_run(payload: Dict[str, Any], db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
     """
     Synchronous execution of a scenario (compatible with test suite & direct API clients).
     """
@@ -401,6 +442,7 @@ def execute_benchmark_run(payload: Dict[str, Any], db: Session = Depends(get_db)
         scenario_file,
         os.path.join("scenarios", scenario_file),
         os.path.join("scenarios", "dev", scenario_file),
+        os.path.join("scenarios", "custom", scenario_file),
     ]
     fpath = next((c for c in candidates if os.path.isfile(c)), None)
     if not fpath:
@@ -409,19 +451,39 @@ def execute_benchmark_run(payload: Dict[str, Any], db: Session = Depends(get_db)
     with open(fpath, "r", encoding="utf-8") as f:
         scenario_data = json.load(f)
 
+    if provider_type not in ["mock", "custom", "custom_http"]:
+        paid_guard.check_and_acquire(provider_type, queue_depth_paid=0)
+
     if agent_version_id == "scripted":
         runner = ScriptedRunner(db)
         return runner.run_scenario(scenario_data)
     else:
         try:
-            runner = AgentWindTunnelRunner(db, provider_type=provider_type, model_name=model_name)
-            return runner.run_agent_scenario(scenario_data, agent_version_id=agent_version_id)
+            custom_endpoint_url = payload.get("endpoint_url")
+            if not custom_endpoint_url and provider_type.startswith("custom"):
+                agent_record = db.query(CustomAgent).filter(
+                    (CustomAgent.id == model_name) | (CustomAgent.name == model_name)
+                ).first()
+                if agent_record:
+                    custom_endpoint_url = agent_record.endpoint_url
+
+            runner = AgentWindTunnelRunner(
+                db,
+                provider_type=provider_type,
+                model_name=model_name,
+                endpoint_url=custom_endpoint_url
+            )
+            res = runner.run_agent_scenario(scenario_data, agent_version_id=agent_version_id)
+            return res
         except RuntimeError as re:
             raise HTTPException(status_code=400, detail=str(re))
+        finally:
+            if provider_type != "mock":
+                paid_guard.release(provider_type)
 
 
 @app.post("/api/runs/scripted")
-def run_scripted_scenario(payload: Dict[str, Any], db: Session = Depends(get_db)):
+def run_scripted_scenario(payload: Dict[str, Any], db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
     if "scenario_file" in payload:
         s_file = payload["scenario_file"]
         candidates = [s_file, os.path.join("scenarios", s_file), os.path.join("scenarios", "dev", s_file)]
@@ -440,7 +502,7 @@ def run_scripted_scenario(payload: Dict[str, Any], db: Session = Depends(get_db)
 
 
 @app.post("/api/runs/queue")
-def queue_run(payload: Dict[str, Any], db: Session = Depends(get_db)):
+def queue_run(payload: Dict[str, Any], db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
     """
     Submits a benchmark run to the persistent queue.
     Supports single scenario or full development suite.
@@ -450,9 +512,23 @@ def queue_run(payload: Dict[str, Any], db: Session = Depends(get_db)):
     model_name = payload.get("model_name") or ("mock-deterministic-v1" if provider_type == "mock" else "gemini-flash-lite-latest")
     suite_or_scenarios = payload.get("scenarios") or payload.get("scenario_file") or "dev_suite"
 
-    # Validate model
-    if provider_type != "mock":
+    # Validate model & budget
+    if provider_type not in ["mock", "custom", "custom_http"]:
         validate_model_name(model_name)
+        active_paid = db.query(QueueJob).filter(
+            QueueJob.is_paid == 1,
+            QueueJob.status.in_(["QUEUED", "RUNNING"])
+        ).count()
+        paid_guard.check_and_acquire(provider_type, queue_depth_paid=active_paid)
+        paid_guard.release(provider_type)
+
+    custom_endpoint_url = payload.get("endpoint_url")
+    if not custom_endpoint_url and provider_type.startswith("custom"):
+        agent_record = db.query(CustomAgent).filter(
+            (CustomAgent.id == model_name) | (CustomAgent.name == model_name)
+        ).first()
+        if agent_record:
+            custom_endpoint_url = agent_record.endpoint_url
 
     # Resolve scenario list
     scenario_files: List[str] = []
@@ -484,15 +560,18 @@ def queue_run(payload: Dict[str, Any], db: Session = Depends(get_db)):
 
     run_id = f"run_{uuid.uuid4().hex[:10]}"
     job_id = f"job_{uuid.uuid4().hex[:10]}"
-    is_paid = 1 if provider_type != "mock" else 0
+    is_paid = 1 if provider_type.lower() in ["openai", "gemini"] else 0
 
-    execution_config = payload.get("execution_config") or {
+    raw_config = payload.get("execution_config") or {
         "max_turns": 6,
         "max_tool_calls": 10,
         "max_tokens_budget": 15000,
         "scenario_timeout_sec": 30.0,
         "tool_timeout_sec": 5.0
     }
+    execution_config = paid_guard.validate_execution_budget(raw_config)
+    if custom_endpoint_url:
+        execution_config["endpoint_url"] = custom_endpoint_url
 
     now = utc_now()
     run = Run(
@@ -537,7 +616,7 @@ def queue_run(payload: Dict[str, Any], db: Session = Depends(get_db)):
 
 
 @app.get("/api/runs/{run_id}")
-def get_run_details(run_id: str, db: Session = Depends(get_db)):
+def get_run_details(run_id: str, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
     run = db.query(Run).filter(Run.id == run_id).first()
     if not run:
         raise HTTPException(status_code=404, detail="Run not found")
@@ -626,6 +705,7 @@ def get_run_details(run_id: str, db: Session = Depends(get_db)):
 
     return {
         "run_id": run.id,
+        "cost_disclaimer": COST_DISCLAIMER,
         "error_message": run.queue_job.error_message if run.queue_job else None,
         "status": run.status,
         "agent_version_id": run.agent_version_id,
@@ -645,7 +725,7 @@ def get_run_details(run_id: str, db: Session = Depends(get_db)):
 
 
 @app.post("/api/runs/{run_id}/cancel")
-def cancel_run(run_id: str, db: Session = Depends(get_db)):
+def cancel_run(run_id: str, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
     """Cancels a queued or currently executing run."""
     run = db.query(Run).filter(Run.id == run_id).first()
     if not run:
@@ -672,7 +752,8 @@ def cancel_run(run_id: str, db: Session = Depends(get_db)):
 def compare_runs(
     run_a: str = Query(..., description="First Run ID (Baseline)"),
     run_b: str = Query(..., description="Second Run ID (Target)"),
-    db: Session = Depends(get_db)
+    db: Session = Depends(get_db),
+    _auth: Optional[str] = Depends(verify_api_key)
 ):
     """
     Compares two runs side-by-side with strict compatibility checks.
@@ -726,10 +807,18 @@ def compare_runs(
 
     rate_a = (record_a.passed_scenarios / record_a.total_scenarios * 100.0) if record_a.total_scenarios else 0.0
     rate_b = (record_b.passed_scenarios / record_b.total_scenarios * 100.0) if record_b.total_scenarios else 0.0
+    scen_count = min(record_a.total_scenarios or 0, record_b.total_scenarios or 0)
+    statistical_confidence = (
+        f"INSUFFICIENT_SAMPLE_SIZE (N={scen_count} < 10; observational only, do not claim statistical reliability)"
+        if scen_count < 10 else f"VALID_BENCHMARK_SAMPLE (N={scen_count} >= 10)"
+    )
 
     return {
         "is_compatible": is_compatible,
         "config_diffs": config_diffs,
+        "statistical_confidence": statistical_confidence,
+        "cost_disclaimer": COST_DISCLAIMER,
+        "pass_rate_delta": round(rate_b - rate_a, 1),
         "run_a": {
             "id": record_a.id,
             "agent_version": record_a.agent_version_id,
@@ -761,7 +850,7 @@ def compare_runs(
 # -------------------------------------------------------------
 
 @app.get("/api/runs/{run_id}/export")
-def export_run(run_id: str, format: str = "json", db: Session = Depends(get_db)):
+def export_run(run_id: str, format: str = "json", db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
     """Exports run results as clean JSON or formatted Markdown report without secrets."""
     details = get_run_details(run_id, db)
 
@@ -814,3 +903,215 @@ def export_run(run_id: str, format: str = "json", db: Session = Depends(get_db))
         media_type="text/markdown",
         headers={"Content-Disposition": f"attachment; filename=agent_wind_tunnel_report_{run_id}.md"}
     )
+
+
+# -------------------------------------------------------------
+# Stage 2: Custom Agent Registry Endpoints
+# -------------------------------------------------------------
+
+@app.post("/api/custom-agents")
+def register_custom_agent(payload: Dict[str, Any], db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    try:
+        reg = CustomAgentRegistration(**payload)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid custom agent configuration: {str(e)}")
+
+    agent_id = reg.id or f"custom_{uuid.uuid4().hex[:8]}"
+    masked_token = (
+        f"{reg.auth_token[:3]}***{reg.auth_token[-3:]}"
+        if (reg.auth_token and len(reg.auth_token) >= 6)
+        else ("***" if reg.auth_token else None)
+    )
+
+    existing = db.query(CustomAgent).filter(CustomAgent.id == agent_id).first()
+    if existing:
+        existing.name = reg.name
+        existing.description = reg.description
+        existing.endpoint_url = reg.endpoint_url
+        existing.auth_header_name = reg.auth_header_name
+        if reg.auth_token:
+            existing.auth_token_secret = reg.auth_token
+            existing.auth_token_masked = masked_token
+        existing.timeout_sec = int(reg.timeout_sec)
+        existing.updated_at = utc_now()
+    else:
+        new_agent = CustomAgent(
+            id=agent_id,
+            name=reg.name,
+            description=reg.description,
+            endpoint_url=reg.endpoint_url,
+            auth_header_name=reg.auth_header_name,
+            auth_token_secret=reg.auth_token,
+            auth_token_masked=masked_token,
+            timeout_sec=int(reg.timeout_sec),
+            is_active=1
+        )
+        db.add(new_agent)
+    db.commit()
+
+    return {
+        "id": agent_id,
+        "name": reg.name,
+        "endpoint_url": reg.endpoint_url,
+        "auth_header_name": reg.auth_header_name,
+        "auth_token_masked": masked_token,
+        "timeout_sec": reg.timeout_sec,
+        "status": "REGISTERED"
+    }
+
+
+@app.get("/api/custom-agents")
+def list_custom_agents(db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    agents = db.query(CustomAgent).order_by(CustomAgent.created_at.desc()).all()
+    return [
+        {
+            "id": a.id,
+            "name": a.name,
+            "description": a.description,
+            "endpoint_url": a.endpoint_url,
+            "auth_header_name": a.auth_header_name,
+            "auth_token_masked": a.auth_token_masked,
+            "timeout_sec": a.timeout_sec,
+            "is_active": bool(a.is_active),
+            "created_at": a.created_at.isoformat() if a.created_at else None,
+            "updated_at": a.updated_at.isoformat() if a.updated_at else None,
+        }
+        for a in agents
+    ]
+
+
+@app.get("/api/custom-agents/{agent_id}")
+def get_custom_agent_details(agent_id: str, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    a = db.query(CustomAgent).filter(CustomAgent.id == agent_id).first()
+    if not a:
+        raise HTTPException(status_code=404, detail="Custom agent not found")
+    return {
+        "id": a.id,
+        "name": a.name,
+        "description": a.description,
+        "endpoint_url": a.endpoint_url,
+        "auth_header_name": a.auth_header_name,
+        "auth_token_masked": a.auth_token_masked,
+        "timeout_sec": a.timeout_sec,
+        "is_active": bool(a.is_active),
+        "created_at": a.created_at.isoformat() if a.created_at else None,
+        "updated_at": a.updated_at.isoformat() if a.updated_at else None,
+    }
+
+
+@app.delete("/api/custom-agents/{agent_id}")
+def delete_custom_agent(agent_id: str, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    a = db.query(CustomAgent).filter(CustomAgent.id == agent_id).first()
+    if not a:
+        raise HTTPException(status_code=404, detail="Custom agent not found")
+    db.delete(a)
+    db.commit()
+    return {"status": "DELETED", "id": agent_id}
+
+
+@app.post("/api/custom-agents/{agent_id}/ping")
+def ping_custom_agent(agent_id: str, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    a = db.query(CustomAgent).filter(CustomAgent.id == agent_id).first()
+    if not a:
+        raise HTTPException(status_code=404, detail="Custom agent not found")
+    provider = CustomHTTPAgentProvider(
+        endpoint_url=a.endpoint_url,
+        name=a.name,
+        auth_header_name=a.auth_header_name or "Authorization",
+        auth_token=a.auth_token_secret,
+        timeout_sec=float(a.timeout_sec or 15)
+    )
+    return provider.ping()
+
+
+# -------------------------------------------------------------
+# Stage 3: Custom Scenario Builder Endpoints
+# -------------------------------------------------------------
+
+@app.post("/api/scenarios/custom")
+def create_custom_scenario(payload: Dict[str, Any], db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    try:
+        res = save_custom_scenario(db, payload)
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/api/scenarios/custom")
+def get_custom_scenarios(db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    return list_custom_scenarios(db)
+
+
+@app.get("/api/scenarios/custom/{scenario_id}")
+def get_single_custom_scenario(scenario_id: str, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    scen = get_custom_scenario(db, scenario_id)
+    if not scen:
+        raise HTTPException(status_code=404, detail=f"Custom scenario '{scenario_id}' not found.")
+    return scen
+
+
+@app.delete("/api/scenarios/custom/{scenario_id}")
+def remove_custom_scenario(scenario_id: str, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    success = delete_custom_scenario(db, scenario_id)
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Custom scenario '{scenario_id}' not found.")
+    return {"status": "DELETED", "id": scenario_id}
+
+
+@app.get("/api/scenarios/custom/{scenario_id}/export")
+def export_scenario_file(scenario_id: str, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    try:
+        content = export_custom_scenario(db, scenario_id)
+        return Response(
+            content=content,
+            media_type="application/json",
+            headers={"Content-Disposition": f"attachment; filename={scenario_id}.json"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.post("/api/scenarios/custom/import")
+def import_scenario_payload(payload: Dict[str, Any], db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    try:
+        json_str = payload.get("content") or json.dumps(payload.get("data") or payload)
+        res = import_custom_scenario(db, json_str)
+        return res
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Import failed: {str(e)}")
+
+
+# -------------------------------------------------------------
+# Stage 4: Automated Regression Testing Endpoints
+# -------------------------------------------------------------
+
+@app.post("/api/regression/compare")
+def compare_regression_runs(payload: Dict[str, Any], db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    baseline_id = payload.get("baseline_run_id")
+    candidate_id = payload.get("candidate_run_id")
+    if not baseline_id or not candidate_id:
+        raise HTTPException(status_code=400, detail="Must provide both 'baseline_run_id' and 'candidate_run_id'.")
+    try:
+        comparator = RegressionComparator(db)
+        return comparator.compare(baseline_id, candidate_id)
+    except ValueError as ve:
+        raise HTTPException(status_code=404, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Regression analysis failed: {str(e)}")
+
+
+@app.get("/api/regression/report/{baseline_run_id}/{candidate_run_id}")
+def get_regression_report(baseline_run_id: str, candidate_run_id: str, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    try:
+        comparator = RegressionComparator(db)
+        report = comparator.compare(baseline_run_id, candidate_run_id)
+        return Response(
+            content=json.dumps(report, indent=2),
+            media_type="application/json",
+            headers={"Content-Disposition": f"attachment; filename=regression_report_{baseline_run_id}_{candidate_run_id}.json"}
+        )
+    except ValueError as ve:
+        raise HTTPException(status_code=404, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Regression analysis failed: {str(e)}")
+

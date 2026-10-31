@@ -26,8 +26,10 @@ def get_scenario_data(scenario_ref: str) -> Optional[Dict[str, Any]]:
         scenario_ref,
         os.path.join("scenarios", scenario_ref),
         os.path.join("scenarios", "dev", scenario_ref),
+        os.path.join("scenarios", "custom", scenario_ref),
         os.path.join("scenarios", f"{scenario_ref}.json"),
         os.path.join("scenarios", "dev", f"{scenario_ref}.json"),
+        os.path.join("scenarios", "custom", f"{scenario_ref}.json"),
     ]
     for c in candidates:
         if os.path.isfile(c):
@@ -35,6 +37,8 @@ def get_scenario_data(scenario_ref: str) -> Optional[Dict[str, Any]]:
                 return json.load(f)
     return None
 
+
+_process_claim_lock = threading.Lock()
 
 class QueueWorker:
     """
@@ -60,41 +64,65 @@ class QueueWorker:
     def claim_next_job(self, db: Session) -> Optional[QueueJob]:
         """
         Atomically claims the oldest QUEUED job.
-        Uses optimistic status matching to prevent race conditions across multiple workers.
+        Uses thread locking, optimistic status matching, and retry with backoff
+        to prevent race conditions across multiple workers and processes.
         """
-        candidate = db.query(QueueJob).filter(
-            QueueJob.status == "QUEUED"
-        ).order_by(QueueJob.created_at.asc()).first()
+        with _process_claim_lock:
+            for attempt in range(3):
+                try:
+                    max_concurrent_paid = int(os.getenv("AWT_MAX_CONCURRENT_PAID_JOBS", "2"))
+                    active_paid = db.query(QueueJob).filter(
+                        QueueJob.is_paid == 1,
+                        QueueJob.status == "RUNNING"
+                    ).count()
 
-        if not candidate:
-            return None
+                    candidate = None
+                    if active_paid >= max_concurrent_paid:
+                        # Paid limit reached across all processes: only claim non-paid queued jobs
+                        candidate = db.query(QueueJob).filter(
+                            QueueJob.status == "QUEUED",
+                            QueueJob.is_paid == 0
+                        ).order_by(QueueJob.created_at.asc()).first()
+                    else:
+                        candidate = db.query(QueueJob).filter(
+                            QueueJob.status == "QUEUED"
+                        ).order_by(QueueJob.created_at.asc()).first()
 
-        # Atomic status update
-        now = utc_now()
-        updated_rows = db.query(QueueJob).filter(
-            QueueJob.id == candidate.id,
-            QueueJob.status == "QUEUED"
-        ).update({
-            QueueJob.status: "RUNNING",
-            QueueJob.worker_id: self.worker_id,
-            QueueJob.started_at: now,
-            QueueJob.heartbeat_at: now
-        })
+                    if not candidate:
+                        return None
 
-        if updated_rows == 0:
-            # Another worker claimed it first
-            db.rollback()
-            return None
+                    # Atomic status update
+                    now = utc_now()
+                    updated_rows = db.query(QueueJob).filter(
+                        QueueJob.id == candidate.id,
+                        QueueJob.status == "QUEUED"
+                    ).update({
+                        QueueJob.status: "RUNNING",
+                        QueueJob.worker_id: self.worker_id,
+                        QueueJob.started_at: now,
+                        QueueJob.heartbeat_at: now
+                    })
 
-        # Update associated Run record
-        run = db.query(Run).filter(Run.id == candidate.run_id).first()
-        if run:
-            run.status = "RUNNING"
-            run.started_at = now
+                    if updated_rows == 0:
+                        # Another worker claimed it first
+                        db.rollback()
+                        return None
 
-        db.commit()
-        db.refresh(candidate)
-        return candidate
+                    # Update associated Run record
+                    run = db.query(Run).filter(Run.id == candidate.run_id).first()
+                    if run:
+                        run.status = "RUNNING"
+                        run.started_at = now
+
+                    db.commit()
+                    db.refresh(candidate)
+                    return candidate
+                except Exception as e:
+                    db.rollback()
+                    if attempt < 2 and "locked" in str(e).lower():
+                        time.sleep(0.05 * (attempt + 1))
+                        continue
+                    raise
 
     def reap_abandoned_jobs(self, db: Session, heartbeat_cutoff_sec: float = 30.0) -> int:
         """
@@ -218,10 +246,14 @@ class QueueWorker:
                             runner = ScriptedRunner(scen_db)
                             res = runner.run_scenario(scenario_data, agent_version_id=agent_type, run_id=job.run_id)
                         else:
+                            custom_url = None
+                            if job.execution_config and isinstance(job.execution_config, dict):
+                                custom_url = job.execution_config.get("endpoint_url")
                             runner = AgentWindTunnelRunner(
                                 scen_db,
                                 provider_type=job.provider_type,
-                                model_name=job.model_name
+                                model_name=job.model_name,
+                                endpoint_url=custom_url
                             )
                             res = runner.run_agent_scenario(
                                 scenario_data,

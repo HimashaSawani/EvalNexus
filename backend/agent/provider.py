@@ -210,6 +210,37 @@ class MockToolCallingProvider(BaseLLMProvider):
         )
 
 
+COST_DISCLAIMER = (
+    "Estimated model costs are heuristic approximations based on published token pricing "
+    "and do not represent guaranteed provider invoice amounts."
+)
+
+
+def calculate_cost_microcents(provider_type: str, model_name: str, prompt_tokens: int, completion_tokens: int) -> int:
+    """
+    Computes provider execution cost in microcents (1/1,000,000 of a USD cent = $10^-8).
+    Returns 0 for mock simulation.
+    """
+    if not provider_type or provider_type.lower() == "mock":
+        return 0
+
+    model = (model_name or "").lower()
+    # Gemini Flash Lite / 1.5 Flash: $0.075 / 1M input, $0.30 / 1M output
+    if "flash-lite" in model or "flash" in model:
+        return (prompt_tokens * 750) + (completion_tokens * 3000)
+
+    # GPT-4o-mini: $0.15 / 1M input, $0.60 / 1M output
+    if "4o-mini" in model:
+        return (prompt_tokens * 1500) + (completion_tokens * 6000)
+
+    # GPT-4o: $2.50 / 1M input, $10.00 / 1M output
+    if "4o" in model:
+        return (prompt_tokens * 25000) + (completion_tokens * 100000)
+
+    # Default fallback for other real models: $0.20 / 1M input, $0.80 / 1M output
+    return (prompt_tokens * 2000) + (completion_tokens * 8000)
+
+
 SUPPORTED_MODELS = {
     "openai": ["gpt-4o-mini", "gpt-4o", "gpt-4-turbo"],
     "gemini": ["gemini-flash-lite-latest", "gemini-3.1-flash-lite", "gemini-3.5-flash-lite", "gemini-3.8-flash", "gemini-flash-latest"]
@@ -367,17 +398,30 @@ class RealOpenAIProvider(BaseLLMProvider):
 def resolve_provider(
     provider_type: str = "mock",
     model_name: Optional[str] = None,
-    api_key: Optional[str] = None
+    api_key: Optional[str] = None,
+    endpoint_url: Optional[str] = None
 ) -> BaseLLMProvider:
     """
-    Factory function ensuring strict separation between Mock and Real execution.
-    Never silently substitutes a mock provider if a real provider was requested.
+    Factory function ensuring strict separation between Mock, Real, and Custom execution.
+    Never silently substitutes a mock provider if a real or custom provider was requested.
     Never prints or logs API keys.
     """
     provider_type = provider_type.lower()
 
     if provider_type == "mock":
         return MockToolCallingProvider(model_name=model_name or "mock-deterministic-v1")
+
+    if provider_type in ["custom", "custom_http", "http"]:
+        from backend.agent.custom_adapter import CustomHTTPAgentProvider
+        url = endpoint_url or os.getenv("AWT_CUSTOM_AGENT_URL", "http://localhost:8080/invocations")
+        return CustomHTTPAgentProvider(
+            endpoint_url=url,
+            name=model_name or "custom-agent",
+            auth_header_name=os.getenv("AWT_CUSTOM_AUTH_HEADER", "Authorization"),
+            auth_token=api_key or os.getenv("AWT_CUSTOM_AUTH_TOKEN"),
+            timeout_sec=float(os.getenv("AWT_CUSTOM_AGENT_TIMEOUT", "15.0")),
+            model_name=model_name
+        )
 
     if provider_type in ["openai", "gemini"]:
         key = api_key or (os.getenv("OPENAI_API_KEY") if provider_type == "openai" else os.getenv("GEMINI_API_KEY"))

@@ -20,7 +20,7 @@ from backend.runner.trace_logger import TraceLogger
 from backend.runner.evaluator import DeterministicEvaluator
 from backend.faults.fault_injector import FaultInjector
 from backend.agent.agent_loop import AgentLoop, AgentExecutionLimitError
-from backend.agent.provider import BaseLLMProvider, resolve_provider, sanitize_secret
+from backend.agent.provider import BaseLLMProvider, resolve_provider, sanitize_secret, COST_DISCLAIMER
 
 
 DEFAULT_PROMPTS = {
@@ -54,10 +54,15 @@ class AgentWindTunnelRunner:
         db: Session,
         provider: Optional[BaseLLMProvider] = None,
         provider_type: str = "mock",
-        model_name: Optional[str] = None
+        model_name: Optional[str] = None,
+        endpoint_url: Optional[str] = None
     ):
         self.db = db
-        self.provider = provider or resolve_provider(provider_type=provider_type, model_name=model_name)
+        self.provider = provider or resolve_provider(
+            provider_type=provider_type,
+            model_name=model_name,
+            endpoint_url=endpoint_url
+        )
 
     def run_agent_scenario(
         self,
@@ -285,8 +290,22 @@ class AgentWindTunnelRunner:
 
         recorded_tokens = loop_res.get("total_tokens") if not is_provider_error else None
         recorded_duration = loop_res.get("duration_ms") or total_duration_ms
+        cost_microcents = loop_res.get("total_cost_microcents", 0) if not is_provider_error else 0
+        cost_usd = loop_res.get("cost_usd", 0.0) if not is_provider_error else 0.0
+
+        failure_category = None
+        if scenario_run.status == "PROVIDER_ERROR":
+            failure_category = "PROVIDER_ERROR"
+        elif execution_error and ("timeout" in execution_error.lower() or "limit" in execution_error.lower()):
+            failure_category = "OPERATIONAL_LIMIT_EXCEEDED"
+        elif scenario_run.status == "FAILED":
+            failure_category = "BEHAVIORAL_POLICY_VIOLATION"
 
         return {
+            "failure_category": failure_category,
+            "cost_microcents": cost_microcents,
+            "cost_usd": cost_usd,
+            "cost_disclaimer": COST_DISCLAIMER,
             "run_id": run_id,
             "scenario_run_id": scenario_run_id,
             "scenario_version_id": scenario_version_id,
