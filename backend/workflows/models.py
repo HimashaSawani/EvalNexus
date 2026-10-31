@@ -36,6 +36,7 @@ class WorkflowDefinition(BaseModel):
     workflow_id: str = Field(default_factory=lambda: f"wf_{uuid.uuid4().hex[:8]}")
     name: str = Field(..., min_length=2, max_length=128)
     description: Optional[str] = Field(default="")
+    version: int = Field(default=1, ge=1)
     agents: List[AgentRoleDefinition] = Field(..., min_length=1)
     steps: List[WorkflowStep] = Field(..., min_length=1)
     max_handoffs: int = Field(default=10, ge=1, le=50, description="Cycle prevention ceiling")

@@ -1115,3 +1115,261 @@ def get_regression_report(baseline_run_id: str, candidate_run_id: str, db: Sessi
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Regression analysis failed: {str(e)}")
 
+
+# -------------------------------------------------------------
+# AgentWindTunnel V3 Platform Endpoints
+# -------------------------------------------------------------
+
+from backend.workflows.service import (
+    create_or_update_workflow,
+    list_workflows,
+    get_workflow,
+    delete_workflow,
+    execute_workflow,
+    get_workflow_run,
+    list_workflow_runs
+)
+from backend.distributed.node_manager import (
+    register_worker_node,
+    worker_heartbeat,
+    list_worker_nodes,
+    reap_stale_workers_and_jobs
+)
+from backend.datasets.dataset_service import (
+    create_dataset,
+    add_dataset_items,
+    list_datasets,
+    get_dataset,
+    get_dataset_items,
+    export_dataset_json,
+    import_dataset_from_json,
+    delete_dataset
+)
+from backend.gates.quality_gate_evaluator import evaluate_quality_gate
+from backend.benchmarks.benchmark_engine import BenchmarkEngine
+from backend.policies.policy_eval import (
+    BENCHMARK_SECURITY_SCENARIOS,
+    evaluate_security_policy,
+    SecurityEvaluationScenario
+)
+
+# --- V3 Section: Multi-Agent Workflows ---
+
+@app.post("/api/workflows")
+def register_workflow(payload: Dict[str, Any], db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    try:
+        wf = create_or_update_workflow(db, payload)
+        return {"status": "SUCCESS", "workflow_id": wf.id, "name": wf.name, "version": wf.version}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Invalid workflow definition: {str(e)}")
+
+
+@app.get("/api/workflows")
+def fetch_workflows(db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    return list_workflows(db)
+
+
+@app.get("/api/workflows/{workflow_id}")
+def fetch_workflow_detail(workflow_id: str, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    wf = get_workflow(db, workflow_id)
+    if not wf:
+        raise HTTPException(status_code=404, detail=f"Workflow '{workflow_id}' not found.")
+    return wf
+
+
+@app.delete("/api/workflows/{workflow_id}")
+def remove_workflow(workflow_id: str, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    success = delete_workflow(db, workflow_id)
+    if not success:
+        raise HTTPException(status_code=404, detail=f"Workflow '{workflow_id}' not found.")
+    return {"status": "DELETED", "workflow_id": workflow_id}
+
+
+@app.post("/api/workflows/{workflow_id}/run")
+def trigger_workflow_execution(workflow_id: str, payload: Optional[Dict[str, Any]] = None, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    try:
+        inputs = payload.get("inputs") if payload else None
+        res = execute_workflow(db, workflow_id, initial_inputs=inputs)
+        return res
+    except ValueError as ve:
+        raise HTTPException(status_code=404, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Workflow execution failed: {str(e)}")
+
+
+@app.get("/api/workflows/{workflow_id}/runs")
+def fetch_workflow_runs(workflow_id: str, limit: int = 20, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    return list_workflow_runs(db, workflow_id=workflow_id, limit=limit)
+
+
+@app.get("/api/workflows/runs/{run_id}")
+def fetch_workflow_run_detail(run_id: str, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    run = get_workflow_run(db, run_id)
+    if not run:
+        raise HTTPException(status_code=404, detail=f"Workflow run '{run_id}' not found.")
+    return run
+
+
+# --- V3 Section: Distributed Cluster & Workers ---
+
+@app.post("/api/cluster/nodes/register")
+def register_node_endpoint(payload: Dict[str, Any], db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    node = register_worker_node(
+        db=db,
+        node_id=payload.get("node_id"),
+        hostname=payload.get("hostname"),
+        ip_address=payload.get("ip_address"),
+        max_concurrency=payload.get("max_concurrency", 4),
+        capabilities=payload.get("capabilities")
+    )
+    return {"status": "REGISTERED", "node_id": node.id, "cluster_status": node.status}
+
+
+@app.post("/api/cluster/nodes/{node_id}/heartbeat")
+def heartbeat_node_endpoint(node_id: str, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    ok = worker_heartbeat(db, node_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail=f"Worker node '{node_id}' not found.")
+    return {"status": "PULSED", "node_id": node_id}
+
+
+@app.get("/api/cluster/nodes")
+def list_nodes_endpoint(db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    return list_worker_nodes(db)
+
+
+@app.post("/api/cluster/reap")
+def reap_nodes_endpoint(db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    stats = reap_stale_workers_and_jobs(db)
+    return {"status": "REAPED", "stats": stats}
+
+
+# --- V3 Section: Evaluation Datasets ---
+
+@app.post("/api/datasets")
+def create_dataset_endpoint(payload: Dict[str, Any], db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    try:
+        ds = create_dataset(
+            db=db,
+            name=payload.get("name"),
+            description=payload.get("description"),
+            version=payload.get("version", "1.0.0"),
+            metadata_json=payload.get("metadata")
+        )
+        return {"status": "CREATED", "id": ds.id, "name": ds.name, "version": ds.version}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/api/datasets")
+def list_datasets_endpoint(db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    return list_datasets(db)
+
+
+@app.get("/api/datasets/{dataset_id}")
+def get_dataset_endpoint(dataset_id: str, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    ds = get_dataset(db, dataset_id)
+    if not ds:
+        raise HTTPException(status_code=404, detail=f"Dataset '{dataset_id}' not found.")
+    return ds
+
+
+@app.get("/api/datasets/{dataset_id}/items")
+def get_dataset_items_endpoint(dataset_id: str, limit: int = 50, offset: int = 0, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    return get_dataset_items(db, dataset_id, limit=limit, offset=offset)
+
+
+@app.post("/api/datasets/{dataset_id}/items")
+def add_dataset_items_endpoint(dataset_id: str, payload: Dict[str, Any], db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    try:
+        items = payload.get("items", [])
+        added = add_dataset_items(db, dataset_id, items)
+        return {"status": "ADDED", "count": added}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/api/datasets/{dataset_id}/export")
+def export_dataset_endpoint(dataset_id: str, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    try:
+        data = export_dataset_json(db, dataset_id)
+        return Response(
+            content=json.dumps(data, indent=2),
+            media_type="application/json",
+            headers={"Content-Disposition": f"attachment; filename=dataset_{dataset_id}.json"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+
+@app.post("/api/datasets/import")
+def import_dataset_endpoint(payload: Dict[str, Any], db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    try:
+        ds = import_dataset_from_json(db, payload)
+        return {"status": "IMPORTED", "id": ds.id, "name": ds.name, "item_count": ds.item_count}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Dataset import failed: {str(e)}")
+
+
+@app.delete("/api/datasets/{dataset_id}")
+def delete_dataset_endpoint(dataset_id: str, db: Session = Depends(get_db), _auth: str = Depends(verify_api_key)):
+    ok = delete_dataset(db, dataset_id)
+    if not ok:
+        raise HTTPException(status_code=404, detail=f"Dataset '{dataset_id}' not found.")
+    return {"status": "DELETED", "id": dataset_id}
+
+
+# --- V3 Section: Automated Quality Gates ---
+
+@app.post("/api/quality-gates/evaluate")
+def evaluate_gate_endpoint(payload: Dict[str, Any], _auth: str = Depends(verify_api_key)):
+    rules = payload.get("rules", {})
+    evidence = payload.get("evidence", {})
+    res = evaluate_quality_gate(rules, evidence)
+    return res.model_dump()
+
+
+# --- V3 Section: Reliability Benchmarks ---
+
+@app.post("/api/benchmarks/run")
+def run_benchmark_endpoint(payload: Dict[str, Any], _auth: str = Depends(verify_api_key)):
+    name = payload.get("name", "Synthetic Latency & Resilience Benchmark")
+    iterations = payload.get("iterations", 5)
+
+    engine = BenchmarkEngine(name=name, iterations=iterations)
+    # Synthetic execution runner
+    def benchmark_runner(idx: int):
+        t_lat = 90 + (idx * 5)
+        return {
+            "status": "PASSED",
+            "duration_ms": t_lat,
+            "tokens": 120,
+            "cost_usd": 0.00012,
+            "tools": ["lookup_order", "refund_order"]
+        }
+
+    summary = engine.execute(benchmark_runner)
+    return summary.model_dump()
+
+
+# --- V3 Section: Security & Policy Evaluation ---
+
+@app.get("/api/security/scenarios")
+def list_security_scenarios_endpoint(_auth: str = Depends(verify_api_key)):
+    return [s.model_dump() for s in BENCHMARK_SECURITY_SCENARIOS]
+
+
+@app.post("/api/security/evaluate")
+def evaluate_security_endpoint(payload: Dict[str, Any], _auth: str = Depends(verify_api_key)):
+    scen_id = payload.get("scenario_id")
+    agent_output = payload.get("agent_output", "")
+    tools_called = payload.get("tools_called", [])
+
+    scenario = next((s for s in BENCHMARK_SECURITY_SCENARIOS if s.scenario_id == scen_id), None)
+    if not scenario:
+        raise HTTPException(status_code=404, detail=f"Security scenario '{scen_id}' not found.")
+
+    res = evaluate_security_policy(scenario, agent_output, tools_called)
+    return res.model_dump()
+
+

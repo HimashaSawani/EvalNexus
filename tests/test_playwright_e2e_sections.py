@@ -64,9 +64,9 @@ def live_server_proc():
         proc.kill()
 
 
-def test_playwright_all_eleven_sections(live_server_proc):
+def test_playwright_all_sixteen_sections(live_server_proc):
     """
-    Automated Playwright browser verification testing that all 11 dashboard sections
+    Automated Playwright browser verification testing that all 16 dashboard sections
     render and navigate cleanly without uncaught JavaScript errors.
     """
     with sync_playwright() as p:
@@ -157,6 +157,37 @@ def test_playwright_all_eleven_sections(live_server_proc):
         assert page.locator("#faPolicyCount").is_visible()
         # Test actual user interaction: changing filter selection
         page.select_option("#faCategoryFilter", "BEHAVIORAL_POLICY_VIOLATION")
+
+        # 12. V3 Multi-Agent Workflows Section
+        page.locator("#nav-workflows").click()
+        page.wait_for_selector("#wfDefinitionJson", timeout=5000)
+        assert page.locator("#wfDefinitionJson").is_visible()
+        assert page.locator("#btnSaveAndRunWf").is_visible()
+        assert page.locator("#wfMetricCount").is_visible()
+
+        # 13. V3 Distributed Nodes & Cluster Concurrency Section
+        page.locator("#nav-cluster-nodes").click()
+        page.wait_for_selector("#clusterNodesTbody", timeout=5000)
+        assert page.locator("#clusterNodesTbody").is_visible()
+        assert page.locator("#clusterActiveNodes").is_visible()
+
+        # 14. V3 Trace Explorer & OTel Spans Section
+        page.locator("#nav-trace-explorer").click()
+        page.wait_for_selector("#traceInputId", timeout=5000)
+        assert page.locator("#traceInputId").is_visible()
+        assert page.locator("#traceWaterfallContainer").is_visible()
+
+        # 15. V3 Chaos Fault Lab Section
+        page.locator("#nav-fault-lab").click()
+        page.wait_for_selector("#faultModeSelect", timeout=5000)
+        assert page.locator("#faultModeSelect").is_visible()
+        assert page.locator("#faultResilienceScore").is_visible()
+
+        # 16. V3 Automated CI/CD Quality Gates Section
+        page.locator("#nav-quality-gates").click()
+        page.wait_for_selector("#gateMinPassRate", timeout=5000)
+        assert page.locator("#gateMinPassRate").is_visible()
+        assert page.locator("#gateVerdictBadge").is_visible()
 
         browser.close()
         assert len(console_errors) == 0, f"Uncaught browser console errors: {console_errors}"
