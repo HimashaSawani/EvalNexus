@@ -6,9 +6,14 @@ from typing import Dict, Any, List, Optional
 from pydantic import BaseModel, Field
 
 
+SECRET_KEY_NAMES = {
+    "token", "secret", "api_key", "apikey", "password", "authorization", 
+    "auth_token", "access_token", "bearer_token", "token_secret", "private_key"
+}
+
 SENSITIVE_PATTERNS = [
-    (re.compile(r"(?i)(api[_-]?key|secret|token|password|authorization)\s*[:=]\s*['\"]?([^'\"\s,;]+)['\"]?"), r"\1=***MASKED***"),
-    (re.compile(r"Bearer\s+([A-Za-z0-9_\-\.]{12,})"), r"Bearer ***MASKED***"),
+    (re.compile(r"(?i)bearer\s+([A-Za-z0-9_\-\.]{8,})"), r"Bearer ***MASKED***"),
+    (re.compile(r"(?i)(api[_-]?key|secret|password|access_token)\s*[:=]\s*['\"]?([^'\"\s,;]+)['\"]?"), r"\1=***MASKED***"),
     (re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"), r"***@***.***"),
     (re.compile(r"\b(?:\d{4}[-\s]?){3}\d{4}\b"), r"****-****-****-****"),  # Card numbers
 ]
@@ -24,8 +29,14 @@ def mask_sensitive_data(obj: Any) -> Any:
     elif isinstance(obj, dict):
         scrubbed = {}
         for k, v in obj.items():
-            k_lower = str(k).lower()
-            if any(s in k_lower for s in ("secret", "token", "password", "api_key", "authorization")):
+            k_lower = str(k).lower().strip()
+            # Only match actual secret credential keys, not token metrics like tokens.prompt
+            is_secret = (
+                k_lower in SECRET_KEY_NAMES or 
+                any(s in k_lower for s in ("api_key", "apikey", "secret", "password")) or
+                (k_lower.endswith("_token") and not k_lower.startswith("total_") and not "count" in k_lower)
+            )
+            if is_secret:
                 scrubbed[k] = "***MASKED***"
             else:
                 scrubbed[k] = mask_sensitive_data(v)
@@ -145,10 +156,22 @@ class ExecutionTracer:
 
         for s in self.spans.values():
             attrs = s.attributes
-            p_tok = attrs.get("tokens.prompt", 0)
-            c_tok = attrs.get("tokens.completion", 0)
-            t_tok = attrs.get("tokens.total", p_tok + c_tok)
-            cost = attrs.get("cost.usd", 0.0)
+            try:
+                p_tok = int(attrs.get("tokens.prompt", 0) or 0)
+            except (ValueError, TypeError):
+                p_tok = 0
+            try:
+                c_tok = int(attrs.get("tokens.completion", 0) or 0)
+            except (ValueError, TypeError):
+                c_tok = 0
+            try:
+                t_tok = int(attrs.get("tokens.total", p_tok + c_tok) or 0)
+            except (ValueError, TypeError):
+                t_tok = p_tok + c_tok
+            try:
+                cost = float(attrs.get("cost.usd", 0.0) or 0.0)
+            except (ValueError, TypeError):
+                cost = 0.0
 
             total_prompt_tokens += p_tok
             total_completion_tokens += c_tok
