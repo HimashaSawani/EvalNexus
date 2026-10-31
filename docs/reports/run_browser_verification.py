@@ -6,7 +6,7 @@ from pathlib import Path
 from playwright.sync_api import sync_playwright
 
 BASE_URL = "http://127.0.0.1:8001"
-ROOT_DIR = Path(r"D:\AgentWindTunnel")
+ROOT_DIR = Path(__file__).resolve().parent.parent.parent
 SCREENSHOTS_DIR = ROOT_DIR / "docs" / "reports" / "screenshots"
 SCREENSHOTS_DIR.mkdir(parents=True, exist_ok=True)
 
