@@ -37,6 +37,8 @@ logs/
 scratch/
 .tempmediaStorage/
 *.bundle
+scenarios/custom/*.json
+!scenarios/custom/.gitkeep
 
 # IDE and Editor directories
 .idea/
