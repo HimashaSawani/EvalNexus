@@ -6,7 +6,7 @@ services:
       - "127.0.0.1:8000:8000"
     environment:
       - AWT_EMBEDDED_WORKER=0
-      - DATABASE_URL=sqlite:////data/agent_wind_tunnel.db
+      - DATABASE_URL=${DATABASE_URL:-sqlite:////data/agent_wind_tunnel.db}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
     volumes:
@@ -26,7 +26,7 @@ services:
       disable: true
     environment:
       - AWT_EMBEDDED_WORKER=0
-      - DATABASE_URL=sqlite:////data/agent_wind_tunnel.db
+      - DATABASE_URL=${DATABASE_URL:-sqlite:////data/agent_wind_tunnel.db}
       - GEMINI_API_KEY=${GEMINI_API_KEY:-}
       - OPENAI_API_KEY=${OPENAI_API_KEY:-}
     volumes:
@@ -35,5 +35,26 @@ services:
       - web
     restart: unless-stopped
 
+  postgres:
+    image: postgres:16-alpine
+    container_name: agent_wind_tunnel_postgres
+    profiles:
+      - postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-awt_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-awt_secure_pass_change_in_prod}
+      POSTGRES_DB: ${POSTGRES_DB:-agent_wind_tunnel}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
 volumes:
   awt_data:
+  postgres_data:

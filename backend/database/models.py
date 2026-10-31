@@ -85,7 +85,7 @@ class ScenarioRun(Base):
     run_id = Column(String(64), ForeignKey("runs.id"), nullable=False)
     scenario_version_id = Column(String(64), ForeignKey("scenario_versions.id"), nullable=False)
     status = Column(String(32), default="RUNNING")  # RUNNING, PASSED, FAILED, ERROR
-    started_at = Column(DateTime, default=datetime.datetime.utcnow)
+    started_at = Column(DateTime, default=utc_now)
     finished_at = Column(DateTime, nullable=True)
     duration_ms = Column(Integer, default=0)
 
@@ -203,5 +203,39 @@ class QueueJob(Base):
     created_at = Column(DateTime, default=utc_now)
 
     run = relationship("Run", back_populates="queue_job")
+
+
+# ---------------------------------------------------------
+# Custom Agent and Custom Scenario Models (Stage 2 & 3)
+# ---------------------------------------------------------
+
+class CustomAgent(Base):
+    __tablename__ = "custom_agents"
+
+    id = Column(String(64), primary_key=True)
+    name = Column(String(128), nullable=False)
+    description = Column(Text, nullable=True)
+    endpoint_url = Column(String(512), nullable=False)
+    auth_header_name = Column(String(64), default="Authorization")
+    auth_token_masked = Column(String(64), nullable=True)
+    auth_token_secret = Column(Text, nullable=True)
+    timeout_sec = Column(Integer, default=15)
+    is_active = Column(Integer, default=1)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+
+
+class CustomScenario(Base):
+    __tablename__ = "custom_scenarios"
+
+    id = Column(String(64), primary_key=True)
+    name = Column(String(128), nullable=False)
+    description = Column(Text, nullable=True)
+    category = Column(String(64), default="CUSTOM")
+    version = Column(Integer, default=1)
+    scenario_data = Column(JSON, nullable=False)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+
 
 

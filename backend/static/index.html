@@ -1053,6 +1053,23 @@
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
         Comparisons
       </a>
+      <div style="padding: 10px 14px 4px; font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">Advanced V2 Suite</div>
+      <a class="nav-item" id="nav-custom-agents" onclick="navigateView('custom-agents')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+        Custom Agents
+      </a>
+      <a class="nav-item" id="nav-scenario-builder" onclick="navigateView('scenario-builder')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Scenario Builder
+      </a>
+      <a class="nav-item" id="nav-regression-testing" onclick="navigateView('regression-testing')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+        Regression Testing
+      </a>
+      <a class="nav-item" id="nav-failure-analysis" onclick="navigateView('failure-analysis')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        Failure Analysis
+      </a>
       <a class="nav-item" id="nav-settings" onclick="navigateView('settings')">
         <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
         Settings & Safety
@@ -1606,10 +1623,433 @@
         </div>
       </div>
 
+      <!-- ====================================================
+           VIEW 8: CUSTOM AGENT REGISTRY (STAGE 2)
+      ==================================================== -->
+      <div class="view-panel" id="view-custom-agents">
+        <div class="top-header">
+          <div class="title-area">
+            <h1>Custom Agent Registry</h1>
+            <p>Register and benchmark your own external AI agents via authenticated HTTP endpoints</p>
+          </div>
+          <div class="header-right">
+            <button class="btn-secondary" onclick="loadCustomAgents()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Refresh Registry
+            </button>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 380px 1fr; gap: 18px;">
+          <!-- Registration Form -->
+          <div class="card" style="padding: 20px;">
+            <h3 style="font-size: 15px; font-weight: 700; margin-bottom: 14px;">Register HTTP Agent</h3>
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+              <div>
+                <label class="control-label">Agent ID (slug)</label>
+                <input type="text" id="customAgentId" placeholder="e.g. my-refund-bot-v1" style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--card-border); border-radius: var(--radius-sm); font-size: 13px;" />
+              </div>
+              <div>
+                <label class="control-label">Display Name *</label>
+                <input type="text" id="customAgentName" placeholder="e.g. Acme Customer Support Agent" style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--card-border); border-radius: var(--radius-sm); font-size: 13px;" />
+              </div>
+              <div>
+                <label class="control-label">Endpoint URL (HTTP/HTTPS) *</label>
+                <input type="url" id="customAgentUrl" placeholder="http://localhost:8080/invocations" style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--card-border); border-radius: var(--radius-sm); font-size: 13px;" />
+                <span style="font-size: 11px; color: var(--text-muted); margin-top: 3px; display: block;">SSRF Protection: Link-local & cloud metadata endpoints blocked.</span>
+              </div>
+              <div>
+                <label class="control-label">Auth Header Name</label>
+                <input type="text" id="customAgentHeader" value="Authorization" placeholder="Authorization or X-API-Key" style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--card-border); border-radius: var(--radius-sm); font-size: 13px;" />
+              </div>
+              <div>
+                <label class="control-label">Secret Token / API Key</label>
+                <input type="password" id="customAgentToken" placeholder="Leave empty for unauthenticated" style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--card-border); border-radius: var(--radius-sm); font-size: 13px;" />
+              </div>
+              <div>
+                <label class="control-label">Timeout (seconds)</label>
+                <input type="number" id="customAgentTimeout" value="15" min="1" max="60" style="width: 100%; height: 36px; padding: 0 10px; border: 1px solid var(--card-border); border-radius: var(--radius-sm); font-size: 13px;" />
+              </div>
+              <button class="btn-run" id="btnSaveCustomAgent" onclick="saveCustomAgent()" style="width: 100%; justify-content: center; margin-top: 6px;">
+                Save & Register Agent
+              </button>
+              <div id="customAgentSaveFeedback" style="font-size: 12px; display: none;"></div>
+            </div>
+          </div>
+
+          <!-- Registered Agents Table -->
+          <div class="card" style="padding: 0; overflow: hidden; display: flex; flex-direction: column;">
+            <div style="padding: 14px 18px; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center;">
+              <h3 style="font-size: 15px; font-weight: 700;">Active Custom Agents</h3>
+              <span id="customAgentCount" class="badge-pill gray">0 registered</span>
+            </div>
+            <div style="flex: 1; overflow-y: auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Agent Name</th>
+                    <th>Endpoint</th>
+                    <th>Auth Header</th>
+                    <th>Timeout</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="customAgentsTbody">
+                  <tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 30px;">Loading custom agents...</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <div id="customAgentPingBanner" style="display: none; padding: 12px 18px; background: #F8FAFC; border-top: 1px solid var(--card-border); font-size: 12.5px;"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================================================
+           VIEW 9: CUSTOM SCENARIO BUILDER (STAGE 3)
+      ==================================================== -->
+      <div class="view-panel" id="view-scenario-builder">
+        <div class="top-header">
+          <div class="title-area">
+            <h1>Scenario Builder & Import/Export</h1>
+            <p>Design deterministic evaluation scenarios with domain mocks, customer sessions, and fault injection</p>
+          </div>
+          <div class="header-right">
+            <button class="btn-secondary" id="btnExportScenario" onclick="exportScenarioBuilder()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export JSON
+            </button>
+            <label class="btn-secondary" style="cursor: pointer; display: inline-flex; align-items: center; gap: 6px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Import JSON
+              <input type="file" id="importScenarioFileInput" accept=".json" onchange="importScenarioFile(event)" style="display: none;" />
+            </label>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 18px;">
+          <!-- Left: Builder Controls -->
+          <div class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+              <h3 style="font-size: 15px; font-weight: 700;">Scenario Configuration</h3>
+              <div style="display: flex; gap: 6px;">
+                <button class="btn-secondary" style="font-size: 11px; padding: 4px 8px;" onclick="loadScenarioTemplate('eligible')">Template: Eligible</button>
+                <button class="btn-secondary" style="font-size: 11px; padding: 4px 8px;" onclick="loadScenarioTemplate('expired')">Template: Expired</button>
+                <button class="btn-secondary" style="font-size: 11px; padding: 4px 8px;" onclick="loadScenarioTemplate('fault')">Template: Fault</button>
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <label class="control-label">Scenario ID *</label>
+                <input type="text" id="scenBuilderId" value="custom_scen_demo_01" style="width: 100%; height: 34px; padding: 0 8px; border: 1px solid var(--card-border); border-radius: var(--radius-sm); font-size: 12.5px;" />
+              </div>
+              <div>
+                <label class="control-label">Category</label>
+                <select id="scenBuilderCategory" style="width: 100%; height: 34px; padding: 0 8px; border: 1px solid var(--card-border); border-radius: var(--radius-sm); font-size: 12.5px;">
+                  <option value="CUSTOM">CUSTOM</option>
+                  <option value="NORMAL">NORMAL</option>
+                  <option value="ELIGIBILITY">ELIGIBILITY</option>
+                  <option value="OWNERSHIP">OWNERSHIP</option>
+                  <option value="FAULT">FAULT</option>
+                </select>
+              </div>
+            </div>
+
+            <div>
+              <label class="control-label">Scenario Name *</label>
+              <input type="text" id="scenBuilderName" value="Customer Return Demonstration" style="width: 100%; height: 34px; padding: 0 8px; border: 1px solid var(--card-border); border-radius: var(--radius-sm); font-size: 12.5px;" />
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <label class="control-label">Customer Name</label>
+                <input type="text" id="scenBuilderCustName" value="Jordan Lee" style="width: 100%; height: 34px; padding: 0 8px; border: 1px solid var(--card-border); border-radius: var(--radius-sm); font-size: 12.5px;" />
+              </div>
+              <div>
+                <label class="control-label">Customer Email</label>
+                <input type="email" id="scenBuilderCustEmail" value="jordan@example.com" style="width: 100%; height: 34px; padding: 0 8px; border: 1px solid var(--card-border); border-radius: var(--radius-sm); font-size: 12.5px;" />
+              </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+              <div>
+                <label class="control-label">Order ID</label>
+                <input type="text" id="scenBuilderOrderId" value="ord_custom_901" style="width: 100%; height: 34px; padding: 0 8px; border: 1px solid var(--card-border); border-radius: var(--radius-sm); font-size: 12.5px;" />
+              </div>
+              <div>
+                <label class="control-label">Order Amount ($)</label>
+                <input type="number" id="scenBuilderOrderAmount" value="85.00" step="0.01" style="width: 100%; height: 34px; padding: 0 8px; border: 1px solid var(--card-border); border-radius: var(--radius-sm); font-size: 12.5px;" />
+              </div>
+              <div>
+                <label class="control-label">Delivery Days Ago</label>
+                <input type="number" id="scenBuilderDeliveryDays" value="4" min="0" max="365" style="width: 100%; height: 34px; padding: 0 8px; border: 1px solid var(--card-border); border-radius: var(--radius-sm); font-size: 12.5px;" />
+              </div>
+            </div>
+
+            <div>
+              <label class="control-label">Customer Prompt / Message *</label>
+              <textarea id="scenBuilderMsg" rows="3" style="width: 100%; padding: 8px; border: 1px solid var(--card-border); border-radius: var(--radius-sm); font-size: 12.5px; resize: vertical;">Hi, I would like to request a full refund for my order ord_custom_901.</textarea>
+            </div>
+
+            <div>
+              <label class="control-label">Expected Evaluator Checks</label>
+              <div style="display: flex; gap: 12px; margin-top: 4px; flex-wrap: wrap;">
+                <label style="font-size: 12px; display: flex; align-items: center; gap: 4px;"><input type="checkbox" id="chkExpOwnership" checked /> Ownership PASS</label>
+                <label style="font-size: 12px; display: flex; align-items: center; gap: 4px;"><input type="checkbox" id="chkExpEligibility" checked /> Eligibility PASS</label>
+                <label style="font-size: 12px; display: flex; align-items: center; gap: 4px;"><input type="checkbox" id="chkExpDuplicate" checked /> Duplicate PASS</label>
+                <label style="font-size: 12px; display: flex; align-items: center; gap: 4px;"><input type="checkbox" id="chkExpState" checked /> State PASS</label>
+              </div>
+            </div>
+
+            <div style="display: flex; gap: 10px; margin-top: 6px;">
+              <button class="btn-secondary" id="btnValidateScenario" onclick="validateScenarioBuilder()" style="flex: 1;">Validate</button>
+              <button class="btn-run" id="btnSaveScenario" onclick="saveScenarioBuilder()" style="flex: 2; justify-content: center;">Save to Catalog</button>
+            </div>
+            <div id="scenBuilderStatus" style="font-size: 12.5px; display: none;"></div>
+          </div>
+
+          <!-- Right: JSON Preview & Custom Catalog -->
+          <div style="display: flex; flex-direction: column; gap: 18px;">
+            <div class="card" style="padding: 16px; flex: 1; display: flex; flex-direction: column;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h4 style="font-size: 13px; font-weight: 700;">Scenario JSON Preview</h4>
+                <button class="btn-secondary" style="font-size: 11px; padding: 2px 8px;" onclick="syncFormToJson()">Sync Form → JSON</button>
+              </div>
+              <textarea id="scenBuilderJson" class="json-code-box" style="flex: 1; min-height: 240px; border: none; resize: none; font-size: 11.5px;"></textarea>
+            </div>
+
+            <div class="card" style="padding: 0; overflow: hidden;">
+              <div style="padding: 12px 16px; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center;">
+                <h4 style="font-size: 13px; font-weight: 700;">Saved Custom Scenarios</h4>
+                <span id="customScenCount" class="badge-pill gray">0 saved</span>
+              </div>
+              <div style="max-height: 180px; overflow-y: auto;">
+                <table class="data-table">
+                  <thead>
+                    <tr><th>ID</th><th>Name</th><th>Category</th><th>Version</th><th>Action</th></tr>
+                  </thead>
+                  <tbody id="customScenariosTbody">
+                    <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 15px;">No custom scenarios yet.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================================================
+           VIEW 10: AUTOMATED REGRESSION TESTING (STAGE 4)
+      ==================================================== -->
+      <div class="view-panel" id="view-regression-testing">
+        <div class="top-header">
+          <div class="title-area">
+            <h1>Automated Regression Testing & Reliability Scorecards</h1>
+            <p>Compare baseline vs candidate agent runs, identify behavioral drifts, and verify latency and token usage</p>
+          </div>
+          <div class="header-right">
+            <button class="btn-secondary" id="btnExportRegressionReport" onclick="exportRegressionReport()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Export JSON Report
+            </button>
+          </div>
+        </div>
+
+        <!-- Selection Controls -->
+        <div class="card" style="padding: 18px; display: flex; gap: 16px; align-items: flex-end; flex-wrap: wrap;">
+          <div class="control-group" style="flex: 2;">
+            <label class="control-label">Baseline Run (Target of Comparison)</label>
+            <div class="control-select-wrap">
+              <select id="regBaselineSelect"></select>
+            </div>
+          </div>
+          <div class="control-group" style="flex: 2;">
+            <label class="control-label">Candidate Run (New Version / Candidate)</label>
+            <div class="control-select-wrap">
+              <select id="regCandidateSelect"></select>
+            </div>
+          </div>
+          <button class="btn-run" id="btnRunRegression" onclick="runRegressionComparison()" style="height: 38px;">
+            Analyze Regression
+          </button>
+        </div>
+
+        <!-- Regression Scorecard Banner -->
+        <div id="regScorecardContainer" style="display: none; flex-direction: column; gap: 16px;">
+          <div class="card" style="padding: 20px; background: #FFFFFF; border-left: 5px solid var(--primary);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 10px;">
+              <div>
+                <span style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-muted); letter-spacing: 0.5px;">Overall Regression Verdict</span>
+                <div style="display: flex; align-items: center; gap: 10px; margin-top: 4px;">
+                  <span id="regVerdictBadge" class="badge-pill" style="font-size: 14px; padding: 4px 12px;">-</span>
+                  <span id="regConfidenceNotice" style="font-size: 12px; color: var(--text-muted);"></span>
+                </div>
+              </div>
+              <div id="regCostDisclaimer" style="font-size: 11.5px; color: #B45309; background: #FEF3C7; padding: 6px 10px; border-radius: var(--radius-sm); max-width: 480px;"></div>
+            </div>
+
+            <!-- Scorecard Stats -->
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px; margin-top: 14px; border-top: 1px solid var(--card-border); padding-top: 14px;">
+              <div>
+                <div style="font-size: 11px; color: var(--text-muted);">REGRESSIONS</div>
+                <div id="regRegCount" style="font-size: 22px; font-weight: 700; color: #DC2626;">0</div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: var(--text-muted);">IMPROVEMENTS</div>
+                <div id="regImpCount" style="font-size: 22px; font-weight: 700; color: #16A34A;">0</div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: var(--text-muted);">PARITY</div>
+                <div id="regParityCount" style="font-size: 22px; font-weight: 700; color: var(--text-main);">0</div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: var(--text-muted);">PASS RATE DELTA</div>
+                <div id="regPassDelta" style="font-size: 22px; font-weight: 700;">+0.0%</div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: var(--text-muted);">LATENCY DELTA (p50/p90)</div>
+                <div id="regLatencyDelta" style="font-size: 15px; font-weight: 600; margin-top: 5px;">-</div>
+              </div>
+              <div>
+                <div style="font-size: 11px; color: var(--text-muted);">COST DELTA (USD)</div>
+                <div id="regCostDelta" style="font-size: 15px; font-weight: 600; margin-top: 5px;">-</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Scenario Breakdown Table -->
+          <div class="card" style="padding: 0; overflow: hidden;">
+            <div style="padding: 14px 18px; border-bottom: 1px solid var(--card-border);">
+              <h3 style="font-size: 14px; font-weight: 700;">Scenario Comparison & Behavioral Tool Traces</h3>
+            </div>
+            <div style="overflow-x: auto;">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th>Scenario ID</th>
+                    <th>Baseline Status</th>
+                    <th>Candidate Status</th>
+                    <th>Classification</th>
+                    <th>Baseline Tool Sequence</th>
+                    <th>Candidate Tool Sequence</th>
+                    <th>Duration Delta</th>
+                  </tr>
+                </thead>
+                <tbody id="regScenariosTbody"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ====================================================
+           VIEW 11: FAILURE ANALYSIS (STAGE 5)
+      ==================================================== -->
+      <div class="view-panel" id="view-failure-analysis">
+        <div class="top-header">
+          <div class="title-area">
+            <h1>Failure Analysis & Root Cause Classification</h1>
+            <p>Categorized drilldown separating policy violations from operational timeouts and provider errors</p>
+          </div>
+          <div class="header-right">
+            <button class="btn-secondary" onclick="loadFailureAnalysis()">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+              Refresh Failures
+            </button>
+          </div>
+        </div>
+
+        <!-- Failure Category Breakdown Cards -->
+        <div class="metrics-grid">
+          <div class="metric-card">
+            <div class="metric-icon-box" style="background: #FEE2E2; color: #DC2626;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/></svg>
+            </div>
+            <div class="metric-info">
+              <span class="metric-label">Behavioral Policy Violations</span>
+              <span class="metric-value" id="faPolicyCount">0</span>
+              <span class="metric-subtext">Eligibility / Ownership / Duplicate errors</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon-box" style="background: #FEF3C7; color: #D97706;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            </div>
+            <div class="metric-info">
+              <span class="metric-label">Operational Limits Exceeded</span>
+              <span class="metric-value" id="faLimitCount">0</span>
+              <span class="metric-subtext">Timeouts, turn ceilings, token budget halts</span>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-icon-box" style="background: #EDE9FE; color: #7C3AED;">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+            </div>
+            <div class="metric-info">
+              <span class="metric-label">Provider Transport Errors</span>
+              <span class="metric-value" id="faProviderCount">0</span>
+              <span class="metric-subtext">API rate limits, 5xx outages, malformed responses</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Failure Log Table -->
+        <div class="card" style="padding: 0; overflow: hidden;">
+          <div style="padding: 14px 18px; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center;">
+            <h3 style="font-size: 14px; font-weight: 700;">Recorded Scenario Failures</h3>
+            <select id="faCategoryFilter" onchange="filterFailureAnalysis()" style="height: 32px; padding: 0 8px; border: 1px solid var(--card-border); border-radius: var(--radius-sm); font-size: 12px;">
+              <option value="ALL">All Categories</option>
+              <option value="BEHAVIORAL_POLICY_VIOLATION">Behavioral Violations</option>
+              <option value="OPERATIONAL_LIMIT_EXCEEDED">Operational Limits</option>
+              <option value="PROVIDER_ERROR">Provider Errors</option>
+            </select>
+          </div>
+          <div style="overflow-x: auto;">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Scenario ID</th>
+                  <th>Run ID</th>
+                  <th>Failure Category</th>
+                  <th>Evaluator Message</th>
+                  <th>Evidence Details</th>
+                </tr>
+              </thead>
+              <tbody id="faLogTbody">
+                <tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 25px;">No recorded failures. All scenarios passed cleanly!</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
     </div>
   </main>
 
   <script>
+    // Security & Authenticated API Client
+    function apiFetch(url, options = {}) {
+      const headers = Object.assign({}, options.headers || {});
+      const storedKey = localStorage.getItem('awt_api_key');
+      if (storedKey && !headers['X-API-Key'] && !headers['Authorization']) {
+        headers['X-API-Key'] = storedKey;
+      }
+      return fetch(url, Object.assign({}, options, { headers }));
+    }
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
     // State management
     let activeRun = null;
     let currentSelectedScenarioId = null;
@@ -1672,6 +2112,10 @@
       else if (viewId === 'run-history') loadRunHistory();
       else if (viewId === 'comparisons') loadComparisonsList();
       else if (viewId === 'settings') loadSettings();
+      else if (viewId === 'custom-agents') loadCustomAgents();
+      else if (viewId === 'scenario-builder') loadScenarioBuilder();
+      else if (viewId === 'regression-testing') loadRegressionView();
+      else if (viewId === 'failure-analysis') loadFailureAnalysis();
     }
 
     // -------------------------------------------------------------
@@ -2388,6 +2832,504 @@
       } catch (e) {
         console.error('Failed to load settings:', e);
       }
+    }
+
+    // -------------------------------------------------------------
+    // View 8: Custom Agent Registry
+    // -------------------------------------------------------------
+    async function loadCustomAgents() {
+      try {
+        const res = await apiFetch('/api/custom-agents');
+        if (!res.ok) return;
+        const agents = await res.json();
+        const tbody = document.getElementById('customAgentsTbody');
+        document.getElementById('customAgentCount').textContent = `${agents.length} registered`;
+
+        if (!agents || agents.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; color: var(--text-muted); padding: 25px;">No external agents registered yet.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = agents.map(a => `
+          <tr>
+            <td><strong>${escapeHtml(a.name)}</strong><br><span style="font-size: 11px; color: var(--text-muted);">${escapeHtml(a.id)}</span></td>
+            <td><code style="font-size: 11.5px;">${escapeHtml(a.endpoint_url)}</code></td>
+            <td><span style="font-size: 12px;">${escapeHtml(a.auth_header_name)}: ${escapeHtml(a.auth_token_masked || 'None')}</span></td>
+            <td>${a.timeout_sec}s</td>
+            <td><span class="badge-pill real">Active</span></td>
+            <td style="white-space: nowrap;">
+              <button class="btn-secondary" style="font-size: 11px; padding: 4px 8px; margin-right: 4px;" onclick="pingCustomAgent('${escapeHtml(a.id)}')">Ping</button>
+              <button class="btn-secondary" style="font-size: 11px; padding: 4px 8px; color: #DC2626;" onclick="deleteCustomAgent('${escapeHtml(a.id)}')">Delete</button>
+            </td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        console.error('Failed to load custom agents:', e);
+      }
+    }
+
+    async function saveCustomAgent() {
+      const id = document.getElementById('customAgentId').value.trim();
+      const name = document.getElementById('customAgentName').value.trim();
+      const endpoint_url = document.getElementById('customAgentUrl').value.trim();
+      const auth_header_name = document.getElementById('customAgentHeader').value.trim();
+      const auth_token = document.getElementById('customAgentToken').value.trim();
+      const timeout_sec = parseFloat(document.getElementById('customAgentTimeout').value || '15');
+      const feedback = document.getElementById('customAgentSaveFeedback');
+
+      if (!name || !endpoint_url) {
+        feedback.style.display = 'block';
+        feedback.style.color = '#DC2626';
+        feedback.textContent = 'Name and Endpoint URL are required.';
+        return;
+      }
+
+      try {
+        const res = await apiFetch('/api/custom-agents', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: id || undefined, name, endpoint_url, auth_header_name, auth_token: auth_token || undefined, timeout_sec })
+        });
+        const data = await res.json();
+        feedback.style.display = 'block';
+        if (res.ok) {
+          feedback.style.color = '#15803D';
+          feedback.textContent = `Agent registered successfully (${data.id}).`;
+          document.getElementById('customAgentToken').value = '';
+          loadCustomAgents();
+        } else {
+          feedback.style.color = '#DC2626';
+          feedback.textContent = data.detail || 'Registration failed.';
+        }
+      } catch (e) {
+        feedback.style.display = 'block';
+        feedback.style.color = '#DC2626';
+        feedback.textContent = `Error: ${e.message}`;
+      }
+    }
+
+    async function pingCustomAgent(id) {
+      const banner = document.getElementById('customAgentPingBanner');
+      banner.style.display = 'block';
+      banner.innerHTML = `<span style="color: var(--text-muted);">Probing agent ${escapeHtml(id)}...</span>`;
+
+      try {
+        const res = await apiFetch(`/api/custom-agents/${encodeURIComponent(id)}/ping`, { method: 'POST' });
+        const data = await res.json();
+        if (res.ok && data.status === 'ONLINE') {
+          banner.innerHTML = `<span style="color: #15803D; font-weight: 600;">✓ Endpoint Online</span> · Latency: <strong>${data.latency_ms}ms</strong> · Response: <code>${escapeHtml(data.response_preview || '')}</code>`;
+        } else {
+          banner.innerHTML = `<span style="color: #DC2626; font-weight: 600;">✗ Probe Failed: ${escapeHtml(data.status || 'ERROR')}</span> · Latency: ${data.latency_ms || 0}ms · ${escapeHtml(data.error || 'Check endpoint configuration')}`;
+        }
+      } catch (e) {
+        banner.innerHTML = `<span style="color: #DC2626;">Ping probe exception: ${escapeHtml(e.message)}</span>`;
+      }
+    }
+
+    async function deleteCustomAgent(id) {
+      if (!confirm(`Delete custom agent "${id}"?`)) return;
+      try {
+        await apiFetch(`/api/custom-agents/${encodeURIComponent(id)}`, { method: 'DELETE' });
+        loadCustomAgents();
+      } catch (e) {
+        alert(`Delete failed: ${e.message}`);
+      }
+    }
+
+    // -------------------------------------------------------------
+    // View 9: Scenario Builder
+    // -------------------------------------------------------------
+    function syncFormToJson() {
+      const id = document.getElementById('scenBuilderId').value.trim();
+      const name = document.getElementById('scenBuilderName').value.trim();
+      const category = document.getElementById('scenBuilderCategory').value;
+      const custName = document.getElementById('scenBuilderCustName').value.trim();
+      const custEmail = document.getElementById('scenBuilderCustEmail').value.trim();
+      const orderId = document.getElementById('scenBuilderOrderId').value.trim();
+      const amountDollars = parseFloat(document.getElementById('scenBuilderOrderAmount').value || '0');
+      const amountCents = Math.round(amountDollars * 100);
+      const deliveryDays = parseInt(document.getElementById('scenBuilderDeliveryDays').value || '3', 10);
+      const prompt = document.getElementById('scenBuilderMsg').value.trim();
+
+      const scenarioObj = {
+        id: id || 'custom_scenario_01',
+        name: name || 'Custom Scenario',
+        category: category,
+        description: `Custom evaluation scenario for ${custName}`,
+        fixed_clock: '2026-10-31T12:00:00Z',
+        initial_data: {
+          customer: { id: `cust_${id}`, name: custName, email: custEmail },
+          orders: [
+            { id: orderId, status: 'DELIVERED', amount_cents: amountCents, currency: 'USD', delivery_days_ago: deliveryDays }
+          ]
+        },
+        customer_messages: [prompt],
+        fault_configs: [],
+        expected_checks: {
+          ownership: document.getElementById('chkExpOwnership').checked ? 'PASS' : 'NOT_APPLICABLE',
+          eligibility: document.getElementById('chkExpEligibility').checked ? 'PASS' : 'NOT_APPLICABLE',
+          duplicate: document.getElementById('chkExpDuplicate').checked ? 'PASS' : 'NOT_APPLICABLE',
+          state: document.getElementById('chkExpState').checked ? 'PASS' : 'NOT_APPLICABLE',
+          completion: 'PASS'
+        }
+      };
+
+      document.getElementById('scenBuilderJson').value = JSON.stringify(scenarioObj, null, 2);
+      return scenarioObj;
+    }
+
+    function loadScenarioTemplate(type) {
+      if (type === 'eligible') {
+        document.getElementById('scenBuilderId').value = 'custom_eligible_01';
+        document.getElementById('scenBuilderName').value = 'Eligible 3-Day Return';
+        document.getElementById('scenBuilderCategory').value = 'NORMAL';
+        document.getElementById('scenBuilderDeliveryDays').value = '3';
+        document.getElementById('scenBuilderOrderAmount').value = '74.50';
+        document.getElementById('scenBuilderMsg').value = 'Hello, I received my order 3 days ago and would like to request a full refund.';
+      } else if (type === 'expired') {
+        document.getElementById('scenBuilderId').value = 'custom_expired_policy_01';
+        document.getElementById('scenBuilderName').value = 'Expired Return Window Policy';
+        document.getElementById('scenBuilderCategory').value = 'ELIGIBILITY';
+        document.getElementById('scenBuilderDeliveryDays').value = '25';
+        document.getElementById('scenBuilderOrderAmount').value = '120.00';
+        document.getElementById('scenBuilderMsg').value = 'Hi, I bought this last month (delivered 25 days ago). Can I get a refund please?';
+        document.getElementById('chkExpEligibility').checked = false;
+      } else if (type === 'fault') {
+        document.getElementById('scenBuilderId').value = 'custom_fault_retry_01';
+        document.getElementById('scenBuilderName').value = 'Injected Latency Fault Scenario';
+        document.getElementById('scenBuilderCategory').value = 'FAULT';
+        document.getElementById('scenBuilderDeliveryDays').value = '2';
+        document.getElementById('scenBuilderMsg').value = 'Please process a refund for my order. Note server may experience delay.';
+      }
+      syncFormToJson();
+    }
+
+    async function validateScenarioBuilder() {
+      const obj = syncFormToJson();
+      const statusBox = document.getElementById('scenBuilderStatus');
+      statusBox.style.display = 'block';
+
+      try {
+        if (!obj.id || !obj.name || !obj.customer_messages[0]) {
+          throw new Error('Scenario ID, Name, and Customer Prompt are required.');
+        }
+        statusBox.style.color = '#15803D';
+        statusBox.textContent = `✓ Scenario definition is valid and compliant with AgentWindTunnel schema.`;
+      } catch (e) {
+        statusBox.style.color = '#DC2626';
+        statusBox.textContent = `✗ Validation Error: ${e.message}`;
+      }
+    }
+
+    async function saveScenarioBuilder() {
+      const obj = syncFormToJson();
+      const statusBox = document.getElementById('scenBuilderStatus');
+      statusBox.style.display = 'block';
+
+      try {
+        const res = await apiFetch('/api/scenarios/custom', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(obj)
+        });
+        const data = await res.json();
+        if (res.ok) {
+          statusBox.style.color = '#15803D';
+          statusBox.textContent = `✓ Saved custom scenario "${data.name}" (${data.id}) to catalog.`;
+          loadScenarioBuilder();
+          loadScenariosCatalog();
+        } else {
+          statusBox.style.color = '#DC2626';
+          statusBox.textContent = `✗ Save Failed: ${data.detail || 'Unknown error'}`;
+        }
+      } catch (e) {
+        statusBox.style.color = '#DC2626';
+        statusBox.textContent = `✗ Error: ${e.message}`;
+      }
+    }
+
+    async function loadScenarioBuilder() {
+      syncFormToJson();
+      try {
+        const res = await apiFetch('/api/scenarios/custom');
+        if (!res.ok) return;
+        const list = await res.json();
+        document.getElementById('customScenCount').textContent = `${list.length} saved`;
+        const tbody = document.getElementById('customScenariosTbody');
+
+        if (!list || list.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 15px;">No custom scenarios saved yet.</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = list.map(s => `
+          <tr>
+            <td><code>${escapeHtml(s.id)}</code></td>
+            <td><strong>${escapeHtml(s.name)}</strong></td>
+            <td><span class="badge-pill gray">${escapeHtml(s.category)}</span></td>
+            <td>v${s.version || 1}</td>
+            <td>
+              <a href="/api/scenarios/custom/${encodeURIComponent(s.id)}/export" download="${escapeHtml(s.id)}.json" class="btn-secondary" style="font-size: 11px; padding: 2px 6px; text-decoration: none;">Download</a>
+            </td>
+          </tr>
+        `).join('');
+      } catch (e) {
+        console.error('Failed to load custom scenarios:', e);
+      }
+    }
+
+    function exportScenarioBuilder() {
+      const obj = syncFormToJson();
+      const blob = new Blob([JSON.stringify(obj, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${obj.id || 'custom_scenario'}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importScenarioFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const parsed = JSON.parse(e.target.result);
+          const res = await apiFetch('/api/scenarios/custom/import', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(parsed)
+          });
+          const data = await res.json();
+          if (res.ok) {
+            alert(`Scenario "${data.name}" imported successfully!`);
+            document.getElementById('scenBuilderId').value = data.id;
+            document.getElementById('scenBuilderName').value = data.name;
+            loadScenarioBuilder();
+            loadScenariosCatalog();
+          } else {
+            alert(`Import failed: ${data.detail || 'Schema error'}`);
+          }
+        } catch (err) {
+          alert(`Invalid JSON file: ${err.message}`);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    // -------------------------------------------------------------
+    // View 10: Regression Testing & Reliability Scorecards
+    // -------------------------------------------------------------
+    async function loadRegressionView() {
+      try {
+        const res = await apiFetch('/api/runs');
+        if (!res.ok) return;
+        const runs = await res.json();
+        const selA = document.getElementById('regBaselineSelect');
+        const selB = document.getElementById('regCandidateSelect');
+
+        if (!runs || runs.length === 0) {
+          selA.innerHTML = '<option value="">No runs available</option>';
+          selB.innerHTML = '<option value="">No runs available</option>';
+          return;
+        }
+
+        const optionsHtml = runs.map(r => `
+          <option value="${escapeHtml(r.id)}">
+            ${escapeHtml(r.id)} · ${escapeHtml(r.agent_version_id || 'v1')} · ${r.status} (${r.passed_scenarios || 0}/${r.total_scenarios || 0} passed)
+          </option>
+        `).join('');
+
+        selA.innerHTML = optionsHtml;
+        selB.innerHTML = optionsHtml;
+        if (runs.length >= 2) {
+          selB.selectedIndex = 1;
+        }
+      } catch (e) {
+        console.error('Failed to populate regression runs:', e);
+      }
+    }
+
+    let lastRegressionReport = null;
+
+    async function runRegressionComparison() {
+      const baseId = document.getElementById('regBaselineSelect').value;
+      const candId = document.getElementById('regCandidateSelect').value;
+      if (!baseId || !candId) {
+        alert('Please select both a baseline run and a candidate run.');
+        return;
+      }
+
+      try {
+        const res = await apiFetch('/api/regression/compare', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ baseline_run_id: baseId, candidate_run_id: candId })
+        });
+        if (!res.ok) {
+          const err = await res.json();
+          alert(`Regression comparison failed: ${err.detail || 'Error'}`);
+          return;
+        }
+        const data = await res.json();
+        lastRegressionReport = data;
+
+        document.getElementById('regScorecardContainer').style.display = 'flex';
+
+        // Verdict Badge
+        const badge = document.getElementById('regVerdictBadge');
+        badge.textContent = data.verdict;
+        if (data.verdict === 'REGRESSION_DETECTED') {
+          badge.className = 'badge-pill failed';
+        } else if (data.verdict === 'IMPROVED') {
+          badge.className = 'badge-pill passed';
+        } else {
+          badge.className = 'badge-pill gray';
+        }
+
+        document.getElementById('regConfidenceNotice').textContent = data.statistical_confidence || '';
+        document.getElementById('regCostDisclaimer').textContent = data.cost_disclaimer || '';
+        document.getElementById('regRegCount').textContent = data.summary.regressions;
+        document.getElementById('regImpCount').textContent = data.summary.improvements;
+        document.getElementById('regParityCount').textContent = data.summary.parity;
+
+        const delta = data.summary.pass_rate_delta;
+        const deltaEl = document.getElementById('regPassDelta');
+        deltaEl.textContent = `${delta >= 0 ? '+' : ''}${delta}%`;
+        deltaEl.style.color = delta > 0 ? '#16A34A' : (delta < 0 ? '#DC2626' : 'var(--text-main)');
+
+        document.getElementById('regLatencyDelta').textContent = `p50: ${data.latency.delta_p50_ms >= 0 ? '+' : ''}${data.latency.delta_p50_ms}ms · p90: ${data.latency.delta_p90_ms >= 0 ? '+' : ''}${data.latency.delta_p90_ms}ms`;
+        document.getElementById('regCostDelta').textContent = `${data.token_and_cost.cost_usd_delta >= 0 ? '+' : ''}$${data.token_and_cost.cost_usd_delta.toFixed(6)}`;
+
+        // Scenarios Table
+        const tbody = document.getElementById('regScenariosTbody');
+        tbody.innerHTML = (data.scenarios || []).map(s => {
+          let classPill = `<span class="badge-pill gray">${escapeHtml(s.classification)}</span>`;
+          if (s.classification === 'REGRESSION') classPill = `<span class="badge-pill failed">REGRESSION</span>`;
+          else if (s.classification === 'IMPROVEMENT') classPill = `<span class="badge-pill passed">IMPROVEMENT</span>`;
+          else if (s.classification === 'PARITY') classPill = `<span class="badge-pill gray">PARITY</span>`;
+
+          const bTools = (s.baseline_tool_sequence || []).join(' → ') || 'None';
+          const cTools = (s.candidate_tool_sequence || []).join(' → ') || 'None';
+
+          return `
+            <tr>
+              <td><code>${escapeHtml(s.scenario_id)}</code></td>
+              <td><span class="badge-pill ${s.baseline_status === 'PASSED' ? 'passed' : 'failed'}">${s.baseline_status}</span></td>
+              <td><span class="badge-pill ${s.candidate_status === 'PASSED' ? 'passed' : 'failed'}">${s.candidate_status}</span></td>
+              <td>${classPill}</td>
+              <td style="font-size: 11px; font-family: monospace;">${escapeHtml(bTools)}</td>
+              <td style="font-size: 11px; font-family: monospace;">${escapeHtml(cTools)}</td>
+              <td style="font-family: monospace;">${s.duration_delta_ms >= 0 ? '+' : ''}${s.duration_delta_ms}ms</td>
+            </tr>
+          `;
+        }).join('');
+
+      } catch (e) {
+        alert(`Failed to run regression analysis: ${e.message}`);
+      }
+    }
+
+    function exportRegressionReport() {
+      if (!lastRegressionReport) {
+        alert('Please run a regression comparison analysis first.');
+        return;
+      }
+      const blob = new Blob([JSON.stringify(lastRegressionReport, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `regression_report_${lastRegressionReport.runs.baseline.id}_${lastRegressionReport.runs.candidate.id}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    // -------------------------------------------------------------
+    // View 11: Failure Analysis
+    // -------------------------------------------------------------
+    let cachedFailures = [];
+
+    async function loadFailureAnalysis() {
+      try {
+        const res = await apiFetch('/api/runs');
+        if (!res.ok) return;
+        const runs = await res.json();
+        cachedFailures = [];
+
+        let policyViolations = 0;
+        let limitExceeded = 0;
+        let providerErrors = 0;
+
+        for (const r of (runs || []).slice(0, 5)) {
+          if (r.failed_scenarios > 0) {
+            try {
+              const dRes = await apiFetch(`/api/runs/${r.id}`);
+              if (dRes.ok) {
+                const details = await dRes.json();
+                for (const sr of (details.scenario_runs || [])) {
+                  if (sr.status !== 'PASSED') {
+                    let cat = 'BEHAVIORAL_POLICY_VIOLATION';
+                    if (sr.status === 'PROVIDER_ERROR') {
+                      cat = 'PROVIDER_ERROR';
+                      providerErrors++;
+                    } else if (sr.checks && sr.checks.some(c => c.message && (c.message.includes('timeout') || c.message.includes('limit')))) {
+                      cat = 'OPERATIONAL_LIMIT_EXCEEDED';
+                      limitExceeded++;
+                    } else {
+                      policyViolations++;
+                    }
+
+                    const failedCheck = (sr.checks || []).find(c => c.status === 'FAILED');
+                    cachedFailures.push({
+                      scenario_id: sr.scenario_version_id,
+                      run_id: r.id,
+                      category: cat,
+                      message: failedCheck ? failedCheck.message : (sr.error_message || 'Scenario failed'),
+                      evidence: failedCheck ? JSON.stringify(failedCheck.evidence || {}) : '-'
+                    });
+                  }
+                }
+              }
+            } catch (ignore) {}
+          }
+        }
+
+        document.getElementById('faPolicyCount').textContent = policyViolations;
+        document.getElementById('faLimitCount').textContent = limitExceeded;
+        document.getElementById('faProviderCount').textContent = providerErrors;
+
+        filterFailureAnalysis();
+      } catch (e) {
+        console.error('Failed to load failure analysis:', e);
+      }
+    }
+
+    function filterFailureAnalysis() {
+      const filter = document.getElementById('faCategoryFilter').value;
+      const filtered = filter === 'ALL' ? cachedFailures : cachedFailures.filter(f => f.category === filter);
+      const tbody = document.getElementById('faLogTbody');
+
+      if (!filtered || filtered.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; color: var(--text-muted); padding: 25px;">No recorded failures matching this filter.</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = filtered.map(f => {
+        let badge = `<span class="badge-pill failed">${escapeHtml(f.category)}</span>`;
+        if (f.category === 'OPERATIONAL_LIMIT_EXCEEDED') badge = `<span class="badge-pill" style="background:#FEF3C7; color:#B45309;">OPERATIONAL_LIMIT</span>`;
+        if (f.category === 'PROVIDER_ERROR') badge = `<span class="badge-pill" style="background:#EDE9FE; color:#7C3AED;">PROVIDER_ERROR</span>`;
+
+        return `
+          <tr>
+            <td><code>${escapeHtml(f.scenario_id)}</code></td>
+            <td><code>${escapeHtml(f.run_id)}</code></td>
+            <td>${badge}</td>
+            <td style="font-size: 12.5px;">${escapeHtml(f.message)}</td>
+            <td><code style="font-size: 11px;">${escapeHtml(f.evidence)}</code></td>
+          </tr>
+        `;
+      }).join('');
     }
   </script>
 </body>
