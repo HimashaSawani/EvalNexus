@@ -76,3 +76,4 @@ AgentWindTunnel V2 has met all acceptance criteria for a stable, secure, fully t
 ## 4. Release Candidate Freeze Recommendation
 
 AgentWindTunnel V2 is **RECOMMENDED TO FREEZE AS RELEASE CANDIDATE `v2.0.0`** for local and open-source distribution. The core platform architecture is stable, deterministic, cleanly decoupled, and fully tested.
+

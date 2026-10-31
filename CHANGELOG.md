@@ -48,3 +48,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 5 deterministic behavioral evaluator assertions (`OWNERSHIP`, `ELIGIBILITY`, `DUPLICATE`, `STATE`, `COMPLETION`).
 - FastAPI web dashboard across 7 initial sections.
 - SQLite WAL mode persistent queue and worker.
+

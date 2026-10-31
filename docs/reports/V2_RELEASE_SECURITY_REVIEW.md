@@ -41,3 +41,4 @@
 - **NOT TESTED (Production Hardening Scope):**
   - Distributed multi-node rate limiting via Redis (`fastapi-limiter`). Current implementation uses in-process sliding windows, suitable for single-node and local deployments.
   - External Key Management Service (AWS KMS, GCP KMS, or HashiCorp Vault) for envelope encryption of external custom agent tokens at rest in PostgreSQL.
+
