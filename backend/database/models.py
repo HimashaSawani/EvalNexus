@@ -4,6 +4,7 @@ from sqlalchemy import (
     Column,
     String,
     Integer,
+    Float,
     DateTime,
     ForeignKey,
     Text,
@@ -236,6 +237,146 @@ class CustomScenario(Base):
     scenario_data = Column(JSON, nullable=False)
     created_at = Column(DateTime, default=utc_now)
     updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+
+
+# ---------------------------------------------------------
+# V3 Platform Extension Models
+# ---------------------------------------------------------
+
+class Workflow(Base):
+    __tablename__ = "workflows"
+
+    id = Column(String(64), primary_key=True)
+    name = Column(String(128), nullable=False)
+    description = Column(Text, nullable=True)
+    version = Column(Integer, default=1)
+    definition_json = Column(JSON, nullable=False)
+    is_active = Column(Integer, default=1)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+
+    runs = relationship("WorkflowRun", back_populates="workflow", cascade="all, delete-orphan")
+
+
+class WorkflowRun(Base):
+    __tablename__ = "workflow_runs"
+
+    id = Column(String(64), primary_key=True)
+    workflow_id = Column(String(64), ForeignKey("workflows.id"), nullable=True, index=True)
+    status = Column(String(32), default="RUNNING", index=True)
+    duration_ms = Column(Integer, default=0)
+    total_tokens = Column(Integer, default=0)
+    total_cost_usd = Column(Float, default=0.0)
+    final_output = Column(Text, nullable=True)
+    workflow_state = Column(JSON, nullable=True)
+    checks = Column(JSON, nullable=True)
+    error_message = Column(Text, nullable=True)
+    started_at = Column(DateTime, default=utc_now)
+    finished_at = Column(DateTime, nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+
+    workflow = relationship("Workflow", back_populates="runs")
+    step_runs = relationship("WorkflowStepRun", back_populates="workflow_run", cascade="all, delete-orphan")
+
+
+class WorkflowStepRun(Base):
+    __tablename__ = "workflow_step_runs"
+
+    id = Column(String(64), primary_key=True)
+    workflow_run_id = Column(String(64), ForeignKey("workflow_runs.id"), nullable=False, index=True)
+    step_id = Column(String(64), nullable=False)
+    agent_id = Column(String(64), nullable=False)
+    status = Column(String(32), default="RUNNING")
+    input_text = Column(Text, nullable=True)
+    output_text = Column(Text, nullable=True)
+    tool_calls = Column(JSON, nullable=True)
+    duration_ms = Column(Integer, default=0)
+    tokens_used = Column(Integer, default=0)
+    estimated_cost_usd = Column(Float, default=0.0)
+    error_message = Column(Text, nullable=True)
+    checks = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+
+    workflow_run = relationship("WorkflowRun", back_populates="step_runs")
+
+
+class WorkerNode(Base):
+    __tablename__ = "worker_nodes"
+
+    id = Column(String(64), primary_key=True)
+    hostname = Column(String(128), nullable=False)
+    ip_address = Column(String(64), nullable=False, default="127.0.0.1")
+    status = Column(String(32), default="ONLINE", index=True)
+    active_jobs_count = Column(Integer, default=0)
+    max_concurrency = Column(Integer, default=4)
+    capabilities = Column(JSON, nullable=True)
+    total_completed_jobs = Column(Integer, default=0)
+    total_failed_jobs = Column(Integer, default=0)
+    heartbeat_at = Column(DateTime, default=utc_now, index=True)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+
+
+class EvaluationDataset(Base):
+    __tablename__ = "evaluation_datasets"
+
+    id = Column(String(64), primary_key=True)
+    name = Column(String(128), nullable=False, unique=True)
+    description = Column(Text, nullable=True)
+    version = Column(String(32), default="1.0.0")
+    item_count = Column(Integer, default=0)
+    checksum_sha256 = Column(String(64), nullable=True)
+    metadata_json = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+
+    items = relationship("EvaluationDatasetItem", back_populates="dataset", cascade="all, delete-orphan")
+
+
+class EvaluationDatasetItem(Base):
+    __tablename__ = "evaluation_dataset_items"
+
+    id = Column(String(64), primary_key=True)
+    dataset_id = Column(String(64), ForeignKey("evaluation_datasets.id"), nullable=False, index=True)
+    item_index = Column(Integer, default=0)
+    scenario_id = Column(String(64), nullable=True)
+    input_data = Column(JSON, nullable=False)
+    expected_output = Column(JSON, nullable=True)
+    tags = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+
+    dataset = relationship("EvaluationDataset", back_populates="items")
+
+
+class QualityGate(Base):
+    __tablename__ = "quality_gates"
+
+    id = Column(String(64), primary_key=True)
+    name = Column(String(128), nullable=False)
+    description = Column(Text, nullable=True)
+    rules = Column(JSON, nullable=False)
+    is_active = Column(Integer, default=1)
+    created_at = Column(DateTime, default=utc_now)
+    updated_at = Column(DateTime, default=utc_now, onupdate=utc_now)
+
+    evaluations = relationship("QualityGateEvaluation", back_populates="gate", cascade="all, delete-orphan")
+
+
+class QualityGateEvaluation(Base):
+    __tablename__ = "quality_gate_evaluations"
+
+    id = Column(String(64), primary_key=True)
+    gate_id = Column(String(64), ForeignKey("quality_gates.id"), nullable=False, index=True)
+    target_type = Column(String(32), nullable=False)
+    target_id = Column(String(64), nullable=False, index=True)
+    status = Column(String(32), default="PASSED")
+    score = Column(Integer, default=100)
+    rule_evaluations = Column(JSON, nullable=False)
+    summary = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+
+    gate = relationship("QualityGate", back_populates="evaluations")
+
 
 
 
