@@ -179,3 +179,72 @@ Evaluates behavioral deltas, execution duration, and check results with automate
 ### Settings & Redacted Configuration
 Displays runtime execution limits (30s timeout, 6 turns, 15,000 token budget), worker heartbeats, and credential masking (zero secret leakage).
 ![Settings & Safety](docs/reports/screenshots/10_settings.png)
+
+### Custom Agent HTTP Registry (V2)
+Registers and manages external HTTP agent adapters with safe header authentication, preflight URL validation, SSRF defenses, and timeout controls.
+![Custom Agent Registry](docs/reports/screenshots/23_custom_agent_registry.png)
+
+### Scenario Builder & Import/Export (V2)
+Visual editor and JSON file manager enabling teams to define custom order states, customer conversation turns, fault injection triggers, and evaluator assertions.
+![Scenario Builder](docs/reports/screenshots/24_scenario_builder.png)
+
+### Regression Testing & Reliability Scorecards (V2)
+Automated baseline vs. candidate drift analysis, detecting tool-call sequence drift, latency percentiles ($p50$/$p90$), and token/cost shifts with statistical sample warnings.
+![Regression Testing & Scorecards](docs/reports/screenshots/25_regression_testing.png)
+
+### Root-Cause Failure Analysis (V2)
+Audit log categorization partitioning execution anomalies into Behavioral Policy Violations, Operational Limits Exceeded, and Provider Transport Outages.
+![Failure Analysis](docs/reports/screenshots/26_failure_analysis.png)
+
+---
+
+## 8. Advanced Workflows & Developer Guide
+
+### A. Custom Agent HTTP Integration Workflow
+AgentWindTunnel allows teams to benchmark external AI agents over HTTP/HTTPS without executing untrusted code locally.
+1. **Endpoint Contract:** The agent endpoint must accept a `POST` request with JSON body:
+   ```json
+   {
+     "messages": [{"role": "user", "content": "..."}],
+     "tools": [{"type": "function", "function": {"name": "...", "description": "...", "parameters": {...}}}],
+     "temperature": 0.0
+   }
+   ```
+   And respond with:
+   ```json
+   {
+     "content": "Final message or explanation",
+     "tool_calls": [{"id": "call_1", "type": "function", "function": {"name": "get_order", "arguments": "{\"order_id\":\"ord_123\"}"}}],
+     "usage": {"total_tokens": 150}
+   }
+   ```
+2. **Registration:** Via UI (`#custom-agents`) or `POST /api/custom-agents`. Specify name, endpoint URL, auth header (e.g. `Authorization`), auth token, and timeout.
+3. **SSRF Guardrails:** URL schemes are restricted to `http`/`https`. Outbound calls block loopback (`127.0.0.0/8`), RFC-1918 private subnets (`10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16`), link-local (`169.254.0.0/16`), and AWS/GCP metadata services (`169.254.169.254`). HTTP redirects (`301`/`302`) are strictly rejected (`follow_redirects=False`).
+
+### B. Scenario Builder & Import/Export Workflow
+1. **Scenario Definition:** Author scenarios in UI (`#scenario-builder`) or export/import JSON files.
+2. **Validation & Isolation:** Scenarios undergo deep Pydantic validation. Path traversal attempts (`../../`) are blocked, ensuring scenario files persist exclusively within `scenarios/custom/`.
+3. **Execution:** Custom scenarios appear dynamically in the Test Studio dropdown and Scenarios Catalog.
+
+### C. Automated Regression Testing & Scorecards
+1. **Execution Comparison:** Navigate to `#regression-testing`, select a **Baseline Run** and a **Candidate Run**.
+2. **Drift Analysis:**
+   - **Behavioral Drift:** Compares tool call invocation sequences and evaluator check pass rates.
+   - **Performance Drift:** Calculates latency percentiles ($p50$ and $p90$) and token usage deltas.
+   - **Cost Delta:** Estimates financial shifts with explicit disclaimers.
+   - **Statistical Confidence:** Warns when comparing runs with fewer than 10 scenarios to prevent misleading conclusions from small sample sizes.
+3. **Automated Classification:** Yields overall verdict: `PARITY`, `IMPROVED`, or `REGRESSION_DETECTED`.
+
+---
+
+## 9. Architectural Boundaries & Operational Limitations
+
+To maintain engineering honesty, AgentWindTunnel V2 clearly distinguishes verified local capabilities from production cloud requirements:
+
+| Component | Local / Development (Verified) | Production Cloud (Requirement) |
+| :--- | :--- | :--- |
+| **Worker Concurrency** | In-process thread pool or multi-process SQLite WAL with database-backed atomic claim checks. | Multi-worker Kubernetes deployment with distributed locks. |
+| **Rate Limiting** | In-memory sliding-window tracker (`general_limiter`, `execution_limiter`). | Centralized Redis cluster (`fastapi-limiter`) behind ALB. |
+| **Secret Storage** | Masked memory tokens and server-side environment variables. | External Key Management Service (AWS KMS, GCP KMS, Vault) with envelope encryption. |
+| **Container Engine** | Docker Compose with non-root UID `appuser` (requires active Docker daemon with WSL2/Linux permissions). | Container registry CI/CD with Kubernetes Helm deployment. |
+| **Database** | SQLite WAL with `PRAGMA busy_timeout=5000` or local PostgreSQL. | Managed PostgreSQL (AWS RDS / GCP Cloud SQL) with read replicas. |
