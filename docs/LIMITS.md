@@ -1,12 +1,12 @@
 # Execution Limits, Timeouts, and Operational Guarantees
 
-This document specifies the operational guardrails, timeouts, accounting mechanisms, and technical boundaries enforced within the **AgentWindTunnel** benchmarking platform.
+This document specifies the operational guardrails, timeouts, accounting mechanisms, and technical boundaries enforced within the **EvalNexus** benchmarking platform.
 
 ---
 
 ## 1. Operational Limits & Timeouts Overview
 
-AgentWindTunnel implements a multi-layered boundary defense to prevent runaway agent loops, denial-of-service, excessive billing, and thread deadlocks.
+EvalNexus implements a multi-layered boundary defense to prevent runaway agent loops, denial-of-service, excessive billing, and thread deadlocks.
 
 | Limit Mechanism | Scope | Default Value | Enforcement Layer | Interruption Behavior |
 |---|---|:---:|---|---|
@@ -49,7 +49,7 @@ In accordance with system-level constraints of modern operating systems, Python 
 ### 1. Preemptive Python Thread Cancellation vs. State Settling
 - **Limitation**: CPython does not provide a mechanism to asynchronously kill or abort an arbitrary running thread (`Thread.abort()` does not exist in standard Python).
 - **Hazard**: If a tool times out before committing to the database, the unkilled worker thread could potentially complete its write after the evaluator has already evaluated the scenario.
-- **Architectural Solution Implemented in AgentWindTunnel**:
+- **Architectural Solution Implemented in EvalNexus**:
   1. **`CancellationToken`**: An explicit cancellation token is bound to `RefundService`. The moment a tool call exceeds `tool_timeout_sec`, `token.cancel()` is immediately flagged.
   2. **Late-Write Blocking**: `RefundService.request_refund` checks `self.cancel_token.is_cancelled` before and after database commit. If cancellation is flagged, the write is immediately rolled back (`self.db.rollback()`), guaranteeing no orphan records pollute the database.
   3. **`settle_in_flight_tasks(timeout_sec=0.5)` Barrier**: Before deterministic evaluation runs, `agent_runner` drains and settles any active worker thread, ensuring the database transaction is finalized and SQLite locks are released.

@@ -1,9 +1,9 @@
-# AgentWindTunnel: AI Agent Benchmarking & Testing Platform
+# EvalNexus: AI Agent Evaluation and Reliability Platform
 
 ## Step 1: Project Scope & Specification
 
 ### Overview
-AgentWindTunnel is an automated reliability and compliance benchmarking platform ("wind tunnel") designed for LLM agents. Just like physical wind tunnels stress-test aerodynamics, AgentWindTunnel subjects AI agents to deterministic edge cases, system faults (timeouts, stale reads, network partitions), and security assertions before they hit production.
+EvalNexus is an AI Agent Evaluation and Reliability Platform that helps engineers benchmark agents, inspect execution traces, compare versions, test failure scenarios, and evaluate reliability before deployment. It subjects AI agents to deterministic edge cases, system faults (timeouts, stale reads, network partitions), and security assertions before they reach production.
 
 ### Initial Release (V1) Scope: E-Commerce Refund Support Agent
 The initial release targets a dedicated, high-risk e-commerce customer support use-case: **Order Refund Evaluation and Processing**.
