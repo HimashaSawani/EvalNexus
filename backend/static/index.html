@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>AgentWindTunnel — AI Agent Testing & Reliability Studio</title>
-  <meta name="description" content="Deterministic evaluation, benchmarking, and fault-injection platform for AI agents.">
+  <title>EvalNexus — Evaluate. Trace. Improve.</title>
+  <meta name="description" content="AI agent evaluation and reliability platform for benchmarking, scenario testing, execution tracing, regression analysis, and evidence-grounded investigation.">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -1009,7 +1009,7 @@
       <button class="menu-btn" onclick="toggleSidebar()" aria-label="Toggle navigation">
         <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
       </button>
-      <span style="font-weight: 700; font-size: 15px;">AgentWindTunnel</span>
+      <span style="font-weight: 700; font-size: 15px;">EvalNexus</span>
     </div>
     <span class="badge-pill indigo">V1</span>
   </div>
@@ -1023,8 +1023,8 @@
         </svg>
       </div>
       <div class="brand-title">
-        <span class="brand-name">AgentWindTunnel</span>
-        <span class="brand-version">Reliability V1</span>
+        <span class="brand-name">EvalNexus</span>
+        <span class="brand-version">Evaluate. Trace. Improve.</span>
       </div>
     </div>
 
@@ -2892,11 +2892,33 @@
 
       if (activeDetailTab === 'checks') {
         const checks = sr.checks || [];
+        const revisions = sr.revisions || (activeRun.evaluation_revisions ? activeRun.evaluation_revisions.filter(r => r.scenario_run_id === sr.scenario_run_id) : []);
+        let revBanner = '';
+        if (revisions && revisions.length > 0) {
+          const latestRev = revisions[revisions.length - 1];
+          revBanner = `
+            <div class="evaluation-revision-banner" style="background: #F0FDF4; border: 1px solid #86EFAC; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px;">
+              <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 4px;">
+                <div style="font-weight: 700; color: #166534; font-size: 13px;">
+                  Audited Evaluation Revision Available (Revision #${latestRev.revision_num})
+                </div>
+                <span class="status-pill ${latestRev.new_status.toLowerCase()}">${latestRev.new_status}</span>
+              </div>
+              <div style="font-size: 12px; color: #15803D;">
+                Mode: <code>${latestRev.evaluation_mode}</code> · Audited by: <strong>${latestRev.engineer_id}</strong>
+              </div>
+              <div style="font-size: 11.5px; color: #166534; margin-top: 4px;">
+                Audit Rationale: ${latestRev.reason || 'Read-only inquiry evaluation contract applied'}
+              </div>
+            </div>
+          `;
+        }
         if (checks.length === 0) {
-          container.innerHTML = '<div class="empty-state">No evaluator checks recorded.</div>';
+          container.innerHTML = revBanner + '<div class="empty-state">No evaluator checks recorded.</div>';
           return;
         }
         container.innerHTML = `
+          ${revBanner}
           <table class="data-table">
             <thead>
               <tr>
@@ -3476,7 +3498,7 @@
           throw new Error('Scenario ID, Name, and Customer Prompt are required.');
         }
         statusBox.style.color = '#15803D';
-        statusBox.textContent = `✓ Scenario definition is valid and compliant with AgentWindTunnel schema.`;
+        statusBox.textContent = `✓ Scenario definition is valid and compliant with EvalNexus schema.`;
       } catch (e) {
         statusBox.style.color = '#DC2626';
         statusBox.textContent = `✗ Validation Error: ${e.message}`;
