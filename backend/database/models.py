@@ -77,6 +77,7 @@ class Run(Base):
     agent_version = relationship("AgentVersion", back_populates="runs")
     scenario_runs = relationship("ScenarioRun", back_populates="run", cascade="all, delete-orphan")
     queue_job = relationship("QueueJob", uselist=False, back_populates="run", cascade="all, delete-orphan")
+    evaluation_revisions = relationship("EvaluationRevision", back_populates="run", cascade="all, delete-orphan")
 
 
 class ScenarioRun(Base):
@@ -94,6 +95,7 @@ class ScenarioRun(Base):
     scenario_version = relationship("ScenarioVersion", back_populates="scenario_runs")
     trace_events = relationship("TraceEvent", back_populates="scenario_run", cascade="all, delete-orphan")
     check_results = relationship("CheckResult", back_populates="scenario_run", cascade="all, delete-orphan")
+    revisions = relationship("EvaluationRevision", back_populates="scenario_run", cascade="all, delete-orphan")
 
 
 class TraceEvent(Base):
@@ -376,6 +378,31 @@ class QualityGateEvaluation(Base):
     created_at = Column(DateTime, default=utc_now)
 
     gate = relationship("QualityGate", back_populates="evaluations")
+
+
+# ---------------------------------------------------------
+# Auditable Evaluation Revision Model
+# ---------------------------------------------------------
+
+class EvaluationRevision(Base):
+    __tablename__ = "evaluation_revisions"
+
+    id = Column(String(64), primary_key=True)
+    scenario_run_id = Column(String(64), ForeignKey("scenario_runs.id"), nullable=False, index=True)
+    run_id = Column(String(64), ForeignKey("runs.id"), nullable=False, index=True)
+    revision_num = Column(Integer, default=1)
+    evaluation_mode = Column(String(32), nullable=False)  # READ_ONLY_INQUIRY, FULL_MUTATION
+    evaluator_version = Column(String(32), default="v2_read_only_aware")
+    engineer_id = Column(String(64), default="eval_reliability_engineer")
+    reason = Column(Text, nullable=True)
+    previous_status = Column(String(32), nullable=False)
+    new_status = Column(String(32), nullable=False)
+    check_results_json = Column(JSON, nullable=False)
+    metadata_json = Column(JSON, nullable=True)
+    created_at = Column(DateTime, default=utc_now)
+
+    scenario_run = relationship("ScenarioRun", back_populates="revisions")
+    run = relationship("Run", back_populates="evaluation_revisions")
 
 
 

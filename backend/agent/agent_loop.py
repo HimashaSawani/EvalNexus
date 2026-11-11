@@ -51,7 +51,8 @@ class AgentLoop:
         max_tokens_budget: int = 15000,
         tool_timeout_sec: float = 5.0,
         scenario_timeout_sec: float = 30.0,
-        provider_timeout_sec: float = 15.0
+        provider_timeout_sec: float = 15.0,
+        allowed_tools: Optional[List[str]] = None
     ):
         self.service = service
         self.trace_logger = trace_logger
@@ -63,6 +64,7 @@ class AgentLoop:
         self.tool_timeout_sec = tool_timeout_sec
         self.scenario_timeout_sec = scenario_timeout_sec
         self.provider_timeout_sec = getattr(provider, "provider_timeout_sec", provider_timeout_sec)
+        self.allowed_tools = set(allowed_tools) if allowed_tools is not None else None
         self.unresolved_tasks: List[Dict[str, Any]] = []
         self.pending_timeout_events: List[Dict[str, Any]] = []
         self.active_executors: List[concurrent.futures.ThreadPoolExecutor] = []
@@ -153,6 +155,12 @@ class AgentLoop:
                 cost_estimate=step_cost
             )
 
+            if total_tokens > self.max_tokens_budget:
+                raise AgentExecutionLimitError(
+                    limit_type="TOKEN_BUDGET_EXCEEDED",
+                    message=f"Token budget of {self.max_tokens_budget} exceeded (used: {total_tokens})."
+                )
+
             # A final response must not bypass the scenario deadline after a slow provider or trace commit.
             if time.time() - start_time >= self.scenario_timeout_sec:
                 raise AgentExecutionLimitError(
@@ -190,6 +198,9 @@ class AgentLoop:
                 fn_name = fn_info["name"]
                 raw_args = fn_info["arguments"]
                 fn_args = json.loads(raw_args) if isinstance(raw_args, str) else raw_args
+
+                if self.allowed_tools is not None and fn_name not in self.allowed_tools:
+                    raise ValueError(f"Tool '{fn_name}' is not permitted by the execution tool policy.")
 
                 # Validate tool schema before execution
                 validate_tool_arguments(fn_name, fn_args)

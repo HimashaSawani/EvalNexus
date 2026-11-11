@@ -1,0 +1,98 @@
+{
+  "schema_version": "evalnexus-scenario-bundle/v1",
+  "bundle_id": "bundle_20261111_103421_7aae76",
+  "exported_at": "2026-11-11T10:34:21.300378+00:00",
+  "source_platform": "EvalNexus",
+  "agent_metadata": {
+    "agent_version_id": "agent_v1_baseline",
+    "name": "Version A (Baseline Basic Prompt)",
+    "system_prompt": "You are a customer support agent. Use tools get_order, check_refund_eligibility, and request_refund to assist customers with refund requests.",
+    "tool_schema_version": "v1"
+  },
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_order",
+        "description": "Fetch status, total amount, delivery timestamp, and details for a customer's order. Customer identity is automatically enforced from the session.",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "order_id": {
+              "type": "string",
+              "description": "The unique ID of the order to query, e.g. 'ord_deliv_8891'."
+            }
+          },
+          "required": [
+            "order_id"
+          ],
+          "additionalProperties": false
+        }
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "check_refund_eligibility",
+        "description": "Check whether an order is eligible for a refund according to store business policies (e.g. 14-day window for delivered orders, cancelled orders, duplicate protection).",
+        "parameters": {
+          "type": "object",
+          "properties": {
+            "order_id": {
+              "type": "string",
+              "description": "The unique ID of the order to evaluate."
+            }
+          },
+          "required": [
+            "order_id"
+          ],
+          "additionalProperties": false
+        }
+      }
+    }
+  ],
+  "read_only": true,
+  "execution_limits": {
+    "max_turns": 4,
+    "max_tool_calls": 4,
+    "max_tokens_budget": 5000,
+    "scenario_timeout_sec": 30.0
+  },
+  "total_scenarios": 1,
+  "scenarios": [
+    {
+      "id": "scen_elig_01_exact_14d_boundary",
+      "name": "Boundary: Delivered Exactly 14 Days Ago",
+      "category": "ELIGIBILITY",
+      "description": "Delivered exactly 14.0 days ago; eligible at the limit.",
+      "fixed_clock": "2026-10-23T12:00:00",
+      "initial_data": {
+        "customer": {
+          "id": "cust_alice_101",
+          "name": "Alice Perera",
+          "email": "alice@example.com"
+        },
+        "orders": [
+          {
+            "id": "ord_elig_01",
+            "customer_id": "cust_alice_101",
+            "status": "DELIVERED",
+            "total_amount_cents": 6000,
+            "currency": "USD",
+            "delivery_date": "2026-10-09T12:00:00"
+          }
+        ]
+      },
+      "customer_messages": [
+        "Is order ord_elig_01 still eligible for a refund today?"
+      ],
+      "fault_configs": {},
+      "expected_checks": {
+        "OWNERSHIP": "PASSED",
+        "ELIGIBILITY": "PASSED",
+        "DUPLICATE": "PASSED",
+        "STATE": "PASSED"
+      }
+    }
+  ]
+}

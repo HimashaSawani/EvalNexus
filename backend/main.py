@@ -23,6 +23,7 @@ from backend.database.models import (
     QueueJob,
     CustomAgent,
     CustomScenario,
+    EvaluationRevision,
     utc_now
 )
 from backend.runner.scripted_runner import ScriptedRunner
@@ -41,6 +42,12 @@ from backend.scenarios.custom_scenario_service import (
     delete_custom_scenario,
     export_custom_scenario,
     import_custom_scenario
+)
+from backend.scenarios.offline_bundle import (
+    export_scenario_bundle,
+    import_colab_results,
+    ScenarioBundleExportRequest,
+    ColabBatchResultImportPayload
 )
 from backend.runner.regression_comparator import RegressionComparator
 from backend.worker import QueueWorker
@@ -70,8 +77,8 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="AgentWindTunnel API",
-    description="Deterministic evaluation, benchmarking, and fault-injection platform for AI agents.",
+    title="EvalNexus API",
+    description="EvalNexus is an AI agent evaluation and reliability platform for benchmarking, scenario testing, execution tracing, regression analysis, and evidence-grounded evaluation.",
     version="1.0.0",
     lifespan=lifespan
 )
@@ -116,7 +123,7 @@ def serve_dashboard():
     static_file = os.path.join(os.path.dirname(__file__), "static", "index.html")
     if os.path.exists(static_file):
         return FileResponse(static_file)
-    return HTMLResponse("<h2>AgentWindTunnel Dashboard</h2><p>Static index not found.</p>")
+    return HTMLResponse("<h2>EvalNexus Dashboard</h2><p>Static index not found.</p>")
 
 
 # -------------------------------------------------------------
@@ -696,12 +703,32 @@ def get_run_details(run_id: str, db: Session = Depends(get_db), _auth: str = Dep
                     "duration_ms": t.duration_ms,
                     "timestamp": t.timestamp.isoformat() if t.timestamp else None
                 } for t in traces
+            ],
+            "revisions": [
+                {
+                    "id": rev.id,
+                    "revision_num": rev.revision_num,
+                    "evaluation_mode": rev.evaluation_mode,
+                    "previous_status": rev.previous_status,
+                    "new_status": rev.new_status,
+                    "engineer_id": rev.engineer_id,
+                    "reason": rev.reason,
+                    "check_results": rev.check_results_json,
+                    "created_at": rev.created_at.isoformat() if rev.created_at else None
+                }
+                for rev in db.query(EvaluationRevision).filter(
+                    EvaluationRevision.scenario_run_id == sr.id
+                ).order_by(EvaluationRevision.revision_num.asc()).all()
             ]
         })
 
     duration_ms = 0
     if run.started_at and run.finished_at:
         duration_ms = int((run.finished_at - run.started_at).total_seconds() * 1000)
+
+    run_revisions = db.query(EvaluationRevision).filter(
+        EvaluationRevision.run_id == run.id
+    ).order_by(EvaluationRevision.revision_num.asc()).all()
 
     return {
         "run_id": run.id,
@@ -720,7 +747,21 @@ def get_run_details(run_id: str, db: Session = Depends(get_db), _auth: str = Dep
         "created_at": run.created_at.isoformat() if run.created_at else None,
         "started_at": run.started_at.isoformat() if run.started_at else None,
         "finished_at": run.finished_at.isoformat() if run.finished_at else None,
-        "scenario_runs": detailed_runs
+        "scenario_runs": detailed_runs,
+        "evaluation_revisions": [
+            {
+                "id": rev.id,
+                "scenario_run_id": rev.scenario_run_id,
+                "revision_num": rev.revision_num,
+                "evaluation_mode": rev.evaluation_mode,
+                "previous_status": rev.previous_status,
+                "new_status": rev.new_status,
+                "engineer_id": rev.engineer_id,
+                "reason": rev.reason,
+                "created_at": rev.created_at.isoformat() if rev.created_at else None
+            }
+            for rev in run_revisions
+        ]
     }
 
 
@@ -864,7 +905,7 @@ def export_run(run_id: str, format: str = "json", db: Session = Depends(get_db),
 
     # Markdown format
     engine_label = "MOCK SIMULATOR" if details.get("is_mock") else f"LIVE PROVIDER ({details.get('provider_type').upper()})"
-    md = f"""# AgentWindTunnel Run Report
+    md = f"""# EvalNexus Run Report
 **Run ID:** `{details['run_id']}`  
 **Agent Version:** `{details['agent_version_id']}`  
 **Engine Mode:** `{engine_label}`  
@@ -1082,6 +1123,150 @@ def import_scenario_payload(payload: Dict[str, Any], db: Session = Depends(get_d
 
 
 # -------------------------------------------------------------
+# Offline Colab / Google Drive Evaluation Endpoints
+# -------------------------------------------------------------
+
+@app.get("/api/scenarios/bundle/export")
+def export_scenarios_bundle_get(
+    agent_version_id: str = "agent_v1_baseline",
+    read_only: bool = False,
+    db: Session = Depends(get_db),
+    _auth: str = Depends(verify_api_key)
+):
+    """Exports benchmark scenarios as a portable JSON bundle for Colab evaluation."""
+    try:
+        bundle = export_scenario_bundle(agent_version_id=agent_version_id, read_only=read_only, db=db)
+        json_content = json.dumps(bundle, indent=2)
+        return Response(
+            content=json_content,
+            media_type="application/json",
+            headers={"Content-Disposition": f"attachment; filename={bundle['bundle_id']}.json"}
+        )
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Export failed: {str(e)}")
+
+
+@app.post("/api/scenarios/bundle/export")
+def export_scenarios_bundle_post(
+    req: ScenarioBundleExportRequest,
+    db: Session = Depends(get_db),
+    _auth: str = Depends(verify_api_key)
+):
+    """Exports selected scenarios as a portable JSON bundle."""
+    try:
+        bundle = export_scenario_bundle(
+            scenario_ids=req.scenario_ids,
+            agent_version_id=req.agent_version_id,
+            execution_limits=req.execution_limits,
+            allowed_tools=req.allowed_tools,
+            read_only=req.read_only,
+            db=db
+        )
+        return bundle
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Export failed: {str(e)}")
+
+
+@app.post("/api/runs/import-colab")
+def import_colab_run(
+    payload: Dict[str, Any],
+    overwrite: bool = Query(default=False),
+    db: Session = Depends(get_db),
+    _auth: str = Depends(verify_api_key)
+):
+    """Imports offline Colab evaluation execution results into EvalNexus."""
+    try:
+        summary = import_colab_results(db, payload, overwrite=overwrite)
+        return summary
+    except ValueError as ve:
+        if "Duplicate import" in str(ve):
+            raise HTTPException(status_code=409, detail=str(ve))
+        raise HTTPException(status_code=422, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Import failed: {str(e)}")
+
+
+@app.post("/api/runs/{run_id}/re-evaluate")
+def re_evaluate_run_endpoint(
+    run_id: str,
+    payload: Optional[Dict[str, Any]] = None,
+    db: Session = Depends(get_db),
+    _auth: str = Depends(verify_api_key)
+):
+    """
+    Auditable re-evaluation endpoint.
+    Deterministically re-evaluates scenario runs under specified evaluation mode (e.g. read_only_inquiry)
+    without deleting or overwriting historical CheckResult rows.
+    """
+    payload = payload or {}
+    evaluation_mode = payload.get("evaluation_mode", "read_only_inquiry")
+    engineer_id = payload.get("engineer_id", "eval_reliability_engineer")
+    reason = payload.get("reason", "Auditable re-evaluation via EvalNexus API")
+    update_status = payload.get("update_status", True)
+
+    from backend.runner.evaluator import re_evaluate_run
+    try:
+        revisions = re_evaluate_run(
+            db=db,
+            run_id=run_id,
+            evaluation_mode=evaluation_mode,
+            engineer_id=engineer_id,
+            reason=reason,
+            update_run_status=update_status
+        )
+        return {
+            "status": "SUCCESS",
+            "run_id": run_id,
+            "revisions_count": len(revisions),
+            "evaluation_mode": evaluation_mode,
+            "revisions": [
+                {
+                    "revision_id": r.id,
+                    "scenario_run_id": r.scenario_run_id,
+                    "revision_num": r.revision_num,
+                    "previous_status": r.previous_status,
+                    "new_status": r.new_status,
+                    "created_at": r.created_at.isoformat() if r.created_at else None
+                }
+                for r in revisions
+            ]
+        }
+    except ValueError as ve:
+        raise HTTPException(status_code=404, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Re-evaluation failed: {str(e)}")
+
+
+@app.get("/api/runs/{run_id}/revisions")
+def get_run_revisions(
+    run_id: str,
+    db: Session = Depends(get_db),
+    _auth: str = Depends(verify_api_key)
+):
+    """Retrieves all auditable evaluation revisions for a run."""
+    revs = db.query(EvaluationRevision).filter(
+        EvaluationRevision.run_id == run_id
+    ).order_by(EvaluationRevision.created_at.asc()).all()
+    return [
+        {
+            "id": r.id,
+            "scenario_run_id": r.scenario_run_id,
+            "revision_num": r.revision_num,
+            "evaluation_mode": r.evaluation_mode,
+            "evaluator_version": r.evaluator_version,
+            "engineer_id": r.engineer_id,
+            "reason": r.reason,
+            "previous_status": r.previous_status,
+            "new_status": r.new_status,
+            "check_results": r.check_results_json,
+            "metadata": r.metadata_json,
+            "created_at": r.created_at.isoformat() if r.created_at else None
+        }
+        for r in revs
+    ]
+
+
+# -------------------------------------------------------------
 # Stage 4: Automated Regression Testing Endpoints
 # -------------------------------------------------------------
 
@@ -1117,7 +1302,7 @@ def get_regression_report(baseline_run_id: str, candidate_run_id: str, db: Sessi
 
 
 # -------------------------------------------------------------
-# AgentWindTunnel V3 Platform Endpoints
+# EvalNexus Platform Endpoints
 # -------------------------------------------------------------
 
 from backend.workflows.service import (

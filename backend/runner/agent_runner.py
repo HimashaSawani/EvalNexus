@@ -193,7 +193,8 @@ class AgentWindTunnelRunner:
             max_tool_calls=execution_config["max_tool_calls"],
             max_tokens_budget=execution_config["max_tokens_budget"],
             tool_timeout_sec=execution_config.get("tool_timeout_sec", 5.0),
-            scenario_timeout_sec=execution_config["scenario_timeout_sec"]
+            scenario_timeout_sec=execution_config["scenario_timeout_sec"],
+            allowed_tools=execution_config.get("allowed_tools")
         )
 
         customer_message = scenario_data["customer_messages"][0]

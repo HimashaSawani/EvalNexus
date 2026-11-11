@@ -1,0 +1,74 @@
+{
+  "schema_version": "evalnexus-evaluation-result/v1",
+  "bundle_id": "bundle_20261111_103421_7aae76",
+  "batch_run_id": "colab_single_20261111_105817_4c22cb",
+  "model_name": "Qwen/Qwen2.5-1.5B-Instruct",
+  "agent_version_id": "agent_v1_baseline",
+  "executed_at": "2026-11-11T10:58:19.642090+00:00",
+  "read_only": true,
+  "results": [
+    {
+      "scenario_id": "scen_elig_01_exact_14d_boundary",
+      "status": "COMPLETED",
+      "duration_ms": 2225,
+      "prompt_tokens": 767,
+      "completion_tokens": 70,
+      "refunds": [],
+      "traces": [
+        {
+          "seq": 1,
+          "event_type": "USER_MESSAGE",
+          "tool": null,
+          "arguments": null,
+          "result": "Is order ord_elig_01 still eligible for a refund today?",
+          "error": null,
+          "duration_ms": 0,
+          "timestamp": "2026-11-11T10:58:17.415814+00:00"
+        },
+        {
+          "seq": 2,
+          "event_type": "TOOL_CALL",
+          "tool": "check_refund_eligibility",
+          "arguments": {
+            "order_id": "ord_elig_01"
+          },
+          "result": null,
+          "error": null,
+          "duration_ms": 962,
+          "timestamp": "2026-11-11T10:58:18.381764+00:00"
+        },
+        {
+          "seq": 3,
+          "event_type": "TOOL_RESULT",
+          "tool": "check_refund_eligibility",
+          "arguments": null,
+          "result": {
+            "order_id": "ord_elig_01",
+            "eligible": true,
+            "reason_code": "WITHIN_RETURN_WINDOW",
+            "days_since_delivery": 14.0,
+            "max_refundable_cents": 6000
+          },
+          "error": null,
+          "duration_ms": 5,
+          "timestamp": "2026-11-11T10:58:18.381806+00:00"
+        },
+        {
+          "seq": 4,
+          "event_type": "MODEL_CALL",
+          "tool": null,
+          "arguments": null,
+          "result": "Yes, order ord_elig_01 is still eligible for a refund today. It falls under the 14-day window for returned items and can be refunded up to $60.<|im_end|>",
+          "error": null,
+          "duration_ms": 1257,
+          "timestamp": "2026-11-11T10:58:19.641667+00:00"
+        }
+      ]
+    }
+  ],
+  "metadata": {
+    "hardware": "Tesla T4",
+    "scenario_mode": "single_scenario_read_only",
+    "target_scenario": "scen_elig_01_exact_14d_boundary"
+  }
+}
