@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from backend.database.connection import Base
+from backend.database.models import TraceEvent
 from backend.agent.agent_loop import AgentLoop, AgentExecutionLimitError
 from backend.agent.provider import BaseLLMProvider, LLMResponse, MockToolCallingProvider
 from backend.runner.trace_logger import TraceLogger
@@ -70,7 +71,9 @@ def test_turn_limit_interruption(db_session):
     class LoopingProvider(BaseLLMProvider):
         provider_type = "mock"
         model_name = "mock-loop"
+        calls = 0
         def generate(self, messages, tools, temperature=0.0):
+            self.calls += 1
             # Always requests get_order in an infinite loop
             return LLMResponse(
                 content=None,
@@ -94,6 +97,7 @@ def test_turn_limit_interruption(db_session):
     # Turns halted at max_turns (3) without infinite loop
     assert res["turns"] == 3
     assert res["total_tool_calls"] == 3
+    assert loop.provider.calls == 3
 
 
 def test_token_budget_interruption(db_session):
@@ -127,6 +131,53 @@ def test_token_budget_interruption(db_session):
 
     assert exc_info.value.limit_type == "TOKEN_BUDGET_EXCEEDED"
     assert "10000" in exc_info.value.message
+    model_events = db_session.query(TraceEvent).filter(
+        TraceEvent.scenario_run_id == "test_token_budget",
+        TraceEvent.event_type == "MODEL_CALL"
+    ).all()
+    assert len(model_events) == 1
+    assert model_events[0].token_usage["total_tokens"] == 11000
+
+
+def test_execution_tool_allowlist_blocks_side_effecting_tool(db_session):
+    """Disallowed tools are rejected before the service dispatch boundary."""
+    logger = TraceLogger(db_session, "test_tool_allowlist")
+    service_calls = []
+
+    class DisallowedToolProvider(BaseLLMProvider):
+        provider_type = "mock"
+        model_name = "mock-disallowed-tool"
+
+        def generate(self, messages, tools, temperature=0.0):
+            return LLMResponse(
+                content=None,
+                tool_calls=[{
+                    "id": "call_refund",
+                    "type": "function",
+                    "function": {
+                        "name": "request_refund",
+                        "arguments": '{"order_id":"ord_1","amount_cents":100,"operation_key":"op_1"}'
+                    }
+                }],
+                prompt_tokens=10,
+                completion_tokens=5
+            )
+
+    class Service:
+        def request_refund(self, *args, **kwargs):
+            service_calls.append(True)
+
+    loop = AgentLoop(
+        service=Service(),
+        trace_logger=logger,
+        provider=DisallowedToolProvider(),
+        allowed_tools=["get_order", "check_refund_eligibility"]
+    )
+
+    with pytest.raises(ValueError, match="not permitted by the execution tool policy"):
+        loop.execute_turn_loop("c1", "status only", "Use read-only tools.")
+
+    assert service_calls == []
 
 
 def test_scenario_wall_clock_timeout_interruption(db_session):

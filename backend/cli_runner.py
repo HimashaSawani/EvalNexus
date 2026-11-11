@@ -97,11 +97,45 @@ def run_scenario_from_file(
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="AgentWindTunnel Terminal Scenario Runner")
+    parser = argparse.ArgumentParser(description="EvalNexus Terminal Scenario & Bundle Runner")
     parser.add_argument("scenario", nargs="?", default="scenarios/eligible_refund_scenario.json", help="Path to scenario JSON")
     parser.add_argument("--agent", choices=["agent_v1_baseline", "agent_v2_improved", "scripted"], default="agent_v1_baseline", help="Agent version to evaluate")
     parser.add_argument("--provider", choices=["mock", "openai", "gemini"], default="mock", help="Provider type (mock simulator or real LLM)")
     parser.add_argument("--model", default=None, help="Specific model name (e.g. gpt-4o-mini, gemini-1.5-flash)")
+    parser.add_argument("--export-bundle", default=None, help="Export a portable JSON scenario bundle for Colab evaluation")
+    parser.add_argument("--import-results", default=None, help="Import offline Colab execution results JSON into EvalNexus DB")
+    parser.add_argument("--scenarios", default=None, help="Comma-separated list of scenario IDs to export")
+    parser.add_argument("--read-only", action="store_true", help="Restrict tools strictly to read-only queries (get_order, check_refund_eligibility)")
+    parser.add_argument("--overwrite", action="store_true", help="Overwrite existing run if duplicate import detected")
     args = parser.parse_args()
 
-    run_scenario_from_file(args.scenario, agent_type=args.agent, provider_type=args.provider, model_name=args.model)
+    if args.export_bundle:
+        from backend.scenarios.offline_bundle import export_scenario_bundle_to_file
+        init_db()
+        db = SessionLocal()
+        try:
+            scen_list = [s.strip() for s in args.scenarios.split(",")] if args.scenarios else None
+            out_path = export_scenario_bundle_to_file(
+                args.export_bundle,
+                scenario_ids=scen_list,
+                agent_version_id=args.agent,
+                read_only=args.read_only,
+                db=db
+            )
+            mode_tag = "[READ-ONLY MODE]" if args.read_only else "[STANDARD MODE]"
+            print(f"✅ Successfully exported scenario bundle {mode_tag} to: {out_path}")
+        finally:
+            db.close()
+    elif args.import_results:
+        from backend.scenarios.offline_bundle import import_colab_results_from_file
+        init_db()
+        db = SessionLocal()
+        try:
+            res = import_colab_results_from_file(args.import_results, db=db, overwrite=args.overwrite)
+            print(f"✅ Successfully imported Colab run: {res['run_id']}")
+            print(f"   Model: {res['model_name']}")
+            print(f"   Results: {res['passed_scenarios']}/{res['total_scenarios']} passed ({res['duration_ms']}ms)")
+        finally:
+            db.close()
+    else:
+        run_scenario_from_file(args.scenario, agent_type=args.agent, provider_type=args.provider, model_name=args.model)

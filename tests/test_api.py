@@ -123,7 +123,7 @@ def test_queue_run_and_status_flow():
 
     export_md = client.get(f"/api/runs/{run_id}/export?format=markdown")
     assert export_md.status_code == 200
-    assert "AgentWindTunnel Run Report" in export_md.text
+    assert "EvalNexus Run Report" in export_md.text
 
 
 def test_models_endpoint():

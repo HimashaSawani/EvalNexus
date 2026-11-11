@@ -5,7 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.pool import StaticPool
 
 from backend.database.connection import Base
-from backend.database.models import RefundRequest, TraceEvent, CheckResult
+from backend.database.models import RefundRequest, TraceEvent, CheckResult, Run
 from backend.runner.agent_runner import AgentWindTunnelRunner
 
 
@@ -187,5 +187,66 @@ def test_provider_error_marks_checks_not_evaluated(db_session):
     for cr in result["check_results"]:
         assert cr["status"] == "NOT_EVALUATED"
         assert "Provider setup failure" in cr["message"]
+
+
+def test_disallowed_tool_failure_is_not_marked_passed(db_session):
+    from backend.agent.provider import BaseLLMProvider, LLMResponse
+
+    class DisallowedToolProvider(BaseLLMProvider):
+        provider_type = "mock"
+        model_name = "mock-policy-violation"
+
+        def generate(self, messages, tools, temperature=0.0):
+            return LLMResponse(
+                content=None,
+                tool_calls=[{
+                    "id": "call_refund",
+                    "type": "function",
+                    "function": {
+                        "name": "request_refund",
+                        "arguments": '{"order_id":"ord_deliv_8891","amount_cents":7450,"operation_key":"op_1"}'
+                    }
+                }],
+                prompt_tokens=10,
+                completion_tokens=5
+            )
+
+    scenario_path = "scenarios/eligible_refund_scenario.json"
+    with open(scenario_path, "r", encoding="utf-8") as f:
+        scenario_data = json.load(f)
+
+    run_id = "run_policy_allowlist"
+    db_session.add(Run(
+        id=run_id,
+        agent_version_id="agent_v2_improved",
+        execution_config={
+            "max_turns": 3,
+            "max_tool_calls": 2,
+            "max_tokens_budget": 1500,
+            "scenario_timeout_sec": 30.0,
+            "allowed_tools": ["get_order", "check_refund_eligibility"]
+        },
+        status="RUNNING",
+        total_scenarios=1
+    ))
+    db_session.commit()
+
+    runner = AgentWindTunnelRunner(db_session, provider=DisallowedToolProvider())
+    result = runner.run_agent_scenario(
+        scenario_data,
+        agent_version_id="agent_v2_improved",
+        run_id=run_id
+    )
+
+    assert result["status"] == "FAILED"
+    assert result["check_results"][-1]["check_name"] == "COMPLETION"
+    assert result["check_results"][-1]["status"] == "FAILED"
+    assert db_session.query(RefundRequest).filter(
+        RefundRequest.scenario_run_id == result["scenario_run_id"]
+    ).count() == 0
+    trace_types = [t.event_type for t in db_session.query(TraceEvent).filter(
+        TraceEvent.scenario_run_id == result["scenario_run_id"]
+    ).order_by(TraceEvent.seq_num).all()]
+    assert trace_types == ["USER_MESSAGE", "MODEL_CALL"]
 
 
