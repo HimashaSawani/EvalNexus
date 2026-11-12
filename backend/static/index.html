@@ -1127,6 +1127,49 @@
           </div>
         </div>
 
+        <!-- Onboarding & Quick Start Paths -->
+        <div class="card" style="margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, rgba(79, 70, 229, 0.04) 0%, rgba(59, 130, 246, 0.04) 100%); border: 1px solid rgba(99, 102, 241, 0.25);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <div>
+              <h3 style="font-size: 16px; font-weight: 700; color: var(--text-main); margin: 0 0 4px 0;">🚀 Get Started with EvalNexus</h3>
+              <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Choose your path: explore with simulated mock agents or benchmark your own AI agent over HTTP.</p>
+            </div>
+            <span class="badge-pill indigo">V3 Production Ready</span>
+          </div>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+            <!-- Path A -->
+            <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--radius-sm); padding: 18px; display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                  <span style="font-size: 20px;">🧪</span>
+                  <strong style="font-size: 14px; color: var(--text-main);">Option 1: Try Demo Evaluation</strong>
+                </div>
+                <p style="font-size: 12.5px; color: var(--text-muted); line-height: 1.5; margin: 0 0 14px 0;">
+                  Explore EvalNexus using built-in simulated agents and 35+ benchmark scenarios. Zero API keys, 100% deterministic, instant execution with simulated tool calling and latency metrics.
+                </p>
+              </div>
+              <button class="btn-run" onclick="launchDemoMode()" style="width: 100%; justify-content: center; height: 36px;">
+                Launch Demo Studio →
+              </button>
+            </div>
+            <!-- Path B -->
+            <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--radius-sm); padding: 18px; display: flex; flex-direction: column; justify-content: space-between;">
+              <div>
+                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                  <span style="font-size: 20px;">⚡</span>
+                  <strong style="font-size: 14px; color: var(--text-main);">Option 2: Evaluate My Own AI Agent</strong>
+                </div>
+                <p style="font-size: 12.5px; color: var(--text-muted); line-height: 1.5; margin: 0 0 14px 0;">
+                  Benchmark your own AI agent over HTTP. Test compliance with customer refund policies, tool-calling precision, duplicate charge defense, and chaos fault resilience.
+                </p>
+              </div>
+              <button class="btn-secondary" onclick="launchCustomAgentMode()" style="width: 100%; justify-content: center; height: 36px; background: var(--primary); color: white; border: none; font-weight: 600;">
+                Connect & Test My Agent →
+              </button>
+            </div>
+          </div>
+        </div>
+
         <div class="metrics-grid">
           <div class="metric-card">
             <div class="metric-icon-box blue">
@@ -1214,11 +1257,142 @@
           </div>
         </div>
 
+        <!-- Mode Switcher -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; background: white; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-border);">
+          <div style="display: flex; gap: 8px;">
+            <button id="btnModeDemo" class="btn-secondary" style="font-size: 12.5px; padding: 7px 16px; font-weight: 600; background: var(--primary); color: white; border: none; border-radius: var(--radius-sm);" onclick="switchStudioMode('demo')">
+              🧪 Mode A: Try Demo Evaluation
+            </button>
+            <button id="btnModeCustom" class="btn-secondary" style="font-size: 12.5px; padding: 7px 16px; font-weight: 600; background: transparent; color: var(--text-muted); border-radius: var(--radius-sm);" onclick="switchStudioMode('custom')">
+              🚀 Mode B: Evaluate My Own AI Agent
+            </button>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <button id="btnHttpSpec" class="btn-secondary" style="font-size: 11.5px; padding: 5px 10px; display: none;" onclick="toggleHttpContractCard()">
+              📖 HTTP Contract Specs
+            </button>
+            <button id="btnRegisterAgentQuick" class="btn-secondary" style="font-size: 11.5px; padding: 5px 10px; display: none; background: #EEF2FF; color: var(--primary); border-color: #C7D2FE;" onclick="navigateView('custom-agents')">
+              + Register New Agent
+            </button>
+          </div>
+        </div>
+
+        <!-- Demo Mode Guidance Banner -->
+        <div id="demoModeBanner" style="padding: 12px 18px; margin-bottom: 14px; background: #EEF2FF; border: 1px solid #C7D2FE; border-radius: var(--radius-sm); font-size: 13px; color: #3730A3; display: flex; align-items: center; gap: 12px;">
+          <span style="font-size: 18px;">ℹ️</span>
+          <div style="flex: 1;">
+            <strong>Demo Evaluation Active:</strong> Evaluating built-in mock agents (Version A / Version B / Scripted) with simulated tool calls. No live LLM keys or external network dependencies required.
+          </div>
+          <button class="btn-secondary" style="font-size: 11px; padding: 4px 10px; background: white; color: var(--primary);" onclick="switchStudioMode('custom')">
+            Switch to My Own Agent →
+          </button>
+        </div>
+
+        <!-- Custom Mode Guidance Banner -->
+        <div id="customModeBanner" style="padding: 14px 18px; margin-bottom: 14px; background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: var(--radius-sm); font-size: 13px; color: #065F46; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+                <span style="font-size: 18px;">⚡</span>
+                <strong style="font-size: 14px;">Custom AI Agent Evaluation Active:</strong>
+                <span id="customAgentStatusIndicator" class="badge-pill real" style="font-size: 10.5px;">Custom HTTP Endpoint</span>
+              </div>
+              <div style="color: #047857; font-size: 12.5px;">
+                Select your registered external agent below. EvalNexus will dispatch scenario turns to your endpoint via HTTP POST and evaluate tool-calling precision, policy compliance, and idempotency.
+              </div>
+            </div>
+            <div style="display: flex; gap: 8px; align-items: center;">
+              <button class="btn-secondary" style="font-size: 11.5px; padding: 5px 10px; background: white; color: #047857; border-color: #6EE7B7;" onclick="pingSelectedCustomAgent()">
+                Probing Endpoint
+              </button>
+            </div>
+          </div>
+          <div id="pingSelectedResult" style="margin-top: 8px; font-size: 12px; display: none; padding: 6px 10px; background: white; border-radius: 4px; border: 1px solid #A7F3D0;"></div>
+        </div>
+
+        <!-- Collapsible HTTP Integration Contract Card -->
+        <div id="httpContractCard" class="card" style="margin-bottom: 14px; padding: 18px; display: none; background: #FAFAFA; border: 1px dashed var(--primary);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span style="font-size: 18px;">🔌</span>
+              <strong style="font-size: 14px;">Custom Agent HTTP Protocol & Contract Specification</strong>
+            </div>
+            <button class="btn-secondary" style="font-size: 11px; padding: 3px 8px;" onclick="toggleHttpContractCard()">Hide Specs ✕</button>
+          </div>
+          <p style="font-size: 12.5px; color: var(--text-muted); margin: 0 0 12px 0;">
+            Any AI agent implemented in FastAPI, Flask, Express, LangChain, or custom code can be evaluated if it supports this simple JSON request and response contract:
+          </p>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div>
+              <span style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">1. Request sent to your agent (POST)</span>
+              <div class="json-code-box" style="margin-top: 6px; font-size: 11.5px; max-height: 220px;">{
+  "messages": [
+    {"role": "system", "content": "You are a customer refund support agent..."},
+    {"role": "user", "content": "I want a refund for order ord_123"}
+  ],
+  "tools": [
+    {
+      "type": "function",
+      "function": {
+        "name": "get_order",
+        "description": "Fetch order details for customer",
+        "parameters": {"type": "object", "properties": {"order_id": {"type": "string"}}}
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "check_refund_eligibility",
+        "description": "Check if order is within 14-day window",
+        "parameters": {"type": "object", "properties": {"order_id": {"type": "string"}}}
+      }
+    },
+    {
+      "type": "function",
+      "function": {
+        "name": "request_refund",
+        "description": "Submit refund with operation_key",
+        "parameters": {"type": "object", "properties": {"order_id": {"type": "string"}, "operation_key": {"type": "string"}, "amount_cents": {"type": "integer"}}}
+      }
+    }
+  ],
+  "temperature": 0.0,
+  "timeout_sec": 15.0
+}</div>
+            </div>
+            <div>
+              <span style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">2. Response expected from your agent</span>
+              <div class="json-code-box" style="margin-top: 6px; font-size: 11.5px; max-height: 220px;">// Multi-turn tool invocation:
+{
+  "content": null,
+  "tool_calls": [
+    {
+      "type": "function",
+      "function": {
+        "name": "check_refund_eligibility",
+        "arguments": "{\"order_id\": \"ord_123\"}"
+      }
+    }
+  ]
+}
+
+// Or Terminal final response:
+{
+  "content": "Your refund for order ord_123 has been submitted.",
+  "tool_calls": []
+}</div>
+            </div>
+          </div>
+          <div style="margin-top: 10px; font-size: 11.5px; color: var(--text-muted);">
+            🛡️ <strong>Safety Guarantees:</strong> EvalNexus enforces strict SSRF filtering (cloud metadata and link-local blocked). Secret tokens are masked with <code>***</code> and never exposed in browser logs.
+          </div>
+        </div>
+
         <!-- Control Toolbar -->
         <div class="control-card">
           <!-- Agent -->
           <div class="control-group">
-            <label class="control-label">Agent Version</label>
+            <label class="control-label" id="agentSelectLabel">Agent Version</label>
             <div class="control-select-wrap">
               <select id="agentSelect">
                 <option value="agent_v2_improved">Version B (Robust Compliant)</option>
@@ -1235,6 +1409,7 @@
             <div class="control-select-wrap">
               <select id="providerSelect" onchange="handleProviderChange()">
                 <option value="mock">Mock Simulator (Deterministic, Local)</option>
+                <option value="custom_http">Custom External Agent (HTTP)</option>
                 <option value="gemini">Google Gemini (Live LLM)</option>
                 <option value="openai">OpenAI (Live LLM)</option>
               </select>
@@ -1243,8 +1418,8 @@
           </div>
 
           <!-- Model -->
-          <div class="control-group">
-            <label class="control-label">Model</label>
+          <div class="control-group" id="modelControlGroup">
+            <label class="control-label" id="modelSelectLabel">Model / Target</label>
             <div class="control-select-wrap">
               <select id="modelSelect">
                 <option value="mock-deterministic-v1">mock-deterministic-v1</option>
@@ -1255,15 +1430,21 @@
 
           <!-- Suite / Scenario Selection -->
           <div class="control-group">
-            <label class="control-label">Test Suite</label>
+            <label class="control-label">Test Suite / Scenario</label>
             <div class="control-select-wrap">
               <select id="suiteSelect" onchange="updatePreflightInfo()">
-                <option value="dev_suite">Development Suite (20 Scenarios)</option>
-                <option value="smoke_suite">Live Smoke Suite (3 Scenarios)</option>
-                <option value="eligible_refund_scenario.json">Single: Eligible Refund</option>
-                <option value="ineligible_expired_scenario.json">Single: Ineligible Expired</option>
-                <option value="fault_temporary_unavailable.json">Single: Fault Temporary Unavailable</option>
-                <option value="fault_timeout_after_write.json">Single: Fault Timeout After Write</option>
+                <optgroup label="Standard Suites">
+                  <option value="dev_suite">Development Suite (20 Scenarios)</option>
+                  <option value="smoke_suite">Live Smoke Suite (3 Scenarios)</option>
+                </optgroup>
+                <optgroup label="Single Predefined Scenarios">
+                  <option value="eligible_refund_scenario.json">Single: Eligible Refund</option>
+                  <option value="ineligible_expired_scenario.json">Single: Ineligible Expired</option>
+                  <option value="fault_temporary_unavailable.json">Single: Fault Temporary Unavailable</option>
+                  <option value="fault_timeout_after_write.json">Single: Fault Timeout After Write</option>
+                </optgroup>
+                <optgroup id="suiteCustomOptgroup" label="Custom Scenarios (Scenario Builder)">
+                </optgroup>
               </select>
               <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></svg>
             </div>
@@ -1753,10 +1934,12 @@
           <div class="card" style="padding: 20px; display: flex; flex-direction: column; gap: 14px;">
             <div style="display: flex; justify-content: space-between; align-items: center;">
               <h3 style="font-size: 15px; font-weight: 700;">Scenario Configuration</h3>
-              <div style="display: flex; gap: 6px;">
+              <div style="display: flex; gap: 6px; flex-wrap: wrap;">
                 <button class="btn-secondary" style="font-size: 11px; padding: 4px 8px;" onclick="loadScenarioTemplate('eligible')">Template: Eligible</button>
                 <button class="btn-secondary" style="font-size: 11px; padding: 4px 8px;" onclick="loadScenarioTemplate('expired')">Template: Expired</button>
                 <button class="btn-secondary" style="font-size: 11px; padding: 4px 8px;" onclick="loadScenarioTemplate('fault')">Template: Fault</button>
+                <button class="btn-secondary" style="font-size: 11px; padding: 4px 8px; border-color: #38BDF8; color: #38BDF8;" onclick="loadScenarioTemplate('sentiment')">⚡ V4: Sentiment</button>
+                <button class="btn-secondary" style="font-size: 11px; padding: 4px 8px; border-color: #38BDF8; color: #38BDF8;" onclick="loadScenarioTemplate('travel')">⚡ V4: Travel Planner</button>
               </div>
             </div>
 
@@ -2520,9 +2703,10 @@
       // Listen to hash changes for deep linking
       window.addEventListener('hashchange', handleHashRouting);
 
-      // Populate models and agent versions
+      // Populate models, agent versions, and custom scenarios
       await loadModels();
       await loadAgentVersions();
+      await populateCustomScenariosInSuite();
 
       // Read initial route
       handleHashRouting();
@@ -2685,18 +2869,210 @@
       }
     }
 
+    // Studio Modes & State
+    let currentStudioMode = 'demo';
+    let registeredCustomAgents = [];
+    let registeredCustomScenarios = [];
+
+    function switchStudioMode(mode) {
+      currentStudioMode = mode;
+      const btnDemo = document.getElementById('btnModeDemo');
+      const btnCustom = document.getElementById('btnModeCustom');
+      const demoBanner = document.getElementById('demoModeBanner');
+      const customBanner = document.getElementById('customModeBanner');
+      const btnHttpSpec = document.getElementById('btnHttpSpec');
+      const btnRegisterQuick = document.getElementById('btnRegisterAgentQuick');
+      const provSelect = document.getElementById('providerSelect');
+
+      if (mode === 'demo') {
+        if (btnDemo) {
+          btnDemo.style.background = 'var(--primary)';
+          btnDemo.style.color = 'white';
+        }
+        if (btnCustom) {
+          btnCustom.style.background = 'transparent';
+          btnCustom.style.color = 'var(--text-muted)';
+        }
+        if (demoBanner) demoBanner.style.display = 'flex';
+        if (customBanner) customBanner.style.display = 'none';
+        if (btnHttpSpec) btnHttpSpec.style.display = 'none';
+        if (btnRegisterQuick) btnRegisterQuick.style.display = 'none';
+        if (provSelect) {
+          provSelect.value = 'mock';
+          handleProviderChange();
+        }
+      } else {
+        if (btnCustom) {
+          btnCustom.style.background = 'var(--primary)';
+          btnCustom.style.color = 'white';
+        }
+        if (btnDemo) {
+          btnDemo.style.background = 'transparent';
+          btnDemo.style.color = 'var(--text-muted)';
+        }
+        if (demoBanner) demoBanner.style.display = 'none';
+        if (customBanner) customBanner.style.display = 'block';
+        if (btnHttpSpec) btnHttpSpec.style.display = 'inline-flex';
+        if (btnRegisterQuick) btnRegisterQuick.style.display = 'inline-flex';
+        if (provSelect) {
+          provSelect.value = 'custom_http';
+          handleProviderChange();
+        }
+      }
+    }
+
+    function launchDemoMode() {
+      navigateView('test-studio');
+      switchStudioMode('demo');
+    }
+
+    function launchCustomAgentMode() {
+      navigateView('test-studio');
+      switchStudioMode('custom');
+    }
+
+    function toggleHttpContractCard() {
+      const card = document.getElementById('httpContractCard');
+      if (card) {
+        card.style.display = card.style.display === 'none' ? 'block' : 'none';
+      }
+    }
+
+    async function evaluateCustomAgentInStudio(agentId) {
+      navigateView('test-studio');
+      switchStudioMode('custom');
+      await populateCustomAgentsInStudio();
+      const sel = document.getElementById('agentSelect');
+      if (sel) {
+        sel.value = agentId;
+      }
+      pingSelectedCustomAgent();
+    }
+
+    async function testScenarioInStudio(scenarioId) {
+      navigateView('test-studio');
+      await populateCustomScenariosInSuite();
+      const suiteSelect = document.getElementById('suiteSelect');
+      if (suiteSelect) {
+        suiteSelect.value = scenarioId;
+        updatePreflightInfo();
+      }
+    }
+
+    async function pingSelectedCustomAgent() {
+      const sel = document.getElementById('agentSelect');
+      const agentId = sel ? sel.value : null;
+      const resBox = document.getElementById('pingSelectedResult');
+      const statusBadge = document.getElementById('customAgentStatusIndicator');
+
+      if (!agentId) {
+        if (resBox) {
+          resBox.style.display = 'block';
+          resBox.innerHTML = '<span style="color: #DC2626;">No agent selected. Please register or select an agent.</span>';
+        }
+        return;
+      }
+
+      if (resBox) {
+        resBox.style.display = 'block';
+        resBox.innerHTML = `<span style="color: var(--text-muted);">Probing agent <code>${escapeHtml(agentId)}</code>...</span>`;
+      }
+
+      try {
+        const res = await apiFetch(`/api/custom-agents/${encodeURIComponent(agentId)}/ping`, { method: 'POST' });
+        const data = await res.json();
+        if (res.ok && data.status === 'ONLINE') {
+          if (resBox) resBox.innerHTML = `<span style="color: #15803D; font-weight: 600;">✓ Endpoint Online</span> · Latency: <strong>${data.latency_ms}ms</strong> · Response: <code>${escapeHtml(data.response_preview || '')}</code>`;
+          if (statusBadge) {
+            statusBadge.textContent = 'Online';
+            statusBadge.className = 'badge-pill real';
+          }
+        } else {
+          if (resBox) resBox.innerHTML = `<span style="color: #DC2626; font-weight: 600;">✗ Probe Failed (${escapeHtml(data.status || 'ERROR')}):</span> ${escapeHtml(data.error || 'Check that your local or remote agent HTTP server is running')}`;
+          if (statusBadge) {
+            statusBadge.textContent = 'Probe Failed';
+            statusBadge.className = 'badge-pill mock';
+          }
+        }
+      } catch (e) {
+        if (resBox) resBox.innerHTML = `<span style="color: #DC2626;">Probe exception: ${escapeHtml(e.message)}</span>`;
+      }
+    }
+
+    async function populateCustomAgentsInStudio() {
+      const agentSelect = document.getElementById('agentSelect');
+      const statusIndicator = document.getElementById('customAgentStatusIndicator');
+      try {
+        const res = await apiFetch('/api/custom-agents');
+        if (!res.ok) return;
+        registeredCustomAgents = await res.json();
+
+        if (!registeredCustomAgents || registeredCustomAgents.length === 0) {
+          if (agentSelect) agentSelect.innerHTML = '<option value="">(No registered custom agents - click Register New)</option>';
+          if (statusIndicator) statusIndicator.textContent = 'No Agents Registered';
+          return;
+        }
+
+        if (agentSelect) {
+          agentSelect.innerHTML = registeredCustomAgents.map(a => `
+            <option value="${escapeHtml(a.id)}">${escapeHtml(a.name)} — ${escapeHtml(a.endpoint_url)}</option>
+          `).join('');
+        }
+
+        if (statusIndicator) {
+          statusIndicator.textContent = `${registeredCustomAgents.length} Agent(s) Available`;
+        }
+      } catch (e) {
+        console.error('Failed to populate custom agents in studio:', e);
+      }
+    }
+
+    async function populateCustomScenariosInSuite() {
+      const optgroup = document.getElementById('suiteCustomOptgroup');
+      if (!optgroup) return;
+      try {
+        const res = await apiFetch('/api/scenarios/custom');
+        if (!res.ok) return;
+        registeredCustomScenarios = await res.json();
+        if (registeredCustomScenarios && registeredCustomScenarios.length > 0) {
+          optgroup.innerHTML = registeredCustomScenarios.map(s => {
+            const prefix = s.evaluation_mode === 'GENERIC' ? '⚡ [Generic V4] ' : 'Custom: ';
+            return `<option value="${escapeHtml(s.id)}">${prefix}${escapeHtml(s.name)} (${escapeHtml(s.id)})</option>`;
+          }).join('');
+        } else {
+          optgroup.innerHTML = '<option disabled>(No custom scenarios saved)</option>';
+        }
+      } catch (e) {
+        console.error('Failed to populate custom scenarios:', e);
+      }
+    }
+
     function handleProviderChange() {
       const prov = document.getElementById('providerSelect').value;
       const modelSelect = document.getElementById('modelSelect');
+      const modelGroup = document.getElementById('modelControlGroup');
+      const agentLabel = document.getElementById('agentSelectLabel');
       const badge = document.getElementById('activeEngineBadge');
 
       if (prov === 'mock') {
         badge.className = 'badge-pill mock';
         badge.textContent = 'MOCK SIMULATOR';
+        if (agentLabel) agentLabel.textContent = 'Agent Version';
+        if (modelGroup) modelGroup.style.display = 'flex';
         modelSelect.value = 'mock-deterministic-v1';
+        loadAgentVersions();
+      } else if (prov === 'custom_http') {
+        badge.className = 'badge-pill real';
+        badge.textContent = 'CUSTOM HTTP AGENT';
+        if (agentLabel) agentLabel.textContent = 'Custom Agent Endpoint *';
+        if (modelGroup) modelGroup.style.display = 'none';
+        populateCustomAgentsInStudio();
       } else {
         badge.className = 'badge-pill real';
         badge.textContent = `LIVE PROVIDER (${prov.toUpperCase()})`;
+        if (agentLabel) agentLabel.textContent = 'Agent Version';
+        if (modelGroup) modelGroup.style.display = 'flex';
+        loadAgentVersions();
         // select first live model
         Array.from(modelSelect.options).forEach(opt => {
           if (opt.value.includes('gemini') && prov === 'gemini') opt.selected = true;
@@ -2719,6 +3095,12 @@
       const model = document.getElementById('modelSelect').value;
       const suite = document.getElementById('suiteSelect').value;
 
+      const isCustom = provider === 'custom_http';
+      if (isCustom && (!agentVer || agentVer === '')) {
+        alert('Please select or register a custom AI agent endpoint before running tests.');
+        return;
+      }
+
       const btnRun = document.getElementById('btnRunTests');
       const btnCancel = document.getElementById('btnCancelRun');
       btnRun.disabled = true;
@@ -2726,9 +3108,9 @@
 
       try {
         const payload = {
-          agent_version_id: agentVer,
+          agent_version_id: isCustom ? (agentVer || 'custom') : agentVer,
           provider_type: provider,
-          model_name: model,
+          model_name: isCustom ? agentVer : model,
           scenarios: suite
         };
 
@@ -3342,6 +3724,7 @@
             <td>${a.timeout_sec}s</td>
             <td><span class="badge-pill real">Active</span></td>
             <td style="white-space: nowrap;">
+              <button class="btn-secondary" style="font-size: 11px; padding: 4px 8px; margin-right: 4px; background: #EEF2FF; color: var(--primary); border-color: #C7D2FE; font-weight: 600;" onclick="evaluateCustomAgentInStudio('${escapeHtml(a.id)}')">⚡ Test in Studio</button>
               <button class="btn-secondary" style="font-size: 11px; padding: 4px 8px; margin-right: 4px;" onclick="pingCustomAgent('${escapeHtml(a.id)}')">Ping</button>
               <button class="btn-secondary" style="font-size: 11px; padding: 4px 8px; color: #DC2626;" onclick="deleteCustomAgent('${escapeHtml(a.id)}')">Delete</button>
             </td>
@@ -3378,9 +3761,10 @@
         feedback.style.display = 'block';
         if (res.ok) {
           feedback.style.color = '#15803D';
-          feedback.textContent = `Agent registered successfully (${data.id}).`;
+          feedback.innerHTML = `✓ Agent registered successfully (<code>${escapeHtml(data.id)}</code>). <button class="btn-secondary" style="font-size: 11px; padding: 3px 8px; margin-left: 6px; font-weight: 600; background: #EEF2FF; color: var(--primary);" onclick="evaluateCustomAgentInStudio('${escapeHtml(data.id)}')">⚡ Test in Studio Now →</button>`;
           document.getElementById('customAgentToken').value = '';
           loadCustomAgents();
+          populateCustomAgentsInStudio();
         } else {
           feedback.style.color = '#DC2626';
           feedback.textContent = data.detail || 'Registration failed.';
@@ -3484,21 +3868,168 @@
         document.getElementById('scenBuilderCategory').value = 'FAULT';
         document.getElementById('scenBuilderDeliveryDays').value = '2';
         document.getElementById('scenBuilderMsg').value = 'Please process a refund for my order. Note server may experience delay.';
+      } else if (type === 'sentiment') {
+        const sentimentScen = {
+          schema_version: "evalnexus-generic-scenario/v2",
+          id: "custom_sentiment_" + Date.now().toString().slice(-4),
+          name: "Customer Review Sentiment Classification",
+          domain: "sentiment",
+          evaluation_mode: "GENERIC",
+          description: "Declarative generic evaluation of customer sentiment with JSON schema & path assertions",
+          version: 1,
+          input: {
+            text: "The delivery arrived ahead of schedule and the product quality is outstanding! Highly recommended."
+          },
+          customer_messages: [
+            "Analyze the sentiment of this feedback and return valid JSON with keys: sentiment (POSITIVE/NEGATIVE/NEUTRAL), score (0.0-1.0), confidence, and summary: 'The delivery arrived ahead of schedule and the product quality is outstanding! Highly recommended.'"
+          ],
+          tool_contracts: [
+            {
+              name: "echo_tool",
+              description: "Diagnostic echo tool",
+              parameters: { type: "object", properties: { message: { type: "string" } } }
+            }
+          ],
+          assertions: [
+            {
+              id: "chk_sentiment_schema",
+              type: "json_schema",
+              name: "Sentiment Output Schema Compliance",
+              schema_def: {
+                type: "object",
+                required: ["sentiment", "score", "confidence", "summary"],
+                properties: {
+                  sentiment: { type: "string", enum: ["POSITIVE", "NEGATIVE", "NEUTRAL"] },
+                  score: { type: "number" },
+                  confidence: { type: "number" },
+                  summary: { type: "string" }
+                }
+              }
+            },
+            {
+              id: "chk_sentiment_value",
+              type: "json_path_equals",
+              name: "Positive Sentiment Assertion",
+              path: "sentiment",
+              expected: "POSITIVE"
+            },
+            {
+              id: "chk_completed",
+              type: "execution_completed",
+              name: "Agent Completed Cleanly"
+            }
+          ],
+          execution_limits: {
+            max_turns: 3,
+            max_tool_calls: 2,
+            max_tokens_budget: 3000,
+            scenario_timeout_sec: 15.0
+          }
+        };
+        document.getElementById('scenBuilderId').value = sentimentScen.id;
+        document.getElementById('scenBuilderName').value = sentimentScen.name;
+        document.getElementById('scenBuilderCategory').value = 'CUSTOM';
+        document.getElementById('scenBuilderJson').value = JSON.stringify(sentimentScen, null, 2);
+        return;
+      } else if (type === 'travel') {
+        const travelScen = {
+          schema_version: "evalnexus-generic-scenario/v2",
+          id: "custom_travel_" + Date.now().toString().slice(-4),
+          name: "Autonomous Travel Itinerary Planner",
+          domain: "travel",
+          evaluation_mode: "GENERIC",
+          description: "Multi-turn tool-calling travel itinerary evaluation with tool usage and schema assertions",
+          version: 1,
+          input: {
+            destination: "Kyoto",
+            days: 3,
+            interests: ["shrines", "gardens"]
+          },
+          customer_messages: [
+            "Plan a 3-day travel itinerary for Kyoto. Check the weather and top points of interest before finalizing. Return structured JSON with destination, days, status, and itinerary."
+          ],
+          tool_contracts: [
+            {
+              name: "check_weather",
+              description: "Query current weather forecast for destination",
+              parameters: { type: "object", required: ["city"], properties: { city: { type: "string" } } }
+            },
+            {
+              name: "lookup_poi",
+              description: "Look up points of interest and top attractions",
+              parameters: { type: "object", required: ["city"], properties: { city: { type: "string" }, category: { type: "string" } } }
+            }
+          ],
+          assertions: [
+            {
+              id: "chk_weather",
+              type: "tool_called",
+              name: "Weather Tool Invoked",
+              tool: "check_weather"
+            },
+            {
+              id: "chk_poi",
+              type: "tool_called",
+              name: "POI Tool Invoked",
+              tool: "lookup_poi"
+            },
+            {
+              id: "chk_no_unauth_booking",
+              type: "tool_not_called",
+              name: "Prohibited Action Blocked",
+              tool: "unauthorized_booking"
+            },
+            {
+              id: "chk_status_planned",
+              type: "json_path_equals",
+              name: "Status Is Planned",
+              path: "status",
+              expected: "PLANNED"
+            },
+            {
+              id: "chk_completed",
+              type: "execution_completed",
+              name: "Agent Completed Cleanly"
+            }
+          ],
+          execution_limits: {
+            max_turns: 4,
+            max_tool_calls: 4,
+            max_tokens_budget: 5000,
+            scenario_timeout_sec: 20.0
+          }
+        };
+        document.getElementById('scenBuilderId').value = travelScen.id;
+        document.getElementById('scenBuilderName').value = travelScen.name;
+        document.getElementById('scenBuilderCategory').value = 'CUSTOM';
+        document.getElementById('scenBuilderJson').value = JSON.stringify(travelScen, null, 2);
+        return;
       }
       syncFormToJson();
     }
 
     async function validateScenarioBuilder() {
-      const obj = syncFormToJson();
+      let obj;
+      try {
+        const rawText = document.getElementById('scenBuilderJson').value.trim();
+        const parsed = JSON.parse(rawText);
+        if (parsed.schema_version === 'evalnexus-generic-scenario/v2' || parsed.evaluation_mode === 'GENERIC') {
+          obj = parsed;
+        } else {
+          obj = syncFormToJson();
+        }
+      } catch (err) {
+        obj = syncFormToJson();
+      }
       const statusBox = document.getElementById('scenBuilderStatus');
       statusBox.style.display = 'block';
 
       try {
-        if (!obj.id || !obj.name || !obj.customer_messages[0]) {
-          throw new Error('Scenario ID, Name, and Customer Prompt are required.');
+        if (!obj.id || !obj.name) {
+          throw new Error('Scenario ID and Name are required.');
         }
         statusBox.style.color = '#15803D';
-        statusBox.textContent = `✓ Scenario definition is valid and compliant with EvalNexus schema.`;
+        statusBox.textContent = `✓ Scenario definition is valid and compliant with EvalNexus schema (${obj.evaluation_mode || 'TRANSACTIONAL'}).`;
       } catch (e) {
         statusBox.style.color = '#DC2626';
         statusBox.textContent = `✗ Validation Error: ${e.message}`;
@@ -3506,7 +4037,18 @@
     }
 
     async function saveScenarioBuilder() {
-      const obj = syncFormToJson();
+      let obj;
+      try {
+        const rawText = document.getElementById('scenBuilderJson').value.trim();
+        const parsed = JSON.parse(rawText);
+        if (parsed.schema_version === 'evalnexus-generic-scenario/v2' || parsed.evaluation_mode === 'GENERIC') {
+          obj = parsed;
+        } else {
+          obj = syncFormToJson();
+        }
+      } catch (err) {
+        obj = syncFormToJson();
+      }
       const statusBox = document.getElementById('scenBuilderStatus');
       statusBox.style.display = 'block';
 
@@ -3519,9 +4061,10 @@
         const data = await res.json();
         if (res.ok) {
           statusBox.style.color = '#15803D';
-          statusBox.textContent = `✓ Saved custom scenario "${data.name}" (${data.id}) to catalog.`;
+          statusBox.textContent = `✓ Saved custom scenario "${data.name}" (${data.id}) [${data.evaluation_mode || 'CUSTOM'}] to catalog.`;
           loadScenarioBuilder();
           loadScenariosCatalog();
+          populateCustomScenariosInSuite();
         } else {
           statusBox.style.color = '#DC2626';
           statusBox.textContent = `✗ Save Failed: ${data.detail || 'Unknown error'}`;
@@ -3552,7 +4095,8 @@
             <td><strong>${escapeHtml(s.name)}</strong></td>
             <td><span class="badge-pill gray">${escapeHtml(s.category)}</span></td>
             <td>v${s.version || 1}</td>
-            <td>
+            <td style="white-space: nowrap;">
+              <button class="btn-secondary" style="font-size: 11px; padding: 2px 6px; margin-right: 4px; background: #EEF2FF; color: var(--primary); border-color: #C7D2FE; font-weight: 600;" onclick="testScenarioInStudio('${escapeHtml(s.id)}')">⚡ Test in Studio</button>
               <a href="/api/scenarios/custom/${encodeURIComponent(s.id)}/export" download="${escapeHtml(s.id)}.json" class="btn-secondary" style="font-size: 11px; padding: 2px 6px; text-decoration: none;">Download</a>
             </td>
           </tr>

@@ -7,6 +7,10 @@ from pydantic import BaseModel, Field, field_validator
 from sqlalchemy.orm import Session
 
 from backend.database.models import CustomScenario, utc_now
+from backend.scenarios.generic_scenario import (
+    GenericScenarioPayload,
+    is_generic_scenario
+)
 
 CUSTOM_SCENARIOS_DIR = os.path.join("scenarios", "custom")
 os.makedirs(CUSTOM_SCENARIOS_DIR, exist_ok=True)
@@ -90,14 +94,17 @@ class CustomScenarioPayload(BaseModel):
 # Service Operations: Validation, Storage, Import, Export
 # -------------------------------------------------------------
 
-def validate_and_parse_scenario(data: Dict[str, Any]) -> CustomScenarioPayload:
-    """Validates raw scenario dictionary against secure Pydantic model."""
+def validate_and_parse_scenario(data: Dict[str, Any]) -> Any:
+    """Validates raw scenario dictionary against secure Pydantic model (Generic V2 or Transactional V1)."""
     if not isinstance(data, dict):
         raise ValueError("Scenario data must be a JSON object.")
     # Prevent denial-of-service via huge payloads
     raw_str = json.dumps(data)
     if len(raw_str) > 500_000:
         raise ValueError("Scenario payload exceeds maximum permitted size of 500KB.")
+    
+    if is_generic_scenario(data):
+        return GenericScenarioPayload(**data)
     return CustomScenarioPayload(**data)
 
 
@@ -105,22 +112,29 @@ def save_custom_scenario(db: Session, payload_data: Dict[str, Any]) -> Dict[str,
     """Validates, stores in database, and persists to scenarios/custom/{id}.json."""
     validated = validate_and_parse_scenario(payload_data)
     scenario_dict = validated.model_dump()
-
-    # Calculate concrete delivery dates if delivery_days_ago was given
-    clock_dt = datetime.datetime.fromisoformat(validated.fixed_clock)
-    for ord_obj in scenario_dict["initial_data"]["orders"]:
-        if ord_obj.get("delivery_days_ago") is not None and not ord_obj.get("delivery_date"):
-            deliv_dt = clock_dt - datetime.timedelta(days=ord_obj["delivery_days_ago"])
-            ord_obj["delivery_date"] = deliv_dt.isoformat()
-
     scenario_id = validated.id
+
+    if isinstance(validated, CustomScenarioPayload):
+        # Calculate concrete delivery dates if delivery_days_ago was given
+        clock_dt = datetime.datetime.fromisoformat(validated.fixed_clock)
+        for ord_obj in scenario_dict.get("initial_data", {}).get("orders", []):
+            if ord_obj.get("delivery_days_ago") is not None and not ord_obj.get("delivery_date"):
+                deliv_dt = clock_dt - datetime.timedelta(days=ord_obj["delivery_days_ago"])
+                ord_obj["delivery_date"] = deliv_dt.isoformat()
+        category = validated.category
+        eval_mode = "TRANSACTIONAL"
+    else:
+        category = getattr(validated, "domain", "GENERIC").upper()
+        eval_mode = "GENERIC"
+        scenario_dict["evaluation_mode"] = "GENERIC"
+        scenario_dict["schema_version"] = "evalnexus-generic-scenario/v2"
 
     # 1. Save or update DB record
     existing = db.query(CustomScenario).filter(CustomScenario.id == scenario_id).first()
     if existing:
         existing.name = validated.name
         existing.description = validated.description
-        existing.category = validated.category
+        existing.category = category
         existing.version = existing.version + 1
         scenario_dict["version"] = existing.version
         existing.scenario_data = scenario_dict
@@ -130,7 +144,7 @@ def save_custom_scenario(db: Session, payload_data: Dict[str, Any]) -> Dict[str,
             id=scenario_id,
             name=validated.name,
             description=validated.description,
-            category=validated.category,
+            category=category,
             version=validated.version,
             scenario_data=scenario_dict
         )
@@ -145,10 +159,11 @@ def save_custom_scenario(db: Session, payload_data: Dict[str, Any]) -> Dict[str,
     return {
         "id": scenario_id,
         "name": validated.name,
-        "category": validated.category,
+        "category": category,
         "version": scenario_dict.get("version", 1),
         "file_path": fpath,
-        "status": "SAVED"
+        "status": "SAVED",
+        "evaluation_mode": eval_mode
     }
 
 
@@ -160,16 +175,19 @@ def list_custom_scenarios(db: Session) -> List[Dict[str, Any]]:
 
     for r in records:
         seen.add(r.id)
+        scen_data = r.scenario_data or {}
+        eval_mode = "GENERIC" if is_generic_scenario(scen_data) else "TRANSACTIONAL"
         results.append({
             "id": r.id,
             "name": r.name,
             "category": r.category,
             "version": r.version,
             "description": r.description,
+            "evaluation_mode": eval_mode,
             "created_at": r.created_at.isoformat() if r.created_at else None,
             "updated_at": r.updated_at.isoformat() if r.updated_at else None,
             "source": "database",
-            "scenario_data": r.scenario_data
+            "scenario_data": scen_data
         })
 
     # Also include any files directly in scenarios/custom
@@ -181,12 +199,14 @@ def list_custom_scenarios(db: Session) -> List[Dict[str, Any]]:
                     try:
                         with open(os.path.join(CUSTOM_SCENARIOS_DIR, fname), "r", encoding="utf-8") as f:
                             data = json.load(f)
+                        eval_mode = "GENERIC" if is_generic_scenario(data) else "TRANSACTIONAL"
                         results.append({
                             "id": sid,
                             "name": data.get("name", sid),
                             "category": data.get("category", "CUSTOM"),
                             "version": data.get("version", 1),
                             "description": data.get("description"),
+                            "evaluation_mode": eval_mode,
                             "source": "filesystem",
                             "scenario_data": data
                         })

@@ -1,4 +1,5 @@
 import datetime
+import uuid
 import time
 import threading
 import queue
@@ -16,6 +17,15 @@ class TraceLogger:
         self._pending = queue.SimpleQueue()
         self._draining = False
         self.events: List[Dict[str, Any]] = []
+
+    def _gen_event_id(self) -> str:
+        """Generate a unique primary‑key for a TraceEvent.
+        Keeps the original ordering via seq_num and adds a short UUID
+        to avoid collisions while staying under the 64‑char column limit.
+        """
+        base = f"trc_{self.scenario_run_id}_{self.seq_num}_"
+        uniq = uuid.uuid4().hex[:6]
+        return (base + uniq)[:64]
 
     def flush_pending(self):
         if threading.get_ident() != self._owner_thread or self._draining:
@@ -40,17 +50,23 @@ class TraceLogger:
         error_message: Optional[str] = None,
         duration_ms: int = 0,
         token_usage: Optional[Dict[str, int]] = None,
-        cost_estimate: int = 0
+        cost_estimate: int = 0,
     ) -> TraceEvent:
         if threading.get_ident() != self._owner_thread:
-            self._pending.put(dict(event_type=event_type, tool_name=tool_name,
-                tool_arguments=tool_arguments, tool_result=tool_result,
-                error_message=error_message, duration_ms=duration_ms,
-                token_usage=token_usage, cost_estimate=cost_estimate))
+            self._pending.put(dict(
+                event_type=event_type,
+                tool_name=tool_name,
+                tool_arguments=tool_arguments,
+                tool_result=tool_result,
+                error_message=error_message,
+                duration_ms=duration_ms,
+                token_usage=token_usage,
+                cost_estimate=cost_estimate,
+            ))
             return None
         self.flush_pending()
         self.seq_num += 1
-        event_id = f"trc_{self.scenario_run_id}_{self.seq_num}"
+        event_id = self._gen_event_id()
 
         trace_record = TraceEvent(
             id=event_id,
@@ -64,7 +80,7 @@ class TraceLogger:
             tool_result=tool_result,
             error_message=error_message,
             token_usage=token_usage,
-            cost_estimate=cost_estimate
+            cost_estimate=cost_estimate,
         )
 
         self.db.add(trace_record)
@@ -78,7 +94,7 @@ class TraceLogger:
             "tool_arguments": tool_arguments,
             "tool_result": tool_result,
             "error_message": error_message,
-            "duration_ms": duration_ms
+            "duration_ms": duration_ms,
         })
 
         return trace_record
