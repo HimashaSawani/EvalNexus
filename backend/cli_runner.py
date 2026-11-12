@@ -132,9 +132,18 @@ if __name__ == "__main__":
         db = SessionLocal()
         try:
             res = import_colab_results_from_file(args.import_results, db=db, overwrite=args.overwrite)
-            print(f"✅ Successfully imported Colab run: {res['run_id']}")
-            print(f"   Model: {res['model_name']}")
-            print(f"   Results: {res['passed_scenarios']}/{res['total_scenarios']} passed ({res['duration_ms']}ms)")
+            if res.get("evaluation_mode") == "GENERIC":
+                print(f"✅ Successfully imported Generic Colab run: {res['run_id']}")
+                print(f"   Model: {res['model_name']} | Domain: {res.get('domain')}")
+                print(f"   Scenario: {res.get('scenario_id')}")
+                print(f"   Server Checks: {res.get('passed_checks', 0)}/{res.get('total_checks', 0)} passed ({res.get('duration_ms', 0)}ms)")
+                for chk in res.get("check_results", []):
+                    icon = "✅" if chk["status"] == "PASSED" else "❌"
+                    print(f"     {icon} {chk['check_name']}: {chk['status']} - {chk['message']}")
+            else:
+                print(f"✅ Successfully imported Colab run: {res['run_id']}")
+                print(f"   Model: {res['model_name']}")
+                print(f"   Results: {res['passed_scenarios']}/{res['total_scenarios']} passed ({res['duration_ms']}ms)")
         finally:
             db.close()
     else:

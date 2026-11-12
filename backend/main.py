@@ -28,6 +28,7 @@ from backend.database.models import (
 )
 from backend.runner.scripted_runner import ScriptedRunner
 from backend.runner.agent_runner import AgentWindTunnelRunner, DEFAULT_PROMPTS
+from backend.scenarios.generic_scenario import is_generic_scenario
 from backend.agent.provider import (
     discover_available_gemini_models,
     validate_model_name,
@@ -302,6 +303,8 @@ def _load_all_scenarios() -> List[Dict[str, Any]]:
                                 data["file_ref"] = fname
                                 data["is_dev_suite"] = ("dev" in sdir or "scen_" in fname)
                                 data["is_custom"] = ("custom" in sdir)
+                                data["is_generic"] = is_generic_scenario(data)
+                                data["evaluation_mode"] = "GENERIC" if is_generic_scenario(data) else "TRANSACTIONAL"
                                 scenarios.append(data)
                     except Exception:
                         pass
@@ -467,18 +470,40 @@ def execute_benchmark_run(payload: Dict[str, Any], db: Session = Depends(get_db)
     else:
         try:
             custom_endpoint_url = payload.get("endpoint_url")
-            if not custom_endpoint_url and provider_type.startswith("custom"):
+            custom_auth_header = payload.get("auth_header_name")
+            custom_auth_token = payload.get("auth_token")
+            if provider_type.startswith("custom"):
                 agent_record = db.query(CustomAgent).filter(
                     (CustomAgent.id == model_name) | (CustomAgent.name == model_name)
                 ).first()
                 if agent_record:
-                    custom_endpoint_url = agent_record.endpoint_url
+                    if not custom_endpoint_url:
+                        custom_endpoint_url = agent_record.endpoint_url
+                    if not custom_auth_header:
+                        custom_auth_header = agent_record.auth_header_name
+                    if not custom_auth_token:
+                        custom_auth_token = agent_record.auth_token_secret
+
+            if is_generic_scenario(scenario_data):
+                from backend.runner.generic_runner import GenericAgentRunner
+                runner = GenericAgentRunner(
+                    db,
+                    provider_type=provider_type,
+                    model_name=model_name,
+                    endpoint_url=custom_endpoint_url,
+                    auth_header_name=custom_auth_header,
+                    auth_token=custom_auth_token
+                )
+                res = runner.run_generic_scenario(scenario_data, agent_version_id=agent_version_id)
+                return res
 
             runner = AgentWindTunnelRunner(
                 db,
                 provider_type=provider_type,
                 model_name=model_name,
-                endpoint_url=custom_endpoint_url
+                endpoint_url=custom_endpoint_url,
+                auth_header_name=custom_auth_header,
+                auth_token=custom_auth_token
             )
             res = runner.run_agent_scenario(scenario_data, agent_version_id=agent_version_id)
             return res
@@ -530,12 +555,19 @@ def queue_run(payload: Dict[str, Any], db: Session = Depends(get_db), _auth: str
         paid_guard.release(provider_type)
 
     custom_endpoint_url = payload.get("endpoint_url")
-    if not custom_endpoint_url and provider_type.startswith("custom"):
+    custom_auth_header = payload.get("auth_header_name")
+    custom_auth_token = payload.get("auth_token")
+    if provider_type.startswith("custom"):
         agent_record = db.query(CustomAgent).filter(
             (CustomAgent.id == model_name) | (CustomAgent.name == model_name)
         ).first()
         if agent_record:
-            custom_endpoint_url = agent_record.endpoint_url
+            if not custom_endpoint_url:
+                custom_endpoint_url = agent_record.endpoint_url
+            if not custom_auth_header:
+                custom_auth_header = agent_record.auth_header_name
+            if not custom_auth_token:
+                custom_auth_token = agent_record.auth_token_secret
 
     # Resolve scenario list
     scenario_files: List[str] = []
@@ -579,6 +611,10 @@ def queue_run(payload: Dict[str, Any], db: Session = Depends(get_db), _auth: str
     execution_config = paid_guard.validate_execution_budget(raw_config)
     if custom_endpoint_url:
         execution_config["endpoint_url"] = custom_endpoint_url
+    if custom_auth_header:
+        execution_config["auth_header_name"] = custom_auth_header
+    if custom_auth_token:
+        execution_config["auth_token"] = custom_auth_token
 
     now = utc_now()
     run = Run(

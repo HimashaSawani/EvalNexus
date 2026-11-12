@@ -21,6 +21,7 @@ from backend.runner.evaluator import DeterministicEvaluator
 from backend.faults.fault_injector import FaultInjector
 from backend.agent.agent_loop import AgentLoop, AgentExecutionLimitError
 from backend.agent.provider import BaseLLMProvider, resolve_provider, sanitize_secret, COST_DISCLAIMER
+from backend.scenarios.generic_scenario import is_generic_scenario
 
 
 DEFAULT_PROMPTS = {
@@ -55,13 +56,17 @@ class AgentWindTunnelRunner:
         provider: Optional[BaseLLMProvider] = None,
         provider_type: str = "mock",
         model_name: Optional[str] = None,
-        endpoint_url: Optional[str] = None
+        endpoint_url: Optional[str] = None,
+        auth_header_name: Optional[str] = None,
+        auth_token: Optional[str] = None
     ):
         self.db = db
         self.provider = provider or resolve_provider(
             provider_type=provider_type,
             model_name=model_name,
-            endpoint_url=endpoint_url
+            endpoint_url=endpoint_url,
+            auth_header_name=auth_header_name,
+            auth_token=auth_token
         )
 
     def run_agent_scenario(
@@ -70,6 +75,16 @@ class AgentWindTunnelRunner:
         agent_version_id: str = "agent_v1_baseline",
         run_id: Optional[str] = None
     ) -> Dict[str, Any]:
+        if is_generic_scenario(scenario_data):
+            from backend.runner.generic_runner import GenericAgentRunner
+            g_runner = GenericAgentRunner(
+                self.db,
+                provider=self.provider,
+                provider_type=self.provider.provider_type,
+                model_name=self.provider.model_name
+            )
+            return g_runner.run_generic_scenario(scenario_data, agent_version_id=agent_version_id, run_id=run_id)
+
         queue_owned = run_id is not None
         run_id = run_id or f"run_{uuid.uuid4().hex[:8]}"
         scenario_run_id = f"scen_run_{uuid.uuid4().hex[:8]}"
@@ -170,7 +185,7 @@ class AgentWindTunnelRunner:
                 scenario_run_id=scenario_run_id,
                 customer_id=ord_info.get("customer_id", customer.id),
                 status=ord_info["status"],
-                total_amount_cents=ord_info["total_amount_cents"],
+                total_amount_cents=ord_info.get("total_amount_cents", ord_info.get("amount_cents", 0)),
                 currency=ord_info.get("currency", "USD"),
                 delivery_date=deliv_date,
                 created_at=fixed_clock - datetime.timedelta(days=10)

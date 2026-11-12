@@ -16,6 +16,7 @@ if sys.platform == "win32":
 from backend.database.connection import SessionLocal, engine, Base
 from backend.database.models import QueueJob, Run, ScenarioRun, utc_now
 from backend.runner.agent_runner import AgentWindTunnelRunner
+from backend.scenarios.generic_scenario import is_generic_scenario
 from backend.runner.scripted_runner import ScriptedRunner
 from backend.agent.provider import sanitize_secret
 
@@ -259,19 +260,41 @@ class QueueWorker:
                             res = runner.run_scenario(scenario_data, agent_version_id=agent_type, run_id=job.run_id)
                         else:
                             custom_url = None
+                            custom_header = None
+                            custom_token = None
                             if job.execution_config and isinstance(job.execution_config, dict):
                                 custom_url = job.execution_config.get("endpoint_url")
-                            runner = AgentWindTunnelRunner(
-                                scen_db,
-                                provider_type=job.provider_type,
-                                model_name=job.model_name,
-                                endpoint_url=custom_url
-                            )
-                            res = runner.run_agent_scenario(
-                                scenario_data,
-                                agent_version_id=agent_type,
-                                run_id=job.run_id
-                            )
+                                custom_header = job.execution_config.get("auth_header_name")
+                                custom_token = job.execution_config.get("auth_token")
+                            if is_generic_scenario(scenario_data):
+                                from backend.runner.generic_runner import GenericAgentRunner
+                                runner = GenericAgentRunner(
+                                    scen_db,
+                                    provider_type=job.provider_type,
+                                    model_name=job.model_name,
+                                    endpoint_url=custom_url,
+                                    auth_header_name=custom_header,
+                                    auth_token=custom_token
+                                )
+                                res = runner.run_generic_scenario(
+                                    scenario_data,
+                                    agent_version_id=agent_type,
+                                    run_id=job.run_id
+                                )
+                            else:
+                                runner = AgentWindTunnelRunner(
+                                    scen_db,
+                                    provider_type=job.provider_type,
+                                    model_name=job.model_name,
+                                    endpoint_url=custom_url,
+                                    auth_header_name=custom_header,
+                                    auth_token=custom_token
+                                )
+                                res = runner.run_agent_scenario(
+                                    scenario_data,
+                                    agent_version_id=agent_type,
+                                    run_id=job.run_id
+                                )
 
                         if res.get("status") == "PROVIDER_ERROR":
                             infrastructure_error = True

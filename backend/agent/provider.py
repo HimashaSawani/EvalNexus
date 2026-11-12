@@ -399,7 +399,9 @@ def resolve_provider(
     provider_type: str = "mock",
     model_name: Optional[str] = None,
     api_key: Optional[str] = None,
-    endpoint_url: Optional[str] = None
+    endpoint_url: Optional[str] = None,
+    auth_header_name: Optional[str] = None,
+    auth_token: Optional[str] = None
 ) -> BaseLLMProvider:
     """
     Factory function ensuring strict separation between Mock, Real, and Custom execution.
@@ -413,12 +415,38 @@ def resolve_provider(
 
     if provider_type in ["custom", "custom_http", "http"]:
         from backend.agent.custom_adapter import CustomHTTPAgentProvider
-        url = endpoint_url or os.getenv("AWT_CUSTOM_AGENT_URL", "http://localhost:8080/invocations")
+        effective_url = endpoint_url
+        effective_token = auth_token or api_key
+        effective_header = auth_header_name
+
+        # If URL or token is not provided explicitly, look up registered CustomAgent in DB by ID or name
+        if model_name and (not effective_url or not effective_token):
+            try:
+                from backend.database.connection import SessionLocal
+                from backend.database.models import CustomAgent
+                db_sess = SessionLocal()
+                try:
+                    agent_rec = db_sess.query(CustomAgent).filter(
+                        (CustomAgent.id == model_name) | (CustomAgent.name == model_name)
+                    ).first()
+                    if agent_rec:
+                        if not effective_url:
+                            effective_url = agent_rec.endpoint_url
+                        if not effective_token and agent_rec.auth_token_secret:
+                            effective_token = agent_rec.auth_token_secret
+                        if not effective_header and agent_rec.auth_header_name:
+                            effective_header = agent_rec.auth_header_name
+                finally:
+                    db_sess.close()
+            except Exception:
+                pass
+
+        url = effective_url or os.getenv("AWT_CUSTOM_AGENT_URL", "http://localhost:8080/invocations")
         return CustomHTTPAgentProvider(
             endpoint_url=url,
             name=model_name or "custom-agent",
-            auth_header_name=os.getenv("AWT_CUSTOM_AUTH_HEADER", "Authorization"),
-            auth_token=api_key or os.getenv("AWT_CUSTOM_AUTH_TOKEN"),
+            auth_header_name=effective_header or os.getenv("AWT_CUSTOM_AUTH_HEADER", "Authorization"),
+            auth_token=effective_token or os.getenv("AWT_CUSTOM_AUTH_TOKEN"),
             timeout_sec=float(os.getenv("AWT_CUSTOM_AGENT_TIMEOUT", "15.0")),
             model_name=model_name
         )

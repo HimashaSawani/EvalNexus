@@ -5,7 +5,8 @@
 
 [![Python Version](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)](https://fastapi.tiangolo.com/)
-[![Tests Passing](https://img.shields.io/badge/tests-163%20passed-brightgreen.svg)](tests/)
+[![Tests Passing](https://img.shields.io/badge/tests-176%20passed-brightgreen.svg)](tests/)
+[![Framework Version](https://img.shields.io/badge/EvalNexus-v4.0.0%20Generic%20Framework-blue.svg)](docs/GENERIC_EVALUATION_ARCHITECTURE.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Demonstrated Models](https://img.shields.io/badge/verified%20models-Qwen2.5--1.5B%20%7C%20Gemini%20%7C%20OpenAI-blueviolet.svg)](#6-demonstrated-evaluation-evidence)
 
@@ -38,6 +39,10 @@ Modern AI agents that execute tools and interact with backends present critical 
 
 ## 3. Key Platform Features
 
+* **V4 Generic AI Agent Evaluation Engine:** Evaluates arbitrary agent domains (Sentiment Classification, Autonomous Travel Planning, Financial Auditing, etc.) using declarative `evalnexus-generic-scenario/v2` contracts.
+  * **Generic Assertion Engine:** Evaluates `json_schema`, `json_path_equals`, `tool_called`, `tool_not_called`, and `execution_completed` fail-closed with diagnostic evidence.
+  * **Safe Allowlisted Synthetic Tools:** Dispatches `echo_tool`, `check_weather`, and `lookup_poi` with zero host access and automatic quarantine of prohibited actions.
+  * **Colab Generic Runner (Step 14):** Executes generic scenario bundles on `Qwen2.5-1.5B-Instruct` in Google Colab Pro and exports audited result bundles.
 * **Deterministic Evaluator Engine:** Assesses five orthogonal dimensions per scenario:
   * `OWNERSHIP`: Verifies zero unauthorized access to other customers' accounts or orders.
   * `ELIGIBILITY`: Verifies business rules (e.g. 14-day return boundary from delivery clock).
