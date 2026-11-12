@@ -1,0 +1,36 @@
+{
+  "schema_version": "evalnexus-generic-run-result/v2",
+  "run_id": "colab_generic_20261112_044938_1a2992",
+  "scenario_id": "generic_sentiment_qwen",
+  "domain": "sentiment",
+  "model_name": "Qwen/Qwen2.5-1.5B-Instruct (Colab Offline)",
+  "provider_type": "colab_offline",
+  "executed_at": "2026-11-12T04:49:38Z",
+  "final_answer": "{\n  \"sentiment\": \"POSITIVE\",\n  \"score\": 0.95,\n  \"confidence\": 0.98,\n  \"summary\": \"The delivery was lightning fast and the quality exceeded all my expectations! Highly recommended.\"\n}",
+  "parsed_json": {
+    "sentiment": "POSITIVE",
+    "score": 0.95,
+    "confidence": 0.98,
+    "summary": "The delivery was lightning fast and the quality exceeded all my expectations! Highly recommended."
+  },
+  "duration_ms": 3318,
+  "status": "PASSED",
+  "check_results": [
+    {
+      "check_name": "Sentiment JSON Schema Compliance",
+      "status": "PASSED",
+      "message": "All required schema fields present."
+    },
+    {
+      "check_name": "Positive Classification Equality",
+      "status": "PASSED",
+      "message": "Path 'sentiment' equals 'POSITIVE'."
+    },
+    {
+      "check_name": "Execution Completed Cleanly",
+      "status": "PASSED",
+      "message": "Completed cleanly on Colab GPU."
+    }
+  ]
+}
+
