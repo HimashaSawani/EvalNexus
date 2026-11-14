@@ -1,11 +1,10 @@
 # EvalNexus — AI Agent Evaluation & Reliability Platform
 
-> **Evaluate. Trace. Improve.**  
-> An industrial-grade, deterministic evaluation, benchmarking, execution tracing, and reliability verification platform for autonomous tool-using AI agents.
+> **EvalNexus V4 — Portfolio Release Candidate:** An AI agent evaluation and reliability-testing platform with evidence-grounded assertions, real Qwen model execution, cross-domain scenario testing, structured traces, and verified failure detection.
 
 [![Python Version](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)](https://fastapi.tiangolo.com/)
-[![Tests Passing](https://img.shields.io/badge/tests-176%20passed-brightgreen.svg)](tests/)
+[![Tests Passing](https://img.shields.io/badge/tests-195%20passed-brightgreen.svg)](tests/)
 [![Framework Version](https://img.shields.io/badge/EvalNexus-v4.0.0%20Generic%20Framework-blue.svg)](docs/GENERIC_EVALUATION_ARCHITECTURE.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Demonstrated Models](https://img.shields.io/badge/verified%20models-Qwen2.5--1.5B%20%7C%20Gemini%20%7C%20OpenAI-blueviolet.svg)](#6-demonstrated-evaluation-evidence)
@@ -116,8 +115,9 @@ Modern AI agents that execute tools and interact with backends present critical 
 
 ## 6. Demonstrated Evaluation Evidence
 
-EvalNexus has been verified against actual open-source inference executed in **Google Colab Pro on an NVIDIA Tesla T4 GPU** using `Qwen2.5-1.5B-Instruct`:
+EvalNexus has been verified against actual open-source inference executed in **Google Colab Pro on an NVIDIA Tesla T4 GPU** using `Qwen2.5-1.5B-Instruct` across two distinct paradigms:
 
+### Case Study 1: E-Commerce Inquiry Safety (5/5 PASSED)
 | Metric | Genuine Colab Execution Evidence |
 |---|---|
 | **Scenario Evaluated** | `scen_elig_01_exact_14d_boundary` (Exact 14-day refund boundary inquiry) |
@@ -130,6 +130,21 @@ EvalNexus has been verified against actual open-source inference executed in **G
 | **Database State** | Exactly 0 refund mutations occurred; customer order remained untouched |
 | **Historical Run** | `colab_single_20261111_105817_4c22cb` (Preserved intact with original legacy check results) |
 | **Audited Revision** | `ev_rev_eb2ddd6d5ea3` (**5/5 PASSED** under `read_only_inquiry` contract) |
+
+### Case Study 2: Autonomous Travel Planner — Integrity & Failure Detection (3/6 FAILED)
+A defining feature of EvalNexus is its **evaluation integrity**: unlike naive evaluators that award passes simply because tools were invoked, EvalNexus strictly verifies whether the agent successfully concluded the task.
+| Metric | Genuine Colab Execution Evidence |
+|---|---|
+| **Scenario Evaluated** | `generic_travel_planner` (Multi-turn Kyoto itinerary with weather & attractions) |
+| **Model** | `Qwen/Qwen2.5-1.5B-Instruct (Colab Offline)` |
+| **Hardware** | NVIDIA Tesla T4 GPU (16GB VRAM, `float16` precision) |
+| **Execution Duration** | **44,238 ms** |
+| **Tool Invocations** | Called `check_weather` (1x) and `lookup_poi` (4x) correctly |
+| **Prohibited Tool** | Correctly never called prohibited `unauthorized_booking` |
+| **Integrity Verdict** | **FAILED (3/6 Assertions Passed, 50.0%)** |
+| **Root Cause Detected** | Model reached turn limit (`4/4`) without emitting a standalone final itinerary JSON; last output was an unresolved `<tool_call>` block |
+| **Platform Behavior** | Correctly failed `json_schema`, `json_path_equals`, and `execution_completed` assertions instead of falsely rewarding tool invocation |
+| **Historical Run** | `colab_generic_travel_20261112_065358_8af322` (Audited in-place repair) |
 
 ---
 
@@ -210,16 +225,17 @@ docker compose up --build
 
 ## 9. Running Evaluations & Automated Tests
 
-### 1. Run the Full Test Suite (163 Automated Tests)
+### 1. Run the Full Test Suite (195 Automated Tests)
 ```bash
 python -m pytest tests/ -v
 ```
-All **163 tests pass cleanly in ~16 seconds** with zero deprecation warnings and zero failures.
+All **195 tests pass cleanly** (194 pytest regression tests + 1 Playwright E2E test) with zero deprecation warnings and zero failures.
 
-### 2. Run Focused Read-Only Evaluator Tests
+### 2. Run Focused Generic & Integrity Evaluator Tests
 ```bash
-python -m pytest tests/test_read_only_evaluator.py -v
+python -m pytest tests/test_generic_integrity.py tests/test_qwen_travel_contract.py tests/test_generic_evaluator.py -v
 ```
+Verifies fail-closed final answer validation, collision-free trace ID generation, turn-limit enforcement, and all 6 atomic rollback failure-injection tests.
 
 ### 3. Run Deterministic Mock Benchmark
 You can execute a complete 30-scenario benchmark suite locally with zero API costs:
@@ -269,11 +285,12 @@ EvalNexus includes a verified notebook ([`EvalNexus_Colab_LLM.ipynb`](EvalNexus_
 
 ---
 
-## 11. Known Limitations
+## 11. Known Limitations & Verification Scope
 
 * **Colab Notebook Execution:** While scenario export and result import are automated REST endpoints, running model inference in Google Colab currently requires running the notebook cells in the Colab Pro UI.
 * **Local In-Memory Rate Limiting:** The default rate limiter uses an in-memory sliding-window algorithm suitable for single-node deployments. Multi-node cloud deployments should back this with Redis.
 * **GPU Memory Constraints:** The default Colab setup targets 1.5B to 7B parameter models using `float16` precision on 16GB Tesla T4 GPUs. Larger models require 4-bit quantization or A100/H100 compute.
+* **Verification Nuance (Backend API vs. Visual Browser):** Platform test suites verify all backend database mutations, business logic, and API serialization (`list_runs`, `get_run_details`) deterministically. While Playwright E2E verifies core browser sections, running the full interactive SPA locally via `uvicorn backend.main:app` is recommended for visual styling and client-side inspection.
 
 ---
 

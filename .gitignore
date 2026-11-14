@@ -21,6 +21,7 @@ env/
 *.db-shm
 *.sqlite
 *.sqlite3
+backups/
 
 # Test caches and coverage
 .pytest_cache/

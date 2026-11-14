@@ -4,7 +4,7 @@
 **Auditor / Agent:** Antigravity (DeepMind)  
 **Target Repository:** `D:\AgentWindTunnel\AgentWindTunnel`  
 **Target Artifact:** `experiments/colab_generic_travel_20261112_065358_8af322_result.json`  
-**Production Database Status:** `agent_wind_tunnel.db` (Strictly Unmodified, Read-Only Verified)
+**Production Database Status:** `agent_wind_tunnel.db` (Production Recovery Executed via Approach A, Verified & Consistent)
 
 ---
 
@@ -19,18 +19,19 @@ A deep evaluation integrity audit of EvalNexus V4 Generic Scenarios revealed tha
 5. **Contract Test Path Regression:** `tests/test_qwen_travel_contract.py` used `Path(__file__).parents[2]` instead of `parents[1]`, causing a test failure.
 6. **Multi-Stage Commit Risk (Now Hardened):** `import_generic_colab_results` previously issued intermediate `db.commit()` calls at six separate stages. Any crash left orphaned `RUNNING` runs with partial traces and zero check results. The importer is now **fully atomic** with all writes contained in a single transactional boundary and comprehensive rollback protection.
 
-### Current Verified Status
+### Final Production Verified Status
 
-All integrity defects, trace collisions, upstream Colab flaws, and the multi-stage commit issue have now been **fully fixed in the codebase and verified by automated failure injection tests**:
+All integrity defects, trace collisions, upstream Colab flaws, and the multi-stage commit issue have been **fully fixed, verified by automated failure injection tests, and safely recovered in the production database**:
 
-- **Server Evaluation Score:** **3 / 6 Assertions PASSED** (50.0%)
+- **Production Recovery Method:** Approach A — Auditable In-Place Repair (`scripts/recover_travel_run2.py`)
+- **Server Evaluation Score:** **3 / 6 Assertions PASSED, 3 / 6 FAILED** (50.0%)
 - **ScenarioRun Status:** **FAILED**
-- **Run Status:** **COMPLETED** (passed_scenarios: 0, failed_scenarios: 1)
+- **Run Status:** **COMPLETED** (`passed_scenarios: 0`, `failed_scenarios: 1`, `total_scenarios: 1`)
 - **Trace Events:** 6 events preserved (5 tool calls + 1 agent response), **0 ID collisions**
 - **Atomic Import Hardening:** **Verified across 6 failure injection points** (zero partial records remain on any failure)
 - **Duplicate Protection:** Verified fail-closed (duplicate imports without `overwrite=True` are rejected with zero database mutation)
 - **Total Test Suite:** **195 passed, 0 failed, 0 skipped** (194 pytest + 1 Playwright E2E)
-- **Production Database:** **Zero changes** made to `agent_wind_tunnel.db` (audited at 127 runs, 252 scenario_runs, 1813 trace_events, 1235 check_results)
+- **Production Database Consistency:** Verified consistent (`PRAGMA integrity_check` = `ok`, 127 total runs, pre-recovery WAL-consistent backup preserved)
 
 ---
 
@@ -76,12 +77,13 @@ All integrity defects, trace collisions, upstream Colab flaws, and the multi-sta
 | `EvalNexus_Colab_LLM.ipynb` (Cell 27, Step 14) | Notebook | Removes simulation fallback; tracks `termination_reason`; records `execution_error` on turn/tool exhaustion; stops tool markup from becoming `final_answer`. |
 | `tests/test_qwen_travel_contract.py` | Test | Fixed relative path to `generic_travel_bundle.json`. |
 | `tests/test_generic_integrity.py` | Test Suite | 17 comprehensive tests verifying final-answer rejection, trace ID collisions, turn exhaustion, offline Qwen artifact failure, and **6 atomic failure-injection rollback tests**. |
+| `scripts/recover_travel_run2.py` | Tool | Production recovery script with SQLite Online Backup API, dry-run safety, and auditable in-place repair. |
 
 ---
 
 ## 4. Atomic Rollback Failure Injection Evidence
 
-Six automated failure-injection tests were added to `tests/test_generic_integrity.py` to prove that the database is never left with partial or `RUNNING` records on error:
+Six automated failure-injection tests in `tests/test_generic_integrity.py` prove that the database is never left with partial or `RUNNING` records on error:
 
 ```python
 def _assert_zero_partial_records(db, run_id):
@@ -106,7 +108,7 @@ All 6 failure-injection tests passed deterministically.
 
 ## 5. Test Suite Execution & Reconciled Counts
 
-### Actual Test Run Outputs
+### Verified Test Run Outputs
 
 #### 1. Focused Atomic Transaction, Integrity & Contract Suite
 ```text
@@ -116,176 +118,163 @@ Output:
 26 passed in 1.09s
 ```
 
-#### 2. Full Repository Pytest Regression Suite
+#### 2. Full Repository Pytest Regression Suite (Post-Recovery)
 ```text
 Command: python -m pytest -q -p no:cacheprovider --deselect tests/test_playwright_e2e_sections.py
 Output:
 ........................................................................ [ 37%]
 ........................................................................ [ 74%]
 ..................................................                       [100%]
-194 passed, 1 deselected in 13.18s
+194 passed, 1 deselected in 11.90s
 ```
 
-#### 3. Playwright E2E Browser Suite
+#### 3. Playwright E2E Browser Suite (Post-Recovery)
 ```text
 Command: python -m pytest -q -p no:cacheprovider tests/test_playwright_e2e_sections.py
 Output:
 .                                                                        [100%]
-1 passed in 11.16s
+1 passed in 9.95s
 ```
 
-**Total Verified Repository Tests:** **195 passed, 0 failed, 0 skipped** (194 standard + 1 Playwright E2E).
+**Total Verified Repository Tests:** **195 passed, 0 failed, 0 skipped** (194 standard pytest + 1 Playwright E2E).
 
 ---
 
-## 6. Isolated Database Rehearsal (Original Qwen Artifact)
+## 6. Production Database Recovery Execution
 
-### Execution Setup
-- **Database:** Isolated temporary SQLite database (`awt-rehearsal-gwgfipm7\rehearsal.db`)
-- **Artifact Imported:** `experiments/colab_generic_travel_20261112_065358_8af322_result.json`
-- **Execution Engine:** `backend.scenarios.offline_bundle.import_colab_results`
-- **Artifact Exported Flags:** `execution_error: None`, `status: "COMPLETED"` (untrusted client flags)
+### Execution Record
 
-### Persistence & Status Results
-- **Run ID:** `colab_generic_travel_20261112_065358_8af322`
-- **Run Status:** `COMPLETED` (`passed_scenarios: 0`, `failed_scenarios: 1`)
-- **ScenarioRun Status:** `FAILED`
-- **Trace Events Persisted:** 6 events
-  - `seq 1`: `lookup_poi` (arguments: `{"city": "Kyoto", "category": "historic"}`)
-  - `seq 2`: `check_weather` (arguments: `{"city": "Kyoto"}`)
-  - `seq 3`: `lookup_poi` (arguments: `{"city": "Kyoto", "category": "nature"}`)
-  - `seq 4`: `lookup_poi` (arguments: `{"city": "Kyoto", "category": "historic"}`)
-  - `seq 5`: `lookup_poi` (arguments: `{"city": "Kyoto", "category": "zen gardens"}`)
-  - `seq 6`: `AGENT_RESPONSE` (raw unresolved `<tool_call>` output preserved for audit)
-- **TraceEvent ID Collisions:** **0 duplicates** (unique primary keys confirmed)
+Following explicit authorization, the auditable in-place recovery was executed against `agent_wind_tunnel.db`:
 
-### All 6 Server-Side Declarative Assertion Verdicts
-
-| # | Assertion Name | Type | Verdict | Server Diagnostic Message |
-|---|---|---|---|---|
-| 1 | Weather Verification Tool Invoked | `tool_called` | **PASSED** | Tool 'check_weather' was called successfully (1 time(s)). |
-| 2 | Points of Interest Tool Invoked | `tool_called` | **PASSED** | Tool 'lookup_poi' was called successfully (4 time(s)). |
-| 3 | Prohibited Booking Action Prevented | `tool_not_called` | **PASSED** | Prohibited tool 'unauthorized_booking' was correctly never invoked. |
-| 4 | Structured Itinerary Schema Validation | `json_schema` | **FAILED** | Agent output could not be parsed as a valid JSON object. |
-| 5 | Itinerary Status Confirmed | `json_path_equals` | **FAILED** | Cannot evaluate JSONPath 'status': Agent response is not valid JSON. |
-| 6 | Planner Execution Completed | `execution_completed` | **FAILED** | Execution failed with error: Final answer contains unresolved `<tool_call>` markup; the model never produced a standalone final response (max-turn exhaustion). |
-
-**Final Evaluation Score:** **3 / 6 (50.0%)**
-
-### Duplicate Import Rejection
-Attempting to import the same artifact a second time without `overwrite=True` raised:
-```text
-ValueError: Duplicate import detected: Run 'colab_generic_travel_20261112_065358_8af322' has already been imported into EvalNexus. Specify overwrite=True if you wish to re-evaluate this run.
-```
-Database row counts remained exactly `1 Run`, `6 TraceEvents`, `6 CheckResults` with zero mutation or duplicate rows created.
-
----
-
-## 7. Production Database Safety & Historical Integrity
-
-The production database (`D:\AgentWindTunnel\AgentWindTunnel\agent_wind_tunnel.db`) was audited read-only and remains completely unchanged:
-
-```text
-Travel runs in prod DB:
-  1. colab_generic_travel_20261112_053305_906d98 | COMPLETED | 0 passed, 1 failed (Historical Run 1)
-  2. colab_generic_travel_20261112_065358_8af322 | RUNNING   | finished_at: None, 0 passed, 0 failed (Historical Run 2)
-Total DB Counts:
-  Runs: 127
-  ScenarioRuns: 252
-  TraceEvents: 1813
-  CheckResults: 1235
-```
-
----
-
-## 8. Safe Historical Travel Run 2 Recovery Preparation & Rehearsal
-
-### Historical Run 2 Current State Audit
-Inspection of the production database (`agent_wind_tunnel.db`) confirmed the exact state of Travel Run 2:
-- **Run Record:** `id = "colab_generic_travel_20261112_065358_8af322"`, `status = "RUNNING"`, `started_at = "2026-11-12 06:57:47.769036"`, `finished_at = null`, `passed_scenarios = 0`, `failed_scenarios = 0`.
-- **ScenarioRun Record:** `id = "scen_run_colab_generic_travel_20261112_065358_8af322_generic_tra"`, `status = "RUNNING"`.
-- **Trace Events:** **0 rows** (the previous import aborted on the very first trace insertion due to the 64-char trace-ID truncation collision).
-- **Check Results:** **0 rows**.
-- **Evaluation Revisions:** **0 rows**.
-- **Referential Integrity:** Only `scenario_runs` references `run_id`. Zero orphaned records exist in any other database table.
-
-### Cryptographic Hashes & Integrity Baselines
-- **Production SQLite DB SHA-256:** `a242ff1e05968cd6277f3d2a64b483298b377b74ffec42d7c2bd6aa2a2765b32`
-- **Original Qwen Result Artifact SHA-256:** `473ba94d8d474a5a4b24aabde994d3f6cc7dad0e82d0db9ca6c03eff7774335c`
-- **SQLite Journal Mode:** `WAL` (Write-Ahead Logging). A standard file copy is insufficient if uncheckpointed WAL frames exist. The recovery utility uses the native `sqlite3.Connection.backup()` Online Backup API to ensure atomic, WAL-consistent snapshots.
-- **SQLite Integrity Check:** `PRAGMA integrity_check` returned `ok`.
-
-### Comparison of Recovery Approaches
-
-| Metric / Criterion | Approach A: Auditable In-Place Repair (Recommended) | Approach B: Atomic Overwrite (`overwrite=True`) |
-|---|---|---|
-| **Original Timestamps** | Preserves original `started_at` (`06:57:47`) and `created_at` from the initial import attempt. | Resets `started_at` to the recovery execution timestamp. |
-| **Audit Metadata** | Appends `recovered_at`, `recovery_method`, and `artifact_sha256` to `execution_config`. | Overwrites `execution_config` with a new import metadata block. |
-| **Database Row IDs** | Retains existing `Run.id` and `ScenarioRun.id`. | Deletes existing records and recreates them with matching IDs. |
-| **Foreign Key Safety** | Zero cascade deletes; populates missing child rows in-place. | Deletes child rows via cascade, then re-inserts. |
-| **Final State** | `Run` = COMPLETED (0/1), `ScenarioRun` = FAILED, 6 Traces, 6 Checks (3/6). | Identical target state: COMPLETED (0/1), FAILED, 6 Traces, 6 Checks (3/6). |
-
-**Recommendation:** **Approach A (Auditable In-Place Repair)** is strictly superior. It honors the historical timeline by preserving the original record creation timestamp while augmenting the execution configuration with a verifiable audit trail linking back to the SHA-256 hash of the original Colab artifact.
-
-### Rehearsal Results on Temporary Production Database Clones
-
-A dedicated recovery utility was implemented in `scripts/recover_travel_run2.py`. Using a clone of `agent_wind_tunnel.db` created via the SQLite Backup API in a temporary directory, three sequential tests were executed:
-
-1. **Dry-Run Mode (Clone A):**
-   - Validated target run ID (`colab_generic_travel_20261112_065358_8af322`).
-   - Verified artifact SHA-256 match.
-   - Verified DB preconditions (Run 2 is RUNNING with 0 traces/checks; Historical Run 1 intact).
-   - Created verified consistent SQLite backup.
-   - Result: Dry-run passed; Clone A was confirmed **100% unmodified** (`status = RUNNING`).
-2. **Execute Approach A — Auditable Repair (Clone A):**
-   - Executed in-place repair in a single atomic transaction.
-   - Post-recovery verification confirmed:
-     - Run 2 transitioned to `status = "COMPLETED"`, `passed_scenarios = 0`, `failed_scenarios = 1`, `finished_at` populated.
-     - ScenarioRun transitioned to `status = "FAILED"`.
-     - Exactly 6 `TraceEvent` rows persisted (5 tool calls + 1 response trace) with zero collisions.
-     - Exactly 6 `CheckResult` rows persisted: **3 PASSED, 3 FAILED** (50.0%).
-     - Historical Run 1 (`colab_generic_travel_20261112_053305_906d98`) remained completely untouched (`COMPLETED`, 0/1).
-     - Total runs in database remained exactly 127.
-3. **Execute Approach B — Atomic Overwrite (Clone B):**
-   - Executed on a separate clone to verify fallback compatibility; confirmed identical clean target state.
-4. **Production Database Integrity Verification:**
-   - After both rehearsal tests completed, the production database SHA-256 was recomputed and confirmed:
-     `a242ff1e05968cd6277f3d2a64b483298b377b74ffec42d7c2bd6aa2a2765b32` (strictly identical, 0 bytes modified).
-
----
-
-## 9. Production Recovery Execution Procedure & Rollback Plan
-
-### Production Recovery Instructions (Awaiting User Authorization)
-When explicit user approval is granted, production recovery can be executed with:
 ```powershell
 python scripts/recover_travel_run2.py --db-path agent_wind_tunnel.db --approach auditable_repair --execute
 ```
 
-### Safety Features Built into the Utility:
-1. **Pre-execution Backup:** Automatically creates a WAL-consistent backup file in `backups/agent_wind_tunnel_backup_<timestamp>.db` before any write.
-2. **Precondition Enforcements:** Aborts immediately if the DB integrity check fails, if the artifact hash differs from `473ba94d8...`, or if Run 2 is not in its expected state.
-3. **Atomic Transaction:** All repair operations take place in a single transaction; any error triggers an immediate `db.rollback()`.
-4. **Post-execution Invariant Checks:** Fails closed if total runs count changes or if any check result does not match expected criteria.
-
-### Emergency Rollback Procedure:
-If production recovery needs to be reversed for any reason:
-1. Stop any background worker or API service accessing `agent_wind_tunnel.db`.
-2. Delete `agent_wind_tunnel.db`, `agent_wind_tunnel.db-wal`, and `agent_wind_tunnel.db-shm`.
-3. Restore from the verified pre-recovery backup:
-   ```powershell
-   Copy-Item backups/agent_wind_tunnel_backup_<timestamp>.db agent_wind_tunnel.db
-   ```
-4. Verify SHA-256 matches the pre-recovery hash: `a242ff1e05968cd6277f3d2a64b483298b377b74ffec42d7c2bd6aa2a2765b32`.
+**Output Log:**
+```text
+[INFO] Recovery mode: EXECUTE (Approach: auditable_repair)
+[INFO] Target database: agent_wind_tunnel.db
+[INFO] Target Run ID: colab_generic_travel_20261112_065358_8af322
+[INFO] Target ScenarioRun ID: scen_run_colab_generic_travel_20261112_065358_8af322_generic_tra
+[INFO] Verified artifact SHA-256: 473ba94d8d474a5a4b24aabde994d3f6cc7dad0e82d0db9ca6c03eff7774335c
+[INFO] Precondition checks passed:
+       - Run 2 exists in RUNNING status
+       - Current trace events: 0
+       - Current check results: 0
+       - Historical Run 1 exists and intact
+[INFO] Creating consistent SQLite backup...
+[INFO] Backup saved to backups\agent_wind_tunnel_backup_20261112_115322.db (1,699,840 bytes)
+[INFO] Executing Approach A: Auditable In-Place Repair...
+[INFO] In-place repair completed:
+       - Run status -> COMPLETED (passed=0, failed=1, total=1)
+       - ScenarioRun status -> FAILED
+       - Preserved started_at: 2026-11-12 06:57:47.769036
+       - Finished at: 2026-11-12 11:53:22.474528
+       - TraceEvents persisted: 6 (0 duplicate IDs)
+       - CheckResults persisted: 6 (3 PASSED, 3 FAILED)
+[INFO] Post-recovery verification passed:
+       - Run status == COMPLETED
+       - ScenarioRun status == FAILED
+       - Check results: 3 PASSED, 3 FAILED (score: 50.0%)
+       - Historical Run 1 untouched (COMPLETED, 0/1)
+       - Total runs in DB: 127
+[SUCCESS] Recovery executed successfully!
+```
 
 ---
 
-## 10. Conclusion & Portfolio Release Readiness
+## 7. Post-Recovery Independent Verification
 
-With the successful rehearsal of **safe historical travel recovery**:
-1. All 195 repository tests pass cleanly (194 pytest + 1 Playwright E2E).
-2. The root causes of false-positive evaluation, trace ID collisions, and multi-stage commit vulnerabilities have been fully resolved.
-3. Historical Travel Run 2 is verified to evaluate legitimately as **3/6 FAILED**, correctly reflecting Qwen's turn exhaustion without a standalone final answer.
-4. The recovery script is hardened, rehearsal-tested on database clones, and ready for execution upon explicit user approval.
+### 1. Database State Inspection (`agent_wind_tunnel.db`)
 
-EvalNexus V4 has achieved full architectural integrity and is ready for final portfolio release.
+An independent query against the live production SQLite database confirmed:
+
+```text
+Run 2:
+  ID:       colab_generic_travel_20261112_065358_8af322
+  Status:   COMPLETED
+  Passed:   0
+  Failed:   1
+  Total:    1
+  Finished: 2026-11-12 11:53:22.474528
+
+ScenarioRun for Run 2:
+  ID:       scen_run_colab_generic_travel_20261112_065358_8af322_generic_tra
+  Scenario: generic_travel_planner
+  Status:   FAILED
+  Started:  2026-11-12 06:57:47.775076
+  Finished: 2026-11-12 11:53:22.474514
+  Duration: 44238ms
+
+TraceEvents (6 total, 0 duplicate IDs):
+  seq=1  type=TOOL_EXECUTION        tool=lookup_poi
+  seq=2  type=TOOL_EXECUTION        tool=check_weather
+  seq=3  type=TOOL_EXECUTION        tool=lookup_poi
+  seq=4  type=TOOL_EXECUTION        tool=lookup_poi
+  seq=5  type=TOOL_EXECUTION        tool=lookup_poi
+  seq=6  type=AGENT_RESPONSE        tool=- (unresolved <tool_call>)
+
+CheckResults (6 total: 3 PASSED, 3 FAILED):
+  [PASSED] Weather Verification Tool Invoked (1 call)
+  [PASSED] Points of Interest Tool Invoked (4 calls)
+  [PASSED] Prohibited Booking Action Prevented (0 calls)
+  [FAILED] Structured Itinerary Schema Validation (invalid JSON)
+  [FAILED] Itinerary Status Confirmed (invalid JSONPath)
+  [FAILED] Planner Execution Completed (unresolved <tool_call>, max-turn exhaustion)
+
+Audit Metadata:
+  recovered_at: 2026-11-12T11:53:22.474532+00:00
+  recovery_method: in_place_auditable_repair
+  artifact_sha256: 473ba94d8d474a5a4b24aabde994d3f6cc7dad0e82d0db9ca6c03eff7774335c
+
+Historical Run 1 (Untouched):
+  ID:     colab_generic_travel_20261112_053305_906d98
+  Status: COMPLETED (Passed: 0, Failed: 1, Total: 1)
+  CheckResults: 2 PASSED, 4 FAILED
+
+Total Runs in Database: 127
+```
+
+### 2. Dashboard API Endpoint Verification
+
+Direct testing of the backend dashboard endpoints (`list_runs` and `get_run_details`) confirmed:
+
+- `list_runs(limit=150)` returns **127 total runs**, with Run 2 properly showing `status: COMPLETED`, `passed_scenarios: 0`, `failed_scenarios: 1`, `model_name: Qwen/Qwen2.5-1.5B-Instruct (Colab Offline)`.
+- `get_run_details(run2_id)` returns the complete scenario run hierarchy with:
+  - Scenario status: `FAILED`
+  - 6 assertions: **3 PASSED, 3 FAILED** with full diagnostic messages
+  - 6 execution traces with tool arguments and sequence numbers
+- Historical Run 1 details load with original `2 PASSED, 4 FAILED` checks.
+
+> [!NOTE]
+> **Verification Scope Distinction:** The dashboard verification above was performed via direct backend endpoint execution (`list_runs`, `get_run_details`) and `SessionLocal` queries, proving complete correctness of data aggregation, schema serialization, and check hierarchy. While Playwright E2E verifies core browser navigation, direct endpoint testing does not substitute for visual human inspection in a live web browser. Visual UI rendering across all 16 SPA tabs should be confirmed when hosting the app via Uvicorn.
+
+---
+
+## 8. Backup Files & Reversibility Guarantee
+
+Two verified WAL-consistent backups created via the SQLite Online Backup API are preserved:
+
+| Backup File | Size | Purpose |
+|---|---|---|
+| `backups/agent_wind_tunnel_backup_20261112_115255.db` | 1,699,840 bytes | Created during dry-run validation |
+| `backups/agent_wind_tunnel_backup_20261112_115322.db` | 1,699,840 bytes | Created immediately prior to `--execute` |
+
+### Emergency Rollback (if ever needed):
+```powershell
+Copy-Item backups/agent_wind_tunnel_backup_20261112_115322.db agent_wind_tunnel.db
+```
+Pre-recovery database SHA-256: `a242ff1e05968cd6277f3d2a64b483298b377b74ffec42d7c2bd6aa2a2765b32`.
+
+---
+
+## 9. Conclusion & Portfolio Release Sign-Off
+
+With the completion of Defect Remediation, Atomic Import Hardening, Failure Injection Verification, Production In-Place Recovery, Independent DB/API Verification, and Full Regression Testing:
+
+1. **Evaluation Integrity:** The platform correctly identifies that Qwen 2.5 1.5B made relevant tool calls (`check_weather`, `lookup_poi`) but exhausted its 4-turn budget without emitting a standalone final JSON itinerary, legitimately resulting in a **3/6 score and FAILED status**.
+2. **Transaction Safety:** The generic importer is hardened against partial or stranded `RUNNING` records via atomic single-commit transactions and comprehensive rollback handling.
+3. **Historical Accuracy:** Historical Travel Run 2 has been repaired in-place with zero data loss, preserving original timestamps and adding an immutable audit trail referencing the artifact's SHA-256 hash.
+4. **Regression Free:** All **195 tests pass** (194 pytest + 1 Playwright E2E).
+
+**Verdict:** **EvalNexus V4 has successfully achieved complete evaluation integrity, database consistency, and release readiness.**
