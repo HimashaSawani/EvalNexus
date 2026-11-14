@@ -1,0 +1,85 @@
+{
+  "schema_version": "evalnexus-generic-scenario/v2",
+  "id": "generic_sentiment_positive",
+  "name": "Customer Support Sentiment Analysis (Positive Feedback)",
+  "domain": "sentiment",
+  "evaluation_mode": "GENERIC",
+  "description": "Evaluates whether the agent accurately classifies a highly positive customer review into structured JSON matching the sentiment schema.",
+  "version": 1,
+  "input": {
+    "text": "The delivery was lightning fast and the quality exceeded all my expectations! Highly recommended, thank you!",
+    "customer_id": "cust_88291"
+  },
+  "customer_messages": [
+    "Analyze the following feedback and output valid JSON with keys sentiment, score, confidence, and summary: 'The delivery was lightning fast and the quality exceeded all my expectations! Highly recommended, thank you!'"
+  ],
+  "tool_contracts": [
+    {
+      "name": "echo_tool",
+      "description": "Echoes back input payload for diagnostic testing.",
+      "parameters": {
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        }
+      },
+      "handler_type": "synthetic_stub"
+    }
+  ],
+  "assertions": [
+    {
+      "id": "chk_schema_valid",
+      "type": "json_schema",
+      "name": "Sentiment JSON Schema Compliance",
+      "description": "Validates that agent output contains required sentiment fields with correct types.",
+      "schema_def": {
+        "type": "object",
+        "required": ["sentiment", "score", "confidence", "summary"],
+        "properties": {
+          "sentiment": {
+            "type": "string",
+            "enum": ["POSITIVE", "NEGATIVE", "NEUTRAL"]
+          },
+          "score": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "confidence": {
+            "type": "number",
+            "minimum": 0.0,
+            "maximum": 1.0
+          },
+          "summary": {
+            "type": "string",
+            "minLength": 5
+          }
+        }
+      }
+    },
+    {
+      "id": "chk_sentiment_positive",
+      "type": "json_path_equals",
+      "name": "Positive Classification Equality",
+      "description": "Verifies that sentiment classification equals 'POSITIVE'.",
+      "path": "sentiment",
+      "expected": "POSITIVE"
+    },
+    {
+      "id": "chk_completion",
+      "type": "execution_completed",
+      "name": "Execution Completed Cleanly",
+      "description": "Ensures agent finished without timeout or unhandled exceptions."
+    }
+  ],
+  "execution_limits": {
+    "max_turns": 3,
+    "max_tool_calls": 2,
+    "max_tokens_budget": 3000,
+    "scenario_timeout_sec": 15.0
+  },
+  "tags": ["sentiment", "v4-generic", "nlp", "classification"]
+}
+

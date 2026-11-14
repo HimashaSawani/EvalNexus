@@ -4,7 +4,7 @@
 
 [![Python Version](https://img.shields.io/badge/python-3.11%20%7C%203.12%20%7C%203.13-blue.svg)](https://www.python.org/)
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-009688.svg)](https://fastapi.tiangolo.com/)
-[![Tests Passing](https://img.shields.io/badge/tests-195%20passed-brightgreen.svg)](tests/)
+[![Tests Passing](https://img.shields.io/badge/tests-204%20passed-brightgreen.svg)](tests/)
 [![Framework Version](https://img.shields.io/badge/EvalNexus-v4.0.0%20Generic%20Framework-blue.svg)](docs/GENERIC_EVALUATION_ARCHITECTURE.md)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Demonstrated Models](https://img.shields.io/badge/verified%20models-Qwen2.5--1.5B%20%7C%20Gemini%20%7C%20OpenAI-blueviolet.svg)](#6-demonstrated-evaluation-evidence)
@@ -225,11 +225,11 @@ docker compose up --build
 
 ## 9. Running Evaluations & Automated Tests
 
-### 1. Run the Full Test Suite (195 Automated Tests)
+### 1. Run the Full Test Suite (204 Automated Tests)
 ```bash
 python -m pytest tests/ -v
 ```
-All **195 tests pass cleanly** (194 pytest regression tests + 1 Playwright E2E test) with zero deprecation warnings and zero failures.
+All **204 tests pass cleanly** (203 pytest regression tests + 1 Playwright E2E test) with zero deprecation warnings and zero failures.
 
 ### 2. Run Focused Generic & Integrity Evaluator Tests
 ```bash

@@ -344,11 +344,18 @@ def import_generic_colab_results(
         elif generic_file.is_file():
             with open(generic_file, "r", encoding="utf-8") as f:
                 scen_data = json.load(f)
-        elif bundle_file.is_file():
-            with open(bundle_file, "r", encoding="utf-8") as f:
-                b = json.load(f)
-                if b.get("scenario", {}).get("id") == validated.scenario_id:
-                    scen_data = b["scenario"]
+        else:
+            docs_dir = repo_root / "docs" / "scenarios"
+            if docs_dir.is_dir():
+                for b_file in docs_dir.glob("*.json"):
+                    try:
+                        with open(b_file, "r", encoding="utf-8") as f:
+                            b = json.load(f)
+                            if b.get("scenario", {}).get("id") == validated.scenario_id:
+                                scen_data = b["scenario"]
+                                break
+                    except Exception:
+                        pass
 
     if not scen_data:
         raise ValueError(f"Unknown generic scenario ID '{validated.scenario_id}' in imported results.")
