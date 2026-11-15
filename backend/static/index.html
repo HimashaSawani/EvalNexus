@@ -10,20 +10,28 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
   <style>
     :root {
-      --sidebar-bg: #0B132B;
+      /* ----------------------------------------------------
+         PHASE A: CENTRALIZED ENTERPRISE DESIGN SYSTEM TOKENS
+         Dark Navy Sidebar + Light Enterprise Workspace
+      ---------------------------------------------------- */
+      /* Sidebar Theme: Dark Navy */
+      --sidebar-bg: #0F172A;
       --sidebar-text: #94A3B8;
-      --sidebar-hover: #172554;
-      --sidebar-active: #1D4ED8;
+      --sidebar-hover: #1E293B;
+      --sidebar-active: #2563EB;
       --sidebar-active-text: #FFFFFF;
       --sidebar-border: #1E293B;
 
+      /* Main Workspace: Light Enterprise Clean */
       --bg: #F8FAFC;
       --card-bg: #FFFFFF;
       --card-border: #E2E8F0;
+      --card-border-hover: #CBD5E1;
       --text-main: #0F172A;
       --text-muted: #64748B;
       --text-light: #94A3B8;
 
+      /* Primary Brand & Interactive */
       --primary: #2563EB;
       --primary-hover: #1D4ED8;
       --primary-light: #EFF6FF;
@@ -32,42 +40,63 @@
       --indigo-accent: #4F46E5;
       --indigo-light: #EEF2FF;
 
-      --success-bg: #DCFCE7;
-      --success-text: #15803D;
-      --success-border: #BBF7D0;
+      /* Semantic Status Tokens (Strictly Standardized) */
+      --success-bg: #ECFDF5;
+      --success-text: #059669;
+      --success-border: #A7F3D0;
 
-      --danger-bg: #FEE2E2;
-      --danger-text: #B91C1C;
+      --danger-bg: #FEF2F2;
+      --danger-text: #DC2626;
       --danger-border: #FECACA;
 
-      --warning-bg: #FEF3C7;
-      --warning-text: #B45309;
+      --warning-bg: #FFFBEB;
+      --warning-text: #D97706;
       --warning-border: #FDE68A;
 
-      --info-bg: #E0F2FE;
-      --info-text: #0369A1;
+      --info-bg: #EFF6FF;
+      --info-text: #2563EB;
+      --info-border: #BFDBFE;
 
+      /* Elevation & Shapes */
+      --radius-xs: 4px;
       --radius-sm: 6px;
-      --radius-md: 10px;
-      --radius-lg: 14px;
-      --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.05);
-      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+      --radius-md: 8px;
+      --radius-lg: 12px;
+      --radius-full: 9999px;
+
+      --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.04);
+      --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.06), 0 2px 4px -2px rgba(0, 0, 0, 0.04);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -4px rgba(0, 0, 0, 0.04);
+
+      /* Typography Scale Tokens */
+      --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      --font-mono: 'JetBrains Mono', "SF Mono", Consolas, Menlo, monospace;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      font-family: var(--font-sans);
       background-color: var(--bg);
       color: var(--text-main);
+      font-size: 13.5px;
+      line-height: 1.5;
       display: flex;
       height: 100vh;
       overflow: hidden;
       -webkit-font-smoothing: antialiased;
+      -moz-osx-font-smoothing: grayscale;
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      color: var(--text-main);
+      font-weight: 600;
+      letter-spacing: -0.02em;
     }
 
     /* ----------------------------------------------------
-       SIDEBAR
+       SIDEBAR (DARK NAVY)
     ---------------------------------------------------- */
     aside.sidebar {
       width: 250px;
@@ -83,23 +112,24 @@
     }
 
     .sidebar-header {
-      padding: 22px 20px;
+      padding: 20px 18px;
       display: flex;
       align-items: center;
       gap: 12px;
-      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     }
 
     .logo-icon {
-      width: 34px;
-      height: 34px;
-      border-radius: 8px;
-      background: linear-gradient(135deg, #0EA5E9, #3B82F6);
+      width: 32px;
+      height: 32px;
+      border-radius: var(--radius-sm);
+      background: linear-gradient(135deg, #0284C7, #2563EB);
       display: flex;
       align-items: center;
       justify-content: center;
       color: #FFFFFF;
-      box-shadow: 0 2px 8px rgba(14, 165, 233, 0.35);
+      box-shadow: 0 2px 6px rgba(37, 99, 235, 0.3);
+      flex-shrink: 0;
     }
 
     .brand-title {
@@ -108,7 +138,7 @@
     }
 
     .brand-name {
-      font-size: 16px;
+      font-size: 15px;
       font-weight: 700;
       color: #FFFFFF;
       letter-spacing: -0.3px;
@@ -117,7 +147,7 @@
     .brand-version {
       font-size: 11px;
       color: #38BDF8;
-      font-weight: 600;
+      font-weight: 500;
     }
 
     .sidebar-nav {
@@ -125,18 +155,18 @@
       padding: 12px 10px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 3px;
       overflow-y: auto;
     }
 
     .nav-item {
       display: flex;
       align-items: center;
-      gap: 12px;
-      padding: 10px 14px;
-      border-radius: var(--radius-md);
+      gap: 11px;
+      padding: 8px 12px;
+      border-radius: var(--radius-sm);
       color: var(--sidebar-text);
-      font-size: 13.5px;
+      font-size: 13px;
       font-weight: 500;
       text-decoration: none;
       cursor: pointer;
@@ -152,22 +182,21 @@
       background-color: var(--sidebar-active);
       color: var(--sidebar-active-text);
       font-weight: 600;
-      box-shadow: 0 2px 6px rgba(29, 78, 216, 0.35);
     }
 
     .nav-icon {
-      width: 18px;
-      height: 18px;
+      width: 17px;
+      height: 17px;
       stroke-width: 2;
       flex-shrink: 0;
     }
 
     .sidebar-footer {
-      padding: 16px 18px;
-      border-top: 1px solid var(--sidebar-border);
+      padding: 14px 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
       font-size: 11.5px;
       color: #64748B;
     }
@@ -181,34 +210,98 @@
     }
 
     .pulse-dot {
-      width: 8px;
-      height: 8px;
+      width: 7px;
+      height: 7px;
       border-radius: 50%;
-      background: #10B981;
-      box-shadow: 0 0 8px #10B981;
+      background-color: #10B981;
+      box-shadow: 0 0 0 rgba(16, 185, 129, 0.4);
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.5); }
+      70% { box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+    }
+
+
+    /* Sidebar Groups (Phase B) */
+    .nav-group {
+      display: flex;
+      flex-direction: column;
+      margin-bottom: 6px;
+    }
+
+    .nav-group-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 7px 10px 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: #64748B;
+      text-transform: uppercase;
+      letter-spacing: 0.6px;
+      cursor: pointer;
+      user-select: none;
+      border-radius: var(--radius-xs);
+      transition: color 0.15s ease;
+    }
+
+    .nav-group-header:hover {
+      color: #94A3B8;
+    }
+
+    .nav-group-header:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 1px;
+    }
+
+    .nav-group-chevron {
+      width: 13px;
+      height: 13px;
+      stroke-width: 2.2;
+      transition: transform 0.2s ease;
+      color: #64748B;
+    }
+
+    .nav-group-body {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+      transition: all 0.2s ease;
+    }
+
+    .nav-group.collapsed .nav-group-chevron {
+      transform: rotate(-90deg);
+    }
+
+    .nav-group.collapsed .nav-group-body {
+      display: none;
     }
 
     /* ----------------------------------------------------
-       MAIN WORKSPACE
+       MAIN WORKSPACE (LIGHT ENTERPRISE)
     ---------------------------------------------------- */
     main.workspace {
       flex: 1;
       display: flex;
       flex-direction: column;
-      overflow-y: auto;
+      overflow: hidden;
       background-color: var(--bg);
-      position: relative;
     }
 
     /* Mobile header */
     .mobile-topbar {
       display: none;
+      height: 52px;
       background: var(--sidebar-bg);
       color: #FFFFFF;
-      padding: 12px 18px;
       align-items: center;
       justify-content: space-between;
+      padding: 0 16px;
       border-bottom: 1px solid var(--sidebar-border);
+      z-index: 90;
     }
 
     .menu-btn {
@@ -218,16 +311,18 @@
       cursor: pointer;
       display: flex;
       align-items: center;
+      justify-content: center;
+      padding: 6px;
+      border-radius: var(--radius-xs);
     }
 
     .content-container {
-      padding: 20px 32px 32px 32px;
+      flex: 1;
+      overflow-y: auto;
+      padding: 24px 28px;
       display: flex;
       flex-direction: column;
-      gap: 18px;
-      max-width: 1600px;
-      width: 100%;
-      margin: 0 auto;
+      gap: 20px;
     }
 
     /* View panels */
@@ -242,67 +337,82 @@
     }
 
     /* Top Page Header */
-    .top-header {
+    .top-header, .page-header {
       display: flex;
       justify-content: space-between;
       align-items: flex-start;
-      margin-bottom: 4px;
+      gap: 16px;
+      border-bottom: 1px solid var(--card-border);
+      padding-bottom: 14px;
+      margin-bottom: 2px;
     }
 
     .title-area h1 {
-      font-size: 22px;
+      font-size: 20px;
       font-weight: 700;
       color: var(--text-main);
-      letter-spacing: -0.4px;
-      margin-bottom: 4px;
+      letter-spacing: -0.3px;
+      margin-bottom: 2px;
     }
 
     .title-area p {
-      font-size: 13.5px;
+      font-size: 13px;
       color: var(--text-muted);
+      line-height: 1.4;
     }
 
     .header-right {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
+    /* Standard Badge Pills */
     .badge-pill {
-      font-size: 11.5px;
+      font-size: 11px;
       font-weight: 600;
-      padding: 4px 10px;
-      border-radius: 999px;
-      letter-spacing: 0.3px;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      padding: 3px 9px;
+      border-radius: var(--radius-full);
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      border: 1px solid transparent;
+      white-space: nowrap;
     }
 
     .badge-pill.indigo {
       background: var(--indigo-light);
       color: var(--indigo-accent);
-      border: 1px solid #C7D2FE;
+      border-color: #C7D2FE;
     }
 
     .badge-pill.mock {
       background: #F1F5F9;
       color: #475569;
-      border: 1px solid #CBD5E1;
+      border-color: #CBD5E1;
     }
 
     .badge-pill.real {
-      background: #ECFDF5;
-      color: #047857;
-      border: 1px solid #A7F3D0;
+      background: #EFF6FF;
+      color: #1D4ED8;
+      border-color: #BFDBFE;
     }
 
     /* ----------------------------------------------------
        CARDS AND GRIDS
     ---------------------------------------------------- */
-    .card {
+    .card, .control-card, .studio-panel {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: var(--radius-lg);
-      padding: 18px 22px;
+      border-radius: var(--radius-md);
       box-shadow: var(--shadow-sm);
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .card:hover {
+      border-color: var(--card-border-hover);
     }
 
     .metrics-grid {
@@ -314,18 +424,24 @@
     .metric-card {
       background: var(--card-bg);
       border: 1px solid var(--card-border);
-      border-radius: var(--radius-lg);
+      border-radius: var(--radius-md);
       padding: 16px 18px;
       display: flex;
       align-items: center;
       gap: 14px;
       box-shadow: var(--shadow-sm);
+      transition: all 0.15s ease;
+    }
+
+    .metric-card:hover {
+      border-color: var(--card-border-hover);
+      box-shadow: var(--shadow-md);
     }
 
     .metric-icon-box {
-      width: 44px;
-      height: 44px;
-      border-radius: var(--radius-md);
+      width: 40px;
+      height: 40px;
+      border-radius: var(--radius-sm);
       display: flex;
       align-items: center;
       justify-content: center;
@@ -345,8 +461,8 @@
     }
 
     .metric-label {
-      font-size: 12px;
-      font-weight: 500;
+      font-size: 11px;
+      font-weight: 600;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.4px;
@@ -357,42 +473,73 @@
       font-weight: 700;
       color: var(--text-main);
       letter-spacing: -0.5px;
+      line-height: 1.1;
     }
 
     .metric-subtext {
-      font-size: 11px;
-      color: var(--text-light);
+      font-size: 11.5px;
+      color: var(--text-muted);
+      font-weight: 500;
     }
 
     /* ----------------------------------------------------
-       CONTROLS TOOLBAR (TEST STUDIO)
+       CONTROLS TOOLBAR (TEST STUDIO & FORMS)
     ---------------------------------------------------- */
     .control-card {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius-lg);
-      padding: 14px 20px;
+      padding: 14px 18px;
       display: flex;
-      align-items: center;
-      gap: 16px;
-      box-shadow: var(--shadow-sm);
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .controls-row {
+      display: flex;
+      align-items: flex-end;
+      gap: 14px;
       flex-wrap: wrap;
     }
 
     .control-group {
-      flex: 1;
-      min-width: 170px;
       display: flex;
       flex-direction: column;
-      gap: 6px;
+      gap: 5px;
+      flex: 1;
+      min-width: 170px;
     }
 
     .control-label {
-      font-size: 11.5px;
+      font-size: 11px;
       font-weight: 600;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.4px;
+    }
+
+    /* Form Inputs, Selects, and Textareas */
+    input[type="text"],
+    input[type="number"],
+    input[type="password"],
+    input[type="email"],
+    input[type="search"],
+    select,
+    textarea {
+      font-family: var(--font-sans);
+      font-size: 13px;
+      color: var(--text-main);
+      background-color: #FFFFFF;
+      border: 1px solid #CBD5E1;
+      border-radius: var(--radius-sm);
+      padding: 7px 11px;
+      outline: none;
+      transition: border-color 0.15s ease, box-shadow 0.15s ease;
+      box-sizing: border-box;
+    }
+
+    input:focus,
+    select:focus,
+    textarea:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
     }
 
     .control-select-wrap {
@@ -403,89 +550,110 @@
 
     .control-select-wrap select {
       width: 100%;
-      height: 38px;
-      padding: 0 32px 0 12px;
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius-sm);
-      background: #FFFFFF;
-      font-size: 13.5px;
+      height: 36px;
+      padding: 0 32px 0 11px;
+      font-size: 13px;
       font-weight: 500;
-      color: var(--text-main);
       appearance: none;
       cursor: pointer;
-      outline: none;
-      transition: border-color 0.15s ease;
-    }
-
-    .control-select-wrap select:focus {
-      border-color: var(--primary);
-      box-shadow: 0 0 0 2px rgba(37, 99, 235, 0.12);
     }
 
     .chevron-icon {
       position: absolute;
       right: 10px;
-      width: 14px;
-      height: 14px;
       pointer-events: none;
       color: var(--text-muted);
+      width: 15px;
+      height: 15px;
     }
 
-    .btn-run {
-      background: var(--primary);
-      color: #FFFFFF;
-      border: none;
-      border-radius: var(--radius-md);
-      padding: 0 24px;
-      height: 42px;
-      font-size: 14px;
+    /* Standard Button Styles */
+    .btn, button.btn-primary, .btn-run {
+      font-family: var(--font-sans);
+      font-size: 13px;
       font-weight: 600;
+      color: #FFFFFF;
+      background: var(--primary);
+      border: 1px solid var(--primary);
+      border-radius: var(--radius-sm);
+      padding: 7px 16px;
+      height: 36px;
+      cursor: pointer;
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      cursor: pointer;
+      justify-content: center;
+      gap: 6px;
+      box-shadow: var(--shadow-xs);
       transition: all 0.15s ease;
-      box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
-      flex-shrink: 0;
-      align-self: flex-end;
     }
 
-    .btn-run:hover:not(:disabled) {
+    .btn:hover:not(:disabled), button.btn-primary:hover:not(:disabled), .btn-run:hover:not(:disabled) {
       background: var(--primary-hover);
-      box-shadow: 0 4px 8px rgba(37, 99, 235, 0.35);
+      border-color: var(--primary-hover);
+      box-shadow: var(--shadow-sm);
     }
 
-    .btn-run:disabled {
-      opacity: 0.6;
+    .btn:disabled, button.btn-primary:disabled, .btn-run:disabled {
+      background: #CBD5E1;
+      border-color: #CBD5E1;
+      color: #94A3B8;
       cursor: not-allowed;
+      box-shadow: none;
     }
 
-    .btn-cancel {
+    .btn-secondary {
+      font-family: var(--font-sans);
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--text-main);
       background: #FFFFFF;
-      color: #DC2626;
-      border: 1px solid #FCA5A5;
-      border-radius: var(--radius-md);
-      padding: 0 16px;
-      height: 42px;
-      font-size: 13.5px;
-      font-weight: 600;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-sm);
+      padding: 6px 13px;
+      cursor: pointer;
       display: inline-flex;
       align-items: center;
       gap: 6px;
-      cursor: pointer;
-      align-self: flex-end;
+      transition: all 0.15s ease;
     }
 
-    .btn-cancel:hover {
-      background: #FEF2F2;
+    .btn-secondary:hover:not(:disabled) {
+      background: #F8FAFC;
+      border-color: var(--card-border-hover);
+      color: var(--text-main);
+    }
+
+    .btn-cancel, .btn-danger {
+      font-family: var(--font-sans);
+      font-size: 12.5px;
+      font-weight: 500;
+      color: var(--danger-text);
+      background: var(--danger-bg);
+      border: 1px solid var(--danger-border);
+      border-radius: var(--radius-sm);
+      padding: 6px 13px;
+      height: 36px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+
+    .btn-cancel:hover:not(:disabled), .btn-danger:hover:not(:disabled) {
+      background: #FEE2E2;
+      border-color: #FCA5A5;
+    }
+
+    button:focus-visible, a:focus-visible {
+      outline: 2px solid var(--primary);
+      outline-offset: 2px;
     }
 
     /* Preflight execution limits info banner */
-    .preflight-limits-strip {
-      background: #F8FAFC;
-      border: 1px dashed #CBD5E1;
-      border-radius: var(--radius-md);
-      padding: 8px 14px;
+    .preflight-bounds-bar {
+      border-top: 1px solid #F1F5F9;
+      padding-top: 10px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -498,7 +666,8 @@
     .limit-tag-group {
       display: flex;
       align-items: center;
-      gap: 16px;
+      gap: 14px;
+      flex-wrap: wrap;
     }
 
     .limit-tag {
@@ -509,6 +678,172 @@
 
     .limit-tag strong {
       color: var(--text-main);
+      font-weight: 600;
+    }
+
+
+    /* ----------------------------------------------------
+       PHASE D: TEST STUDIO 5-STEP EVALUATION WORKFLOW
+    ---------------------------------------------------- */
+    .studio-stepper-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .stepper-header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: #FFFFFF;
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 10px 18px;
+      box-shadow: var(--shadow-xs);
+      overflow-x: auto;
+      gap: 12px;
+    }
+
+    .stepper-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      padding: 6px 12px;
+      border-radius: var(--radius-sm);
+      transition: all 0.15s ease;
+      white-space: nowrap;
+      text-decoration: none;
+    }
+
+    .stepper-pill:hover {
+      background: #F1F5F9;
+      color: var(--text-main);
+    }
+
+    .stepper-pill.active {
+      background: #EFF6FF;
+      color: var(--primary);
+      border: 1px solid #BFDBFE;
+    }
+
+    .stepper-pill .step-num {
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: #E2E8F0;
+      color: #475569;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .stepper-pill.active .step-num {
+      background: var(--primary);
+      color: #FFFFFF;
+    }
+
+    .stepper-arrow-sep {
+      color: #CBD5E1;
+      font-size: 13px;
+      user-select: none;
+    }
+
+    .studio-config-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+      gap: 16px;
+    }
+
+    .step-card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-md);
+      padding: 16px 18px;
+      box-shadow: var(--shadow-xs);
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      position: relative;
+    }
+
+    .step-card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid #F1F5F9;
+      padding-bottom: 10px;
+    }
+
+    .step-badge-title {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      color: var(--text-main);
+    }
+
+    .step-badge-title .step-idx {
+      background: var(--primary);
+      color: #FFFFFF;
+      font-size: 10.5px;
+      padding: 2px 7px;
+      border-radius: var(--radius-full);
+      font-weight: 700;
+      letter-spacing: 0.3px;
+    }
+
+    .limits-input-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .limit-field {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .limit-field label {
+      font-size: 10.5px;
+      font-weight: 600;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .limit-field input {
+      height: 32px;
+      font-size: 12.5px;
+      padding: 4px 8px;
+    }
+
+    .execution-action-card {
+      background: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%);
+      border: 1px solid #BFDBFE;
+      border-radius: var(--radius-md);
+      padding: 16px 20px;
+      box-shadow: var(--shadow-sm);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    @media (max-width: 992px) {
+      .studio-split-view {
+        grid-template-columns: 1fr;
+      }
+      .studio-config-grid {
+        grid-template-columns: 1fr;
+      }
     }
 
     /* ----------------------------------------------------
@@ -516,65 +851,55 @@
     ---------------------------------------------------- */
     .studio-split-view {
       display: grid;
-      grid-template-columns: 460px 1fr;
+      grid-template-columns: 420px 1fr;
       gap: 16px;
-      min-height: 580px;
+      flex: 1;
+      min-height: 520px;
     }
 
     .studio-panel {
-      background: var(--card-bg);
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius-lg);
       display: flex;
       flex-direction: column;
       overflow: hidden;
-      box-shadow: var(--shadow-sm);
     }
 
     .panel-header {
-      padding: 14px 18px;
+      padding: 12px 16px;
       border-bottom: 1px solid var(--card-border);
       display: flex;
-      align-items: center;
       justify-content: space-between;
-      gap: 10px;
+      align-items: center;
+      background: #FAFAFA;
     }
 
     .panel-header h3 {
-      font-size: 14px;
-      font-weight: 700;
+      font-size: 13.5px;
+      font-weight: 600;
       color: var(--text-main);
     }
 
     .panel-search-bar {
-      padding: 8px 14px;
+      padding: 10px 14px;
       border-bottom: 1px solid var(--card-border);
+      background: #FFFFFF;
       display: flex;
       gap: 8px;
-      background: #FCFDFE;
     }
 
     .panel-search-bar input {
       flex: 1;
       height: 32px;
       padding: 0 10px;
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius-sm);
-      font-size: 12.5px;
-      outline: none;
+      font-size: 12px;
     }
 
     .panel-search-bar select {
       height: 32px;
-      padding: 0 8px;
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius-sm);
       font-size: 12px;
-      outline: none;
-      background: #FFFFFF;
+      padding: 0 8px;
     }
 
-    /* Scenario Table */
+    /* Scenario Table & Data Tables */
     .scenario-table-wrap {
       flex: 1;
       overflow-y: auto;
@@ -588,118 +913,128 @@
     }
 
     table.data-table th {
-      padding: 10px 14px;
-      background: #F8FAFC;
-      color: var(--text-muted);
+      padding: 9px 12px;
+      font-size: 11px;
       font-weight: 600;
-      font-size: 11.5px;
+      color: var(--text-muted);
       text-transform: uppercase;
-      letter-spacing: 0.3px;
+      letter-spacing: 0.5px;
+      background: #F8FAFC;
       border-bottom: 1px solid var(--card-border);
-      position: sticky;
-      top: 0;
-      z-index: 10;
+      border-top: 1px solid var(--card-border);
+      white-space: nowrap;
+      user-select: none;
     }
 
     table.data-table td {
-      padding: 12px 14px;
+      padding: 10px 12px;
+      color: var(--text-main);
       border-bottom: 1px solid #F1F5F9;
       vertical-align: middle;
-      color: var(--text-main);
     }
 
     table.data-table tr.clickable {
       cursor: pointer;
-      transition: background 0.1s ease;
+      transition: background-color 0.12s ease;
     }
 
     table.data-table tr.clickable:hover td {
-      background: #F8FAFC;
+      background-color: #F8FAFC;
     }
 
     table.data-table tr.selected td {
-      background: #EFF6FF !important;
+      background-color: #EFF6FF !important;
+      color: #1E40AF;
     }
 
     table.data-table tr.selected td:first-child {
       border-left: 3px solid var(--primary);
     }
 
-    /* Status Pills */
+    /* Standard Status Pills */
     .status-pill {
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
+      padding: 2.5px 8px;
+      border-radius: var(--radius-full);
       display: inline-flex;
       align-items: center;
       gap: 5px;
-      padding: 3px 8px;
-      border-radius: 999px;
-      font-size: 11px;
-      font-weight: 600;
+      border: 1px solid transparent;
       white-space: nowrap;
+      line-height: 1.2;
     }
 
     .status-pill.passed {
       background: var(--success-bg);
       color: var(--success-text);
-      border: 1px solid var(--success-border);
+      border-color: var(--success-border);
     }
 
     .status-pill.failed {
       background: var(--danger-bg);
       color: var(--danger-text);
-      border: 1px solid var(--danger-border);
+      border-color: var(--danger-border);
     }
 
     .status-pill.provider_error {
       background: var(--warning-bg);
       color: var(--warning-text);
-      border: 1px solid var(--warning-border);
+      border-color: var(--warning-border);
     }
 
     .status-pill.running {
       background: var(--info-bg);
       color: var(--info-text);
-      border: 1px solid #BAE6FD;
+      border-color: var(--info-border);
     }
 
     .status-pill.queued {
       background: #F1F5F9;
-      color: #64748B;
-      border: 1px solid #CBD5E1;
+      color: var(--text-muted);
+      border-color: #CBD5E1;
     }
 
     .status-pill.cancelled {
-      background: #F3F4F6;
-      color: #4B5563;
-      border: 1px solid #D1D5DB;
+      background: #F1F5F9;
+      color: var(--text-light);
+      border-color: #E2E8F0;
     }
 
     .status-pill.indeterminate {
-      background: #FEF3C7;
-      color: #92400E;
-      border: 1px dashed #F59E0B;
+      background: #F1F5F9;
+      color: var(--text-muted);
+      border-color: #E2E8F0;
     }
 
     /* Trace Details Panel */
-    .trace-detail-header {
-      padding: 16px 20px;
+    .trace-detail-wrap {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .trace-header {
+      padding: 12px 18px;
       border-bottom: 1px solid var(--card-border);
       display: flex;
       justify-content: space-between;
       align-items: center;
-      gap: 12px;
-      background: #FCFDFE;
-    }
-
-    .trace-title-group {
-      display: flex;
-      flex-direction: column;
-      gap: 2px;
+      background: #FAFAFA;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     .trace-title-group h4 {
-      font-size: 15px;
-      font-weight: 700;
+      font-size: 14px;
+      font-weight: 600;
       color: var(--text-main);
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
 
     .trace-title-group span {
@@ -709,25 +1044,27 @@
 
     .trace-actions {
       display: flex;
-      align-items: center;
       gap: 8px;
     }
 
     /* Detail Tabs */
     .detail-nav-tabs {
       display: flex;
+      gap: 2px;
       border-bottom: 1px solid var(--card-border);
-      background: #FFFFFF;
       padding: 0 16px;
+      background: #FAFAFA;
+      border-top-left-radius: var(--radius-md);
+      border-top-right-radius: var(--radius-md);
     }
 
     .tab-btn {
       padding: 10px 14px;
-      border: none;
       background: none;
+      border: none;
+      font-size: 12.5px;
+      font-weight: 500;
       color: var(--text-muted);
-      font-size: 13px;
-      font-weight: 600;
       cursor: pointer;
       border-bottom: 2px solid transparent;
       transition: all 0.15s ease;
@@ -740,29 +1077,32 @@
     .tab-btn.active {
       color: var(--primary);
       border-bottom-color: var(--primary);
+      font-weight: 600;
     }
 
     .tab-content-area {
       flex: 1;
-      padding: 16px 20px;
       overflow-y: auto;
+      padding: 18px 20px;
       display: flex;
       flex-direction: column;
       gap: 14px;
+      background: #FFFFFF;
     }
 
     /* Stepper Timeline */
     .stepper-timeline {
       display: flex;
       flex-direction: column;
+      gap: 0;
       position: relative;
     }
 
     .timeline-item {
       display: flex;
       gap: 14px;
-      padding-bottom: 18px;
       position: relative;
+      padding-bottom: 22px;
     }
 
     .timeline-item:last-child {
@@ -772,44 +1112,40 @@
     .timeline-item:not(:last-child)::before {
       content: '';
       position: absolute;
-      left: 15px;
-      top: 30px;
+      left: 11px;
+      top: 24px;
       bottom: 0;
       width: 2px;
-      background: #E2E8F0;
+      background-color: #E2E8F0;
     }
 
     .timeline-circle {
-      width: 32px;
-      height: 32px;
+      width: 24px;
+      height: 24px;
       border-radius: 50%;
-      background: #F1F5F9;
-      color: var(--text-main);
-      font-size: 12px;
-      font-weight: 700;
+      background: #FFFFFF;
+      border: 2px solid #CBD5E1;
       display: flex;
       align-items: center;
       justify-content: center;
-      flex-shrink: 0;
-      border: 2px solid #FFFFFF;
-      box-shadow: var(--shadow-sm);
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--text-muted);
       z-index: 2;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 3px #FFFFFF;
     }
 
-    .timeline-circle.model { background: #EFF6FF; color: #2563EB; }
-    .timeline-circle.tool { background: #FAF5FF; color: #7C3AED; }
-    .timeline-circle.fault { background: #FFFBEB; color: #D97706; }
-    .timeline-circle.error { background: #FEF2F2; color: #DC2626; }
+    .timeline-circle.model { border-color: var(--primary); color: var(--primary); }
+    .timeline-circle.tool { border-color: var(--indigo-accent); color: var(--indigo-accent); }
+    .timeline-circle.fault { border-color: var(--warning-text); color: var(--warning-text); }
+    .timeline-circle.error { border-color: var(--danger-text); color: var(--danger-text); }
 
     .timeline-body {
       flex: 1;
-      background: #F8FAFC;
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius-md);
-      padding: 10px 14px;
       display: flex;
       flex-direction: column;
-      gap: 4px;
+      gap: 5px;
     }
 
     .timeline-body-header {
@@ -825,119 +1161,90 @@
       letter-spacing: 0.4px;
     }
 
+    .timeline-tag.model { color: var(--primary); }
+    .timeline-tag.tool { color: var(--indigo-accent); }
+    .timeline-tag.fault { color: var(--warning-text); }
+    .timeline-tag.error { color: var(--danger-text); }
+
     .timeline-duration {
-      font-family: 'JetBrains Mono', monospace;
       font-size: 11px;
-      color: var(--text-muted);
+      color: var(--text-light);
+      font-family: var(--font-mono);
     }
 
     .timeline-text {
-      font-size: 12.5px;
+      font-size: 13px;
       color: var(--text-main);
-      line-height: 1.5;
+      line-height: 1.45;
     }
 
+    /* JSON Box & Answer Callouts */
     .json-code-box {
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 11.5px;
       background: #0F172A;
       color: #F8FAFC;
-      padding: 12px;
+      padding: 14px 16px;
       border-radius: var(--radius-sm);
+      font-family: var(--font-mono);
+      font-size: 11.5px;
+      line-height: 1.55;
       overflow-x: auto;
-      white-space: pre-wrap;
-      line-height: 1.5;
+      border: 1px solid #1E293B;
+      box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
     }
 
     .final-answer-callout {
-      background: #F0FDF4;
-      border: 1px solid #BBF7D0;
-      border-radius: var(--radius-md);
+      background: #F8FAFC;
+      border: 1px solid var(--card-border);
+      border-left: 3px solid var(--primary);
+      border-radius: var(--radius-sm);
       padding: 14px 16px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
     }
 
     .final-answer-callout strong {
-      color: #15803D;
-      font-size: 12px;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
-    }
-
-    .final-answer-callout p {
-      font-size: 13.5px;
-      color: #166534;
-      line-height: 1.6;
-    }
-
-    /* Database state audit card */
-    .db-audit-group {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .db-audit-card {
-      background: #FFFFFF;
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius-md);
-      padding: 12px 14px;
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .db-audit-card h5 {
+      display: block;
+      margin-bottom: 6px;
       font-size: 12px;
       color: var(--text-muted);
       text-transform: uppercase;
       letter-spacing: 0.4px;
     }
 
-    /* Buttons */
-    .btn-secondary {
-      background: #FFFFFF;
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius-sm);
-      padding: 6px 12px;
-      font-size: 12px;
-      font-weight: 600;
+    .final-answer-callout p {
+      font-size: 13.5px;
       color: var(--text-main);
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-      transition: all 0.15s ease;
+      line-height: 1.5;
     }
 
-    .btn-secondary:hover {
-      background: #F8FAFC;
-      border-color: #CBD5E1;
+    /* Database state audit card */
+    .db-audit-card {
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      background: #FFFFFF;
+    }
+
+    .db-audit-card h5 {
+      font-size: 11.5px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.4px;
     }
 
     /* Progress bar */
-    .run-progress-box {
-      background: #FFFFFF;
-      border: 1px solid var(--card-border);
-      border-radius: var(--radius-lg);
-      padding: 14px 20px;
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
     .progress-bar-bg {
-      height: 8px;
+      height: 4px;
       background: #E2E8F0;
-      border-radius: 999px;
+      width: 100%;
+      border-radius: 2px;
       overflow: hidden;
     }
 
     .progress-bar-fill {
       height: 100%;
-      background: linear-gradient(90deg, #2563EB, #38BDF8);
+      background: var(--primary);
       width: 0%;
       transition: width 0.3s ease;
     }
@@ -954,6 +1261,13 @@
       color: var(--text-muted);
     }
 
+    td.empty-state {
+      display: table-cell;
+      text-align: center;
+      padding: 32px 16px;
+      color: var(--text-muted);
+    }
+
     .spin {
       animation: spin 1s linear infinite;
     }
@@ -962,8 +1276,15 @@
       100% { transform: rotate(360deg); }
     }
 
-    /* Responsive adjustments */
+    /* ----------------------------------------------------
+       RESPONSIVE ADJUSTMENTS & OVERFLOW GUARDS
+    ---------------------------------------------------- */
+    main.workspace, .studio-panel {
+      min-width: 0;
+    }
+
     @media (max-width: 1024px) {
+      body { flex-direction: column; }
       .studio-split-view {
         grid-template-columns: 1fr;
       }
@@ -978,19 +1299,23 @@
       }
       .mobile-topbar {
         display: flex;
+        width: 100%;
+        flex-shrink: 0;
       }
+      main.workspace { width: 100%; }
       .content-container {
         padding: 16px;
+        min-width: 0;
       }
     }
-    td.empty-state { display: table-cell; text-align: center; }
-    main.workspace, .studio-panel { min-width: 0; }
-    @media (max-width: 1024px) {
-      body { flex-direction: column; }
-      .mobile-topbar { width: 100%; flex-shrink: 0; }
-      main.workspace { width: 100%; }
-      .content-container { min-width: 0; }
+
+    @media (max-width: 768px) {
+      .controls-row { flex-direction: column; align-items: stretch; }
+      .control-group { width: 100%; }
+      .top-header, .page-header { flex-direction: column; align-items: flex-start; }
+      .header-right { width: 100%; justify-content: flex-start; }
     }
+
     @media (max-width: 600px) {
       .control-group { min-width: 0; width: 100%; flex-basis: 100%; }
       .control-select-wrap select { max-width: 100%; }
@@ -998,6 +1323,7 @@
       .page-header { flex-wrap: wrap; gap: 12px; }
       .studio-panel { overflow: hidden; }
       #agentVersionsGrid { grid-template-columns: minmax(0, 1fr) !important; }
+      .metrics-grid { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -1029,72 +1355,129 @@
     </div>
 
     <nav class="sidebar-nav">
-      <a class="nav-item" id="nav-overview" onclick="navigateView('overview')">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-        Overview
-      </a>
-      <a class="nav-item active" id="nav-test-studio" onclick="navigateView('test-studio')">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Test Studio
-      </a>
-      <a class="nav-item" id="nav-scenarios" onclick="navigateView('scenarios')">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-        Scenarios Catalog
-      </a>
-      <a class="nav-item" id="nav-agent-versions" onclick="navigateView('agent-versions')">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
-        Agent Versions
-      </a>
-      <a class="nav-item" id="nav-run-history" onclick="navigateView('run-history')">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-        Run History
-      </a>
-      <a class="nav-item" id="nav-comparisons" onclick="navigateView('comparisons')">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
-        Comparisons
-      </a>
-      <div style="padding: 10px 14px 4px; font-size: 11px; font-weight: 700; color: #64748B; text-transform: uppercase; letter-spacing: 0.5px;">Advanced V2 Suite</div>
-      <a class="nav-item" id="nav-custom-agents" onclick="navigateView('custom-agents')">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
-        Custom Agents
-      </a>
-      <a class="nav-item" id="nav-scenario-builder" onclick="navigateView('scenario-builder')">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-        Scenario Builder
-      </a>
-      <a class="nav-item" id="nav-regression-testing" onclick="navigateView('regression-testing')">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
-        Regression Testing
-      </a>
-      <a class="nav-item" id="nav-failure-analysis" onclick="navigateView('failure-analysis')">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
-        Failure Analysis
-      </a>
-      <div style="padding: 10px 14px 4px; font-size: 11px; font-weight: 700; color: #38BDF8; text-transform: uppercase; letter-spacing: 0.5px;">V3 Enterprise Engine</div>
-      <a class="nav-item" id="nav-workflows" onclick="navigateView('workflows')">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M6 9v12"/><path d="M18 9a9 9 0 0 0-9 9"/></svg>
-        Multi-Agent Workflows
-      </a>
-      <a class="nav-item" id="nav-cluster-nodes" onclick="navigateView('cluster-nodes')">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
-        Distributed Nodes
-      </a>
-      <a class="nav-item" id="nav-trace-explorer" onclick="navigateView('trace-explorer')">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 6 5-10"/></svg>
-        Trace & Spans
-      </a>
-      <a class="nav-item" id="nav-fault-lab" onclick="navigateView('fault-lab')">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-        Chaos Fault Lab
-      </a>
-      <a class="nav-item" id="nav-quality-gates" onclick="navigateView('quality-gates')">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
-        Quality Gates
-      </a>
-      <a class="nav-item" id="nav-settings" onclick="navigateView('settings')">
-        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
-        Settings & Safety
-      </a>
+      <!-- OVERVIEW DOMAIN -->
+      <div class="nav-group" id="group-overview">
+        <div class="nav-group-header" onclick="toggleNavGroup('group-overview')" onkeydown="handleGroupKeydown(event, 'group-overview')" tabindex="0" role="button" aria-expanded="true">
+          <span>Overview</span>
+          <svg class="nav-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="nav-group-body">
+          <a class="nav-item" id="nav-overview" onclick="navigateView('overview')" tabindex="0">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+            Dashboard
+          </a>
+        </div>
+      </div>
+
+      <!-- BUILD & CONFIGURE DOMAIN -->
+      <div class="nav-group" id="group-build">
+        <div class="nav-group-header" onclick="toggleNavGroup('group-build')" onkeydown="handleGroupKeydown(event, 'group-build')" tabindex="0" role="button" aria-expanded="true">
+          <span>Build & Configure</span>
+          <svg class="nav-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="nav-group-body">
+          <a class="nav-item" id="nav-custom-agents" onclick="navigateView('custom-agents')" tabindex="0">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            Custom Agents
+          </a>
+          <a class="nav-item" id="nav-agent-versions" onclick="navigateView('agent-versions')" tabindex="0">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+            Agent Versions
+          </a>
+          <a class="nav-item" id="nav-scenarios" onclick="navigateView('scenarios')" tabindex="0">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+            Scenarios Catalog
+          </a>
+          <a class="nav-item" id="nav-scenario-builder" onclick="navigateView('scenario-builder')" tabindex="0">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Scenario Builder
+          </a>
+        </div>
+      </div>
+
+      <!-- EVALUATE DOMAIN -->
+      <div class="nav-group" id="group-evaluate">
+        <div class="nav-group-header" onclick="toggleNavGroup('group-evaluate')" onkeydown="handleGroupKeydown(event, 'group-evaluate')" tabindex="0" role="button" aria-expanded="true">
+          <span>Evaluate</span>
+          <svg class="nav-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="nav-group-body">
+          <a class="nav-item active" id="nav-test-studio" onclick="navigateView('test-studio')" tabindex="0">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+            Test Studio
+          </a>
+          <a class="nav-item" id="nav-regression-testing" onclick="navigateView('regression-testing')" tabindex="0">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>
+            Regression Testing
+          </a>
+        </div>
+      </div>
+
+      <!-- ANALYZE DOMAIN -->
+      <div class="nav-group" id="group-analyze">
+        <div class="nav-group-header" onclick="toggleNavGroup('group-analyze')" onkeydown="handleGroupKeydown(event, 'group-analyze')" tabindex="0" role="button" aria-expanded="true">
+          <span>Analyze</span>
+          <svg class="nav-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="nav-group-body">
+          <a class="nav-item" id="nav-run-history" onclick="navigateView('run-history')" tabindex="0">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Run History
+          </a>
+          <a class="nav-item" id="nav-comparisons" onclick="navigateView('comparisons')" tabindex="0">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+            Comparisons
+          </a>
+          <a class="nav-item" id="nav-failure-analysis" onclick="navigateView('failure-analysis')" tabindex="0">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+            Failure Analysis
+          </a>
+          <a class="nav-item" id="nav-trace-explorer" onclick="navigateView('trace-explorer')" tabindex="0">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 3v18h18"/><path d="M7 16l4-8 4 6 5-10"/></svg>
+            Trace Explorer
+          </a>
+        </div>
+      </div>
+
+      <!-- ADVANCED DOMAIN -->
+      <div class="nav-group" id="group-advanced">
+        <div class="nav-group-header" onclick="toggleNavGroup('group-advanced')" onkeydown="handleGroupKeydown(event, 'group-advanced')" tabindex="0" role="button" aria-expanded="true">
+          <span>Advanced</span>
+          <svg class="nav-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="nav-group-body">
+          <a class="nav-item" id="nav-fault-lab" onclick="navigateView('fault-lab')" tabindex="0">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Chaos Fault Lab
+          </a>
+          <a class="nav-item" id="nav-quality-gates" onclick="navigateView('quality-gates')" tabindex="0">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+            Quality Gates
+          </a>
+          <a class="nav-item" id="nav-workflows" onclick="navigateView('workflows')" tabindex="0">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="6" cy="6" r="3"/><circle cx="18" cy="18" r="3"/><path d="M6 9v12"/><path d="M18 9a9 9 0 0 0-9 9"/></svg>
+            Multi-Agent Workflows
+          </a>
+          <a class="nav-item" id="nav-cluster-nodes" onclick="navigateView('cluster-nodes')" tabindex="0">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="2" y="2" width="20" height="8" rx="2" ry="2"/><rect x="2" y="14" width="20" height="8" rx="2" ry="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg>
+            Distributed Workers
+          </a>
+        </div>
+      </div>
+
+      <!-- SYSTEM DOMAIN -->
+      <div class="nav-group" id="group-system">
+        <div class="nav-group-header" onclick="toggleNavGroup('group-system')" onkeydown="handleGroupKeydown(event, 'group-system')" tabindex="0" role="button" aria-expanded="true">
+          <span>System</span>
+          <svg class="nav-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></svg>
+        </div>
+        <div class="nav-group-body">
+          <a class="nav-item" id="nav-settings" onclick="navigateView('settings')" tabindex="0">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Settings & Safety
+          </a>
+        </div>
+      </div>
     </nav>
 
     <div class="sidebar-footer">
@@ -1113,92 +1496,108 @@
       <!-- ====================================================
            VIEW 1: OVERVIEW
       ==================================================== -->
+            <!-- ====================================================
+           VIEW 1: SYSTEM OVERVIEW (Phase C Modernized)
+      ==================================================== -->
       <div class="view-panel" id="view-overview">
+        <!-- Compact Header with Direct Actions -->
         <div class="top-header">
           <div class="title-area">
             <h1>System Overview</h1>
-            <p>Real-time reliability metrics, provider distribution, and test execution health</p>
+            <p>Monitor agent evaluations, reliability, and execution health.</p>
           </div>
-          <div class="header-right">
-            <button class="btn-secondary" onclick="loadOverviewMetrics()">
+          <div class="header-right" style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <button class="btn-secondary" onclick="loadOverviewMetrics()" title="Fetch fresh metrics from database">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
               Refresh Data
+            </button>
+            <button class="btn-secondary" onclick="navigateView('custom-agents')">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+              Register Agent
+            </button>
+            <button class="btn-primary btn-run" onclick="navigateView('test-studio')" style="height: 36px;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              + New Evaluation
             </button>
           </div>
         </div>
 
-        <!-- Onboarding & Quick Start Paths -->
-        <div class="card" style="margin-bottom: 20px; padding: 20px; background: linear-gradient(135deg, rgba(79, 70, 229, 0.04) 0%, rgba(59, 130, 246, 0.04) 100%); border: 1px solid rgba(99, 102, 241, 0.25);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+        <!-- Reopen Quick Start Trigger (when dismissed) -->
+        <div id="ovQuickStartReopenBar" style="display: none; justify-content: flex-end; margin-bottom: 4px;">
+          <button class="btn-secondary" onclick="reopenQuickStart()" style="font-size: 11px; padding: 2px 8px; height: 22px; color: var(--text-muted);">
+            Show Getting Started ▾
+          </button>
+        </div>
+
+        <!-- Dismissible Getting Started Guide -->
+        <div id="ovQuickStartCard" class="card" style="margin-bottom: 16px; padding: 14px 18px; border-left: 4px solid var(--primary); background: #FFFFFF;">
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 10px;">
             <div>
-              <h3 style="font-size: 16px; font-weight: 700; color: var(--text-main); margin: 0 0 4px 0;">🚀 Get Started with EvalNexus</h3>
-              <p style="font-size: 13px; color: var(--text-muted); margin: 0;">Choose your path: explore with simulated mock agents or benchmark your own AI agent over HTTP.</p>
-            </div>
-            <span class="badge-pill indigo">V3 Production Ready</span>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
-            <!-- Path A -->
-            <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--radius-sm); padding: 18px; display: flex; flex-direction: column; justify-content: space-between;">
-              <div>
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                  <span style="font-size: 20px;">🧪</span>
-                  <strong style="font-size: 14px; color: var(--text-main);">Option 1: Try Demo Evaluation</strong>
-                </div>
-                <p style="font-size: 12.5px; color: var(--text-muted); line-height: 1.5; margin: 0 0 14px 0;">
-                  Explore EvalNexus using built-in simulated agents and 35+ benchmark scenarios. Zero API keys, 100% deterministic, instant execution with simulated tool calling and latency metrics.
-                </p>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 16px;">🚀</span>
+                <strong style="font-size: 13.5px; color: var(--text-main);">Quick Start Workflows</strong>
+                <span class="badge-pill indigo" style="font-size: 10.5px;">Guided Setup</span>
               </div>
-              <button class="btn-run" onclick="launchDemoMode()" style="width: 100%; justify-content: center; height: 36px;">
-                Launch Demo Studio →
+              <p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0 0;">
+                Choose your evaluation track: run deterministic benchmarks or connect your own agent via HTTP.
+              </p>
+            </div>
+            <button class="btn-secondary" onclick="dismissQuickStart()" style="padding: 2px 8px; font-size: 11px; height: 24px; border: none; color: var(--text-muted);" title="Dismiss Quick Start banner">
+              Dismiss ✕
+            </button>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px;">
+            <div style="border: 1px solid var(--card-border); border-radius: var(--radius-sm); padding: 12px 14px; background: #F8FAFC; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
+              <div>
+                <div style="font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 2px;">Track 1: Deterministic Demo Benchmark</div>
+                <div style="font-size: 11.5px; color: var(--text-muted);">Explore with 35+ simulated test scenarios ($0.00 cost).</div>
+              </div>
+              <button class="btn-primary" onclick="launchDemoMode()" style="font-size: 12px; padding: 5px 12px; height: 30px; white-space: nowrap;">
+                Try Demo →
               </button>
             </div>
-            <!-- Path B -->
-            <div style="background: white; border: 1px solid var(--card-border); border-radius: var(--radius-sm); padding: 18px; display: flex; flex-direction: column; justify-content: space-between;">
+            <div style="border: 1px solid var(--card-border); border-radius: var(--radius-sm); padding: 12px 14px; background: #F8FAFC; display: flex; justify-content: space-between; align-items: center; gap: 12px;">
               <div>
-                <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
-                  <span style="font-size: 20px;">⚡</span>
-                  <strong style="font-size: 14px; color: var(--text-main);">Option 2: Evaluate My Own AI Agent</strong>
-                </div>
-                <p style="font-size: 12.5px; color: var(--text-muted); line-height: 1.5; margin: 0 0 14px 0;">
-                  Benchmark your own AI agent over HTTP. Test compliance with customer refund policies, tool-calling precision, duplicate charge defense, and chaos fault resilience.
-                </p>
+                <div style="font-size: 13px; font-weight: 600; color: var(--text-main); margin-bottom: 2px;">Track 2: Evaluate My Own Agent</div>
+                <div style="font-size: 11.5px; color: var(--text-muted);">Register external HTTP agent with token authentication.</div>
               </div>
-              <button class="btn-secondary" onclick="launchCustomAgentMode()" style="width: 100%; justify-content: center; height: 36px; background: var(--primary); color: white; border: none; font-weight: 600;">
-                Connect & Test My Agent →
+              <button class="btn-secondary" onclick="launchCustomAgentMode()" style="font-size: 12px; padding: 5px 12px; height: 30px; white-space: nowrap; border-color: #CBD5E1;">
+                Connect Agent →
               </button>
             </div>
           </div>
         </div>
 
+        <!-- Real Database-Backed KPI Row -->
         <div class="metrics-grid">
           <div class="metric-card">
             <div class="metric-icon-box blue">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
             </div>
             <div class="metric-info">
-              <span class="metric-label">Total Test Runs</span>
+              <span class="metric-label">Total Evaluation Runs</span>
               <span class="metric-value" id="ovTotalRuns">-</span>
-              <span class="metric-subtext" id="ovRunSplit">Mock vs Real</span>
+              <span class="metric-subtext" id="ovRunSplit">Loading runs...</span>
             </div>
           </div>
 
           <div class="metric-card">
             <div class="metric-icon-box green">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
             </div>
             <div class="metric-info">
               <span class="metric-label">Behavioral Pass Rate</span>
               <span class="metric-value" id="ovBehavioralRate">-%</span>
-              <span class="metric-subtext">Excludes setup errors</span>
+              <span class="metric-subtext" id="ovCheckStats">Evaluating assertions...</span>
             </div>
           </div>
 
           <div class="metric-card">
             <div class="metric-icon-box purple">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
             </div>
             <div class="metric-info">
-              <span class="metric-label">Completion Rate</span>
+              <span class="metric-label">Execution Status Rate</span>
               <span class="metric-value" id="ovCompletionRate">-%</span>
               <span class="metric-subtext" id="ovCompletedRuns">Completed clean</span>
             </div>
@@ -1206,39 +1605,107 @@
 
           <div class="metric-card">
             <div class="metric-icon-box amber">
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/></svg>
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
             </div>
             <div class="metric-info">
-              <span class="metric-label">Scenarios Executed</span>
+              <span class="metric-label">Scenarios Evaluated</span>
               <span class="metric-value" id="ovScenarioCount">-</span>
               <span class="metric-subtext" id="ovScenarioSplit">Passed / Failed</span>
             </div>
           </div>
         </div>
 
-        <!-- Recent Runs Table -->
-        <div class="card" style="padding: 0; overflow: hidden;">
-          <div class="panel-header">
-            <h3>Recent Executions (Database Log)</h3>
-            <button class="btn-secondary" onclick="navigateView('run-history')">View Full History →</button>
+        <!-- Main Content: Recent Runs Table (70%) + Failure Summary (30%) -->
+        <div style="display: grid; grid-template-columns: minmax(0, 2.2fr) minmax(0, 1fr); gap: 16px; align-items: start;">
+          <!-- Recent Runs Table Card -->
+          <div class="card" style="padding: 0; overflow: hidden;">
+            <div class="panel-header">
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <h3>Recent Evaluations (Database Log)</h3>
+                <span style="font-size: 11px; color: var(--text-muted); font-weight: 500;">(Last 10 Runs)</span>
+              </div>
+              <button class="btn-secondary" onclick="navigateView('run-history')">View Full History →</button>
+            </div>
+            <div style="overflow-x: auto;">
+              <table class="data-table" id="ovRecentTable">
+                <thead>
+                  <tr>
+                    <th>Run ID</th>
+                    <th>Agent</th>
+                    <th>Engine</th>
+                    <th>Execution</th>
+                    <th>Evaluation</th>
+                    <th>Score</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                  </tr>
+                </thead>
+                <tbody id="ovRecentTbody">
+                  <tr><td colspan="8" class="empty-state">Loading runs from database...</td></tr>
+                </tbody>
+              </table>
+            </div>
           </div>
-          <table class="data-table" id="ovRecentTable">
-            <thead>
-              <tr>
-                <th>Run ID</th>
-                <th>Agent Version</th>
-                <th>Engine Mode</th>
-                <th>Model</th>
-                <th>Status</th>
-                <th>Pass Rate</th>
-                <th>Date</th>
-                <th>Action</th>
-              </tr>
-            </thead>
-            <tbody id="ovRecentTbody">
-              <tr><td colspan="8" class="empty-state">Loading runs from database...</td></tr>
-            </tbody>
-          </table>
+
+          <!-- Evaluation Health & Failure Summary Card -->
+          <div class="card" style="padding: 16px; display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--card-border); padding-bottom: 10px;">
+              <div style="font-size: 13.5px; font-weight: 600; color: var(--text-main);">Evaluation Health</div>
+              <button class="btn-secondary" onclick="navigateView('failure-analysis')" style="font-size: 11px; padding: 2px 8px; height: 24px;">
+                Triage Failures →
+              </button>
+            </div>
+
+            <!-- Health Summary Metric Blocks -->
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: #F8FAFC; border-radius: var(--radius-sm); border: 1px solid var(--card-border);">
+                <div style="font-size: 12px; color: var(--text-muted);">Failed Scenarios:</div>
+                <div style="font-size: 13.5px; font-weight: 700; color: var(--danger-text);" id="ovSideFailedCount">0</div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: #F8FAFC; border-radius: var(--radius-sm); border: 1px solid var(--card-border);">
+                <div style="font-size: 12px; color: var(--text-muted);">Failed Assertions:</div>
+                <div style="font-size: 13.5px; font-weight: 700; color: var(--danger-text);" id="ovSideFailedChecks">0</div>
+              </div>
+              <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 10px; background: #F8FAFC; border-radius: var(--radius-sm); border: 1px solid var(--card-border);">
+                <div style="font-size: 12px; color: var(--text-muted);">Total Invariants Verified:</div>
+                <div style="font-size: 13.5px; font-weight: 700; color: var(--success-text);" id="ovSideTotalChecks">0</div>
+              </div>
+            </div>
+
+            <div style="border-top: 1px solid var(--card-border); padding-top: 10px;">
+              <div style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 6px;">Evaluation Semantics</div>
+              <div style="font-size: 12px; color: var(--text-muted); line-height: 1.5;">
+                <strong style="color: var(--primary);">COMPLETED</strong> means the harness execution finished.<br>
+                <strong style="color: var(--danger-text);">FAILED</strong> indicates safety or schema invariant violations detected by deterministic evaluators.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Infrastructure & Provider Health Footer -->
+        <div class="card" style="padding: 14px 18px; background: #FFFFFF;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; border-bottom: 1px solid var(--card-border); padding-bottom: 8px;">
+            <div style="font-size: 12.5px; font-weight: 600; color: var(--text-main); text-transform: uppercase; letter-spacing: 0.4px;">System Health & Engine Capabilities</div>
+            <button class="btn-secondary" onclick="navigateView('settings')" style="font-size: 11px; padding: 2px 8px; height: 22px;">View Settings & Safety →</button>
+          </div>
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; font-size: 12px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <div class="pulse-dot"></div>
+              <div>SQLite WAL: <strong style="color: var(--success-text);">Connected</strong> (PRAGMA: ok)</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="badge-pill mock" style="padding: 1px 6px;">Engine</span>
+              <div>Deterministic Harness: <strong>Active</strong> ($0.00 cost)</div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="badge-pill indigo" style="padding: 1px 6px;">GPU</span>
+              <div>Colab Qwen: <strong>Offline Bundle Import</strong></div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px;">
+              <span class="badge-pill real" style="padding: 1px 6px;">Network</span>
+              <div>Custom Agents: <strong>SSRF Guardrails Active</strong></div>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -1247,63 +1714,93 @@
            VIEW 2: TEST STUDIO (Main Interactive Flow)
       ==================================================== -->
       <div class="view-panel active" id="view-test-studio">
+        <!-- Top Title Bar -->
         <div class="top-header">
           <div class="title-area">
             <h1>Test Studio</h1>
-            <p>Execute and inspect agent behavior under simulated real-world conditions and fault injection</p>
+            <p>Execute and inspect agent behavior under simulated real-world conditions, fault injections, and policy assertions</p>
           </div>
-          <div class="header-right">
+          <div class="header-right" style="display: flex; align-items: center; gap: 10px;">
             <span class="badge-pill indigo" id="activeEngineBadge">MOCK SIMULATOR</span>
+            <span style="font-size: 11px; color: var(--text-muted); background: #F1F5F9; padding: 4px 8px; border-radius: var(--radius-full); border: 1px solid var(--card-border);">5-Step Workflow</span>
           </div>
         </div>
 
-        <!-- Mode Switcher -->
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; background: white; padding: 8px 12px; border-radius: var(--radius-sm); border: 1px solid var(--card-border);">
-          <div style="display: flex; gap: 8px;">
-            <button id="btnModeDemo" class="btn-secondary" style="font-size: 12.5px; padding: 7px 16px; font-weight: 600; background: var(--primary); color: white; border: none; border-radius: var(--radius-sm);" onclick="switchStudioMode('demo')">
-              🧪 Mode A: Try Demo Evaluation
+        <!-- Visual Stepper Progress Bar -->
+        <div class="stepper-header-bar" style="margin-bottom: 14px;">
+          <div class="stepper-pill active">
+            <span class="step-num">1</span>
+            <span>Agent Selection</span>
+          </div>
+          <span class="stepper-arrow-sep">→</span>
+          <div class="stepper-pill active">
+            <span class="step-num">2</span>
+            <span>Scenario Suite</span>
+          </div>
+          <span class="stepper-arrow-sep">→</span>
+          <div class="stepper-pill active">
+            <span class="step-num">3</span>
+            <span>Execution Limits</span>
+          </div>
+          <span class="stepper-arrow-sep">→</span>
+          <div class="stepper-pill active">
+            <span class="step-num">4</span>
+            <span>Dispatch Evaluation</span>
+          </div>
+          <span class="stepper-arrow-sep">→</span>
+          <div class="stepper-pill active">
+            <span class="step-num">5</span>
+            <span>Review Results & Traces</span>
+          </div>
+        </div>
+
+        <!-- Mode Switcher & Quick Navigation Bar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; background: white; padding: 8px 14px; border-radius: var(--radius-sm); border: 1px solid var(--card-border);">
+          <div style="display: flex; gap: 8px; align-items: center;">
+            <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-right: 4px;">Target Mode:</span>
+            <button id="btnModeDemo" class="btn-secondary" style="font-size: 12px; padding: 6px 14px; font-weight: 600; background: var(--primary); color: white; border: none; border-radius: var(--radius-sm);" onclick="switchStudioMode('demo')">
+              🧪 Mode A: Mock Simulator
             </button>
-            <button id="btnModeCustom" class="btn-secondary" style="font-size: 12.5px; padding: 7px 16px; font-weight: 600; background: transparent; color: var(--text-muted); border-radius: var(--radius-sm);" onclick="switchStudioMode('custom')">
-              🚀 Mode B: Evaluate My Own AI Agent
+            <button id="btnModeCustom" class="btn-secondary" style="font-size: 12px; padding: 6px 14px; font-weight: 600; background: transparent; color: var(--text-muted); border-radius: var(--radius-sm);" onclick="switchStudioMode('custom')">
+              🚀 Mode B: Custom External Agent
             </button>
           </div>
           <div style="display: flex; gap: 8px; align-items: center;">
-            <button id="btnHttpSpec" class="btn-secondary" style="font-size: 11.5px; padding: 5px 10px; display: none;" onclick="toggleHttpContractCard()">
+            <button id="btnHttpSpec" class="btn-secondary" style="font-size: 11px; padding: 5px 10px; display: none;" onclick="toggleHttpContractCard()">
               📖 HTTP Contract Specs
             </button>
-            <button id="btnRegisterAgentQuick" class="btn-secondary" style="font-size: 11.5px; padding: 5px 10px; display: none; background: #EEF2FF; color: var(--primary); border-color: #C7D2FE;" onclick="navigateView('custom-agents')">
+            <button id="btnRegisterAgentQuick" class="btn-secondary" style="font-size: 11px; padding: 5px 10px; display: none; background: #EEF2FF; color: var(--primary); border-color: #C7D2FE;" onclick="navigateView('custom-agents')">
               + Register New Agent
             </button>
           </div>
         </div>
 
-        <!-- Demo Mode Guidance Banner -->
-        <div id="demoModeBanner" style="padding: 12px 18px; margin-bottom: 14px; background: #EEF2FF; border: 1px solid #C7D2FE; border-radius: var(--radius-sm); font-size: 13px; color: #3730A3; display: flex; align-items: center; gap: 12px;">
-          <span style="font-size: 18px;">ℹ️</span>
+        <!-- Guidance Banners -->
+        <div id="demoModeBanner" style="padding: 10px 16px; margin-bottom: 14px; background: #EEF2FF; border: 1px solid #C7D2FE; border-radius: var(--radius-sm); font-size: 12.5px; color: #3730A3; display: flex; align-items: center; gap: 10px;">
+          <span style="font-size: 16px;">ℹ️</span>
           <div style="flex: 1;">
-            <strong>Demo Evaluation Active:</strong> Evaluating built-in mock agents (Version A / Version B / Scripted) with simulated tool calls. No live LLM keys or external network dependencies required.
+            <strong>Mock Simulator Active:</strong> Evaluating built-in baseline or fault-tolerant mock agents with deterministic synthetic tools. Zero external LLM cost or API key required.
           </div>
-          <button class="btn-secondary" style="font-size: 11px; padding: 4px 10px; background: white; color: var(--primary);" onclick="switchStudioMode('custom')">
-            Switch to My Own Agent →
+          <button class="btn-secondary" style="font-size: 11px; padding: 3px 8px; background: white; color: var(--primary);" onclick="switchStudioMode('custom')">
+            Switch to Custom Agent →
           </button>
         </div>
 
-        <!-- Custom Mode Guidance Banner -->
-        <div id="customModeBanner" style="padding: 14px 18px; margin-bottom: 14px; background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: var(--radius-sm); font-size: 13px; color: #065F46; display: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
+        <div id="customModeBanner" style="padding: 12px 16px; margin-bottom: 14px; background: #ECFDF5; border: 1px solid #A7F3D0; border-radius: var(--radius-sm); font-size: 12.5px; color: #065F46; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
             <div>
-              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
-                <span style="font-size: 18px;">⚡</span>
-                <strong style="font-size: 14px;">Custom AI Agent Evaluation Active:</strong>
+              <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 2px;">
+                <span style="font-size: 16px;">⚡</span>
+                <strong style="font-size: 13.5px;">Custom AI Agent Evaluation Active:</strong>
                 <span id="customAgentStatusIndicator" class="badge-pill real" style="font-size: 10.5px;">Custom HTTP Endpoint</span>
               </div>
-              <div style="color: #047857; font-size: 12.5px;">
-                Select your registered external agent below. EvalNexus will dispatch scenario turns to your endpoint via HTTP POST and evaluate tool-calling precision, policy compliance, and idempotency.
+              <div style="color: #047857; font-size: 12px;">
+                EvalNexus dispatches scenario turns to your endpoint via HTTP POST. Inspect real-time tool calling, policy adherence, and idempotency.
               </div>
             </div>
             <div style="display: flex; gap: 8px; align-items: center;">
-              <button class="btn-secondary" style="font-size: 11.5px; padding: 5px 10px; background: white; color: #047857; border-color: #6EE7B7;" onclick="pingSelectedCustomAgent()">
-                Probing Endpoint
+              <button class="btn-secondary" style="font-size: 11px; padding: 4px 10px; background: white; color: #047857; border-color: #6EE7B7;" onclick="pingSelectedCustomAgent()">
+                Probe Selected Endpoint
               </button>
             </div>
           </div>
@@ -1311,21 +1808,21 @@
         </div>
 
         <!-- Collapsible HTTP Integration Contract Card -->
-        <div id="httpContractCard" class="card" style="margin-bottom: 14px; padding: 18px; display: none; background: #FAFAFA; border: 1px dashed var(--primary);">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+        <div id="httpContractCard" class="card" style="margin-bottom: 14px; padding: 16px; display: none; background: #FAFAFA; border: 1px dashed var(--primary);">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
             <div style="display: flex; align-items: center; gap: 8px;">
-              <span style="font-size: 18px;">🔌</span>
-              <strong style="font-size: 14px;">Custom Agent HTTP Protocol & Contract Specification</strong>
+              <span style="font-size: 16px;">🔌</span>
+              <strong style="font-size: 13.5px;">Custom Agent HTTP Protocol & Contract Specification</strong>
             </div>
             <button class="btn-secondary" style="font-size: 11px; padding: 3px 8px;" onclick="toggleHttpContractCard()">Hide Specs ✕</button>
           </div>
-          <p style="font-size: 12.5px; color: var(--text-muted); margin: 0 0 12px 0;">
+          <p style="font-size: 12px; color: var(--text-muted); margin: 0 0 10px 0;">
             Any AI agent implemented in FastAPI, Flask, Express, LangChain, or custom code can be evaluated if it supports this simple JSON request and response contract:
           </p>
-          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
             <div>
-              <span style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">1. Request sent to your agent (POST)</span>
-              <div class="json-code-box" style="margin-top: 6px; font-size: 11.5px; max-height: 220px;">{
+              <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">1. Request sent to your agent (POST)</span>
+              <div class="json-code-box" style="margin-top: 6px; font-size: 11.5px; max-height: 200px;">{
   "messages": [
     {"role": "system", "content": "You are a customer refund support agent..."},
     {"role": "user", "content": "I want a refund for order ord_123"}
@@ -1361,8 +1858,8 @@
 }</div>
             </div>
             <div>
-              <span style="font-size: 11.5px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">2. Response expected from your agent</span>
-              <div class="json-code-box" style="margin-top: 6px; font-size: 11.5px; max-height: 220px;">// Multi-turn tool invocation:
+              <span style="font-size: 11px; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">2. Response expected from your agent</span>
+              <div class="json-code-box" style="margin-top: 6px; font-size: 11.5px; max-height: 200px;">// Multi-turn tool invocation:
 {
   "content": null,
   "tool_calls": [
@@ -1370,7 +1867,7 @@
       "type": "function",
       "function": {
         "name": "check_refund_eligibility",
-        "arguments": "{\"order_id\": \"ord_123\"}"
+        "arguments": "{"order_id": "ord_123"}"
       }
     }
   ]
@@ -1383,108 +1880,199 @@
 }</div>
             </div>
           </div>
-          <div style="margin-top: 10px; font-size: 11.5px; color: var(--text-muted);">
+          <div style="margin-top: 8px; font-size: 11.5px; color: var(--text-muted);">
             🛡️ <strong>Safety Guarantees:</strong> EvalNexus enforces strict SSRF filtering (cloud metadata and link-local blocked). Secret tokens are masked with <code>***</code> and never exposed in browser logs.
           </div>
         </div>
 
-        <!-- Control Toolbar -->
-        <div class="control-card">
-          <!-- Agent -->
-          <div class="control-group">
-            <label class="control-label" id="agentSelectLabel">Agent Version</label>
-            <div class="control-select-wrap">
-              <select id="agentSelect">
-                <option value="agent_v2_improved">Version B (Robust Compliant)</option>
-                <option value="agent_v1_baseline">Version A (Baseline)</option>
-                <option value="scripted">Scripted Deterministic Runner</option>
-              </select>
-              <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></svg>
+        <!-- 5-STEP EVALUATION WORKFLOW CONFIGURATION GRID -->
+        <div class="studio-stepper-container">
+          <div class="studio-config-grid">
+
+            <!-- STEP 1: SELECT AGENT -->
+            <div class="step-card" id="studioStep1Card">
+              <div class="step-card-header">
+                <div class="step-badge-title">
+                  <span class="step-idx">STEP 1</span>
+                  <span>Agent & Provider</span>
+                </div>
+                <span style="font-size: 11px; color: var(--text-muted);">Target System</span>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <!-- Provider Select -->
+                <div class="control-group">
+                  <label class="control-label">Evaluation Engine / Provider</label>
+                  <div class="control-select-wrap">
+                    <select id="providerSelect" onchange="handleProviderChange()">
+                      <option value="mock">Mock Simulator (Deterministic, Local)</option>
+                      <option value="custom_http">Custom External Agent (HTTP)</option>
+                      <option value="gemini">Google Gemini (Live LLM)</option>
+                      <option value="openai">OpenAI (Live LLM)</option>
+                    </select>
+                    <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></svg>
+                  </div>
+                </div>
+
+                <!-- Agent Select -->
+                <div class="control-group">
+                  <label class="control-label" id="agentSelectLabel">Agent Version</label>
+                  <div class="control-select-wrap">
+                    <select id="agentSelect">
+                      <option value="agent_v2_improved">Version B (Robust Compliant)</option>
+                      <option value="agent_v1_baseline">Version A (Baseline)</option>
+                      <option value="scripted">Scripted Deterministic Runner</option>
+                    </select>
+                    <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></svg>
+                  </div>
+                </div>
+
+                <!-- Model Select -->
+                <div class="control-group" id="modelControlGroup">
+                  <label class="control-label" id="modelSelectLabel">Model / Target</label>
+                  <div class="control-select-wrap">
+                    <select id="modelSelect">
+                      <option value="mock-deterministic-v1">mock-deterministic-v1</option>
+                    </select>
+                    <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></svg>
+                  </div>
+                </div>
+
+                <!-- Offline Colab Info Callout -->
+                <div style="font-size: 11px; color: var(--text-muted); background: #F8FAFC; border: 1px solid #E2E8F0; padding: 6px 10px; border-radius: 4px; display: flex; align-items: center; justify-content: space-between;">
+                  <span>💡 <strong>Real Qwen2.5-1.5B (Colab):</strong> Evaluated offline via bundle import.</span>
+                  <a href="javascript:void(0)" onclick="navigateView('overview')" style="color: var(--primary); text-decoration: none; font-weight: 600;">View In Overview →</a>
+                </div>
+              </div>
             </div>
+
+            <!-- STEP 2: SELECT SCENARIOS -->
+            <div class="step-card" id="studioStep2Card">
+              <div class="step-card-header">
+                <div class="step-badge-title">
+                  <span class="step-idx">STEP 2</span>
+                  <span>Test Scenarios</span>
+                </div>
+                <span id="preflightScenCount" style="font-size: 11px; font-weight: 600; color: var(--primary);">20 Scenarios Selected</span>
+              </div>
+
+              <div style="display: flex; flex-direction: column; gap: 10px;">
+                <div class="control-group">
+                  <label class="control-label">Benchmark Suite / Scenario</label>
+                  <div class="control-select-wrap">
+                    <select id="suiteSelect" onchange="updatePreflightInfo()">
+                      <optgroup label="Standard Suites">
+                        <option value="dev_suite">Development Suite (20 Scenarios)</option>
+                        <option value="smoke_suite">Live Smoke Suite (3 Scenarios)</option>
+                      </optgroup>
+                      <optgroup label="Single Predefined Scenarios">
+                        <option value="eligible_refund_scenario.json">Single: Eligible Refund</option>
+                        <option value="ineligible_expired_scenario.json">Single: Ineligible Expired</option>
+                        <option value="fault_temporary_unavailable.json">Single: Fault Temporary Unavailable</option>
+                        <option value="fault_timeout_after_write.json">Single: Fault Timeout After Write</option>
+                      </optgroup>
+                      <optgroup id="suiteCustomOptgroup" label="Custom Scenarios (Scenario Builder)">
+                      </optgroup>
+                    </select>
+                    <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></svg>
+                  </div>
+                </div>
+
+                <div style="font-size: 11.5px; color: var(--text-muted); line-height: 1.4;">
+                  Includes policy compliance checks, multi-turn tool calling verification, idempotency validation, prompt injection protection, and synthetic fault injections.
+                </div>
+
+                <div style="display: flex; gap: 8px; margin-top: auto;">
+                  <button class="btn-secondary" style="font-size: 11px; padding: 4px 10px; flex: 1; justify-content: center;" onclick="navigateView('scenarios')">
+                    Browse Catalog →
+                  </button>
+                  <button class="btn-secondary" style="font-size: 11px; padding: 4px 10px; flex: 1; justify-content: center;" onclick="navigateView('builder')">
+                    Scenario Builder →
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- STEP 3: CONFIGURE LIMITS -->
+            <div class="step-card" id="studioStep3Card">
+              <div class="step-card-header">
+                <div class="step-badge-title">
+                  <span class="step-idx">STEP 3</span>
+                  <span>Execution Limits</span>
+                </div>
+                <span style="font-size: 11px; color: #059669; font-weight: 600;">Safety Guardrails Active</span>
+              </div>
+
+              <div class="limits-input-grid">
+                <div class="limit-field">
+                  <label for="limitTimeoutSec">Timeout (Sec)</label>
+                  <input type="number" id="limitTimeoutSec" min="1" max="120" step="1" value="30" oninput="updatePreflightInfo()">
+                </div>
+                <div class="limit-field">
+                  <label for="limitMaxTurns">Max Turns</label>
+                  <input type="number" id="limitMaxTurns" min="1" max="20" step="1" value="6" oninput="updatePreflightInfo()">
+                </div>
+                <div class="limit-field">
+                  <label for="limitMaxToolCalls">Max Tool Calls</label>
+                  <input type="number" id="limitMaxToolCalls" min="1" max="50" step="1" value="10" oninput="updatePreflightInfo()">
+                </div>
+                <div class="limit-field">
+                  <label for="limitMaxTokens">Token Budget</label>
+                  <input type="number" id="limitMaxTokens" min="1000" max="100000" step="1000" value="15000" oninput="updatePreflightInfo()">
+                </div>
+              </div>
+
+              <div class="preflight-limits-strip" style="margin-top: 4px; padding: 6px 10px; font-size: 11px; border-radius: 4px; background: #F8FAFC; border: 1px solid #E2E8F0;">
+                <div class="limit-tag-group" style="gap: 10px;">
+                  <span class="limit-tag">⚡ Tool Timeout: <strong>5.0s</strong></span>
+                  <span class="limit-tag">🛡️ SSRF Guard: <strong>Strict</strong></span>
+                </div>
+              </div>
+            </div>
+
           </div>
 
-          <!-- Provider -->
-          <div class="control-group">
-            <label class="control-label">Provider</label>
-            <div class="control-select-wrap">
-              <select id="providerSelect" onchange="handleProviderChange()">
-                <option value="mock">Mock Simulator (Deterministic, Local)</option>
-                <option value="custom_http">Custom External Agent (HTTP)</option>
-                <option value="gemini">Google Gemini (Live LLM)</option>
-                <option value="openai">OpenAI (Live LLM)</option>
-              </select>
-              <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></svg>
+          <!-- STEP 4: EXECUTION CONTROL & ACTIVE PROGRESS BAR -->
+          <div class="execution-action-card" id="studioStep4Card">
+            <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="step-idx" style="background: var(--primary); color: white; font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: var(--radius-full);">STEP 4</div>
+                <div>
+                  <h4 style="font-size: 14px; font-weight: 700; color: var(--text-main); margin: 0;">Evaluation Execution Engine</h4>
+                  <p style="font-size: 12px; color: var(--text-muted); margin: 2px 0 0 0;">Dispatch benchmark job to the asynchronous worker queue and stream execution traces</p>
+                </div>
+              </div>
+
+              <div style="display: flex; gap: 10px; align-items: center;">
+                <button class="btn-cancel" id="btnCancelRun" onclick="handleCancelRun()" style="display: none; height: 38px; padding: 0 16px;">
+                  Cancel Evaluation
+                </button>
+                <button class="btn-run" id="btnRunTests" onclick="handleStartRun()" style="height: 38px; padding: 0 22px; font-size: 13.5px;">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                  <span id="btnRunText">Run Tests</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Live Progress Box (Shown during active execution) -->
+            <div class="run-progress-box" id="runProgressBox" style="display: none; background: #FFFFFF; border: 1px solid #BFDBFE; border-radius: 6px; padding: 12px 16px; margin: 0;">
+              <div style="display: flex; justify-content: space-between; align-items: center; font-size: 12.5px; margin-bottom: 6px;">
+                <span id="progressRunLabel"><strong>Executing Run:</strong> <code id="activeRunIdCode" style="color: var(--primary); font-weight: 700;">-</code></span>
+                <span id="progressFraction" style="font-weight: 700; color: var(--primary);">0%</span>
+              </div>
+              <div class="progress-bar-bg" style="height: 8px; background: #E2E8F0; border-radius: 4px; overflow: hidden;">
+                <div class="progress-bar-fill" id="progressBarFill" style="height: 100%; width: 0%; background: var(--primary); transition: width 0.3s ease;"></div>
+              </div>
             </div>
           </div>
-
-          <!-- Model -->
-          <div class="control-group" id="modelControlGroup">
-            <label class="control-label" id="modelSelectLabel">Model / Target</label>
-            <div class="control-select-wrap">
-              <select id="modelSelect">
-                <option value="mock-deterministic-v1">mock-deterministic-v1</option>
-              </select>
-              <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></svg>
-            </div>
-          </div>
-
-          <!-- Suite / Scenario Selection -->
-          <div class="control-group">
-            <label class="control-label">Test Suite / Scenario</label>
-            <div class="control-select-wrap">
-              <select id="suiteSelect" onchange="updatePreflightInfo()">
-                <optgroup label="Standard Suites">
-                  <option value="dev_suite">Development Suite (20 Scenarios)</option>
-                  <option value="smoke_suite">Live Smoke Suite (3 Scenarios)</option>
-                </optgroup>
-                <optgroup label="Single Predefined Scenarios">
-                  <option value="eligible_refund_scenario.json">Single: Eligible Refund</option>
-                  <option value="ineligible_expired_scenario.json">Single: Ineligible Expired</option>
-                  <option value="fault_temporary_unavailable.json">Single: Fault Temporary Unavailable</option>
-                  <option value="fault_timeout_after_write.json">Single: Fault Timeout After Write</option>
-                </optgroup>
-                <optgroup id="suiteCustomOptgroup" label="Custom Scenarios (Scenario Builder)">
-                </optgroup>
-              </select>
-              <svg class="chevron-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></svg>
-            </div>
-          </div>
-
-          <!-- Run & Cancel Action Buttons -->
-          <button class="btn-run" id="btnRunTests" onclick="handleStartRun()">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            <span id="btnRunText">Run Tests</span>
-          </button>
-          <button class="btn-cancel" id="btnCancelRun" onclick="handleCancelRun()" style="display: none;">
-            Cancel
-          </button>
         </div>
 
-        <!-- Preflight Execution Limits Strip -->
-        <div class="preflight-limits-strip">
-          <div class="limit-tag-group">
-            <span class="limit-tag">⏱ Wall Clock Limit: <strong>30.0s / scen</strong></span>
-            <span class="limit-tag">⚡ Tool Timeout: <strong>5.0s</strong></span>
-            <span class="limit-tag">🔄 Max Turns: <strong>6</strong></span>
-            <span class="limit-tag">🪙 Token Budget: <strong>15,000</strong></span>
-          </div>
-          <div>
-            <span id="preflightScenCount" style="font-weight: 600; color: var(--primary);">20 Scenarios Selected</span>
-          </div>
+        <!-- STEP 5: REVIEW RESULTS & TRACE INSPECTION (Split View) -->
+        <div style="margin-bottom: 8px; display: flex; align-items: center; gap: 8px;">
+          <span class="step-idx" style="background: var(--primary); color: white; font-size: 11px; font-weight: 700; padding: 2px 8px; border-radius: var(--radius-full);">STEP 5</span>
+          <h3 style="font-size: 14px; font-weight: 700; color: var(--text-main); margin: 0;">Scenario Execution Matrix & Deep Trace Inspector</h3>
         </div>
 
-        <!-- Live Progress Box (Shown during active execution) -->
-        <div class="run-progress-box" id="runProgressBox" style="display: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center; font-size: 13px;">
-            <span id="progressRunLabel"><strong>Executing Run:</strong> <code id="activeRunIdCode">-</code></span>
-            <span id="progressFraction" style="font-weight: 600; color: var(--primary);">0%</span>
-          </div>
-          <div class="progress-bar-bg">
-            <div class="progress-bar-fill" id="progressBarFill"></div>
-          </div>
-        </div>
-
-        <!-- Split View: Scenario List (Left) vs Trace / Evidence (Right) -->
         <div class="studio-split-view">
           <!-- Left Panel: Scenarios in this run -->
           <div class="studio-panel">
@@ -1524,17 +2112,17 @@
 
           <!-- Right Panel: Trace Events, Evaluator Checks, Database Audit -->
           <div class="studio-panel" id="studioDetailPanel">
-            <div class="trace-detail-header">
+            <div class="trace-detail-header" style="padding: 12px 18px; border-bottom: 1px solid var(--card-border); display: flex; justify-content: space-between; align-items: center; background: #FAFAFA; flex-wrap: wrap; gap: 10px;">
               <div class="trace-title-group">
-                <h4 id="detailScenarioTitle">No Scenario Selected</h4>
-                <span id="detailScenarioSub">-</span>
+                <h4 id="detailScenarioTitle" style="font-size: 14px; font-weight: 600; color: var(--text-main); margin: 0 0 2px 0;">No Scenario Selected</h4>
+                <span id="detailScenarioSub" style="font-size: 12px; color: var(--text-muted);">-</span>
               </div>
-              <div class="trace-actions">
+              <div class="trace-actions" style="display: flex; gap: 8px; align-items: center;">
                 <span class="status-pill queued" id="detailStatusBadge">Pending</span>
-                <button class="btn-secondary" onclick="exportActiveRun('json')" title="Download raw run data">
+                <button class="btn-secondary" onclick="exportActiveRun('json')" title="Download raw run data" style="font-size: 11.5px; padding: 4px 8px;">
                   JSON
                 </button>
-                <button class="btn-secondary" onclick="exportActiveRun('markdown')" title="Download readable markdown report">
+                <button class="btn-secondary" onclick="exportActiveRun('markdown')" title="Download readable markdown report" style="font-size: 11.5px; padding: 4px 8px;">
                   Report
                 </button>
               </div>
@@ -2730,6 +3318,32 @@
       }
     }
 
+
+    function toggleNavGroup(groupId) {
+      const group = document.getElementById(groupId);
+      if (!group) return;
+      const isCollapsed = group.classList.toggle('collapsed');
+      const groupBody = group.querySelector('.nav-group-body');
+      const chevron = group.querySelector('.nav-group-chevron');
+      const header = group.querySelector('.nav-group-header');
+      if (groupBody) {
+        groupBody.style.display = isCollapsed ? 'none' : 'flex';
+      }
+      if (chevron) {
+        chevron.style.transform = isCollapsed ? 'rotate(-90deg)' : 'rotate(0deg)';
+      }
+      if (header) {
+        header.setAttribute('aria-expanded', isCollapsed ? 'false' : 'true');
+      }
+    }
+
+    function handleGroupKeydown(event, groupId) {
+      if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        toggleNavGroup(groupId);
+      }
+    }
+
     function navigateView(viewId, updateHash = true) {
       document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
       document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -2738,7 +3352,19 @@
       const targetNav = document.getElementById(`nav-${viewId}`);
 
       if (targetPanel) targetPanel.classList.add('active');
-      if (targetNav) targetNav.classList.add('active');
+      if (targetNav) {
+        targetNav.classList.add('active');
+        const parentGroup = targetNav.closest('.nav-group');
+        if (parentGroup) {
+          parentGroup.classList.remove('collapsed');
+          const groupBody = parentGroup.querySelector('.nav-group-body');
+          if (groupBody) groupBody.style.display = 'flex';
+          const chevron = parentGroup.querySelector('.nav-group-chevron');
+          if (chevron) chevron.style.transform = 'rotate(0deg)';
+          const header = parentGroup.querySelector('.nav-group-header');
+          if (header) header.setAttribute('aria-expanded', 'true');
+        }
+      }
 
       if (updateHash) {
         window.location.hash = viewId;
@@ -2767,56 +3393,118 @@
     // -------------------------------------------------------------
     // View 1: Overview
     // -------------------------------------------------------------
-    async function loadOverviewMetrics() {
+    async function dismissQuickStart() {
+      const card = document.getElementById('ovQuickStartCard');
+      const bar = document.getElementById('ovQuickStartReopenBar');
+      if (card) card.style.display = 'none';
+      if (bar) bar.style.display = 'flex';
+      try { localStorage.setItem('evalnexus_quickstart_dismissed', '1'); } catch (e) {}
+    }
+
+    function reopenQuickStart() {
+      const card = document.getElementById('ovQuickStartCard');
+      const bar = document.getElementById('ovQuickStartReopenBar');
+      if (card) card.style.display = 'block';
+      if (bar) bar.style.display = 'none';
+      try { localStorage.removeItem('evalnexus_quickstart_dismissed'); } catch (e) {}
+    }
+
+    function initQuickStartState() {
       try {
-        const res = await fetch('/api/overview/metrics');
-        if (!res.ok) return;
-        const data = await res.json();
-
-        document.getElementById('ovTotalRuns').textContent = data.total_runs;
-        document.getElementById('ovRunSplit').textContent = `${data.mock_runs} Mock · ${data.real_runs} Live Real`;
-        document.getElementById('ovBehavioralRate').textContent = `${data.behavioral_pass_rate}%`;
-        document.getElementById('ovCompletionRate').textContent = `${data.completion_rate}%`;
-        document.getElementById('ovCompletedRuns').textContent = `${data.completed_runs} of ${data.total_runs} clean`;
-        document.getElementById('ovScenarioCount').textContent = data.total_scenario_runs;
-        document.getElementById('ovScenarioSplit').textContent = `${data.passed_scenarios} Pass · ${data.failed_scenarios} Fail`;
-
-        // Render recent runs table
-        const tbody = document.getElementById('ovRecentTbody');
-        if (!data.recent_runs || data.recent_runs.length === 0) {
-          tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No benchmark runs recorded in database yet.</td></tr>';
-          return;
+        if (localStorage.getItem('evalnexus_quickstart_dismissed') === '1') {
+          dismissQuickStart();
         }
+      } catch (e) {}
+    }
 
-        tbody.innerHTML = data.recent_runs.map(r => {
-          const modePill = r.is_mock
-            ? '<span class="badge-pill mock">Mock Simulator</span>'
-            : '<span class="badge-pill real">Live Provider</span>';
-          const statusClass = (r.status || 'queued').toLowerCase();
-          const passPercent = r.total_scenarios ? Math.round((r.passed_scenarios / r.total_scenarios) * 100) : 0;
-          const dateStr = r.created_at ? new Date(r.created_at).toLocaleString() : '-';
+    function loadOverviewMetrics() {
+      try {
+        fetch('/api/overview/metrics')
+          .then(res => res.ok ? res.json() : null)
+          .then(data => {
+            if (!data) return;
 
-          return `
-            <tr>
-              <td><code>${r.id}</code></td>
-              <td>${r.agent_version_id}</td>
-              <td>${modePill}</td>
-              <td><code>${r.model_name}</code></td>
-              <td><span class="status-pill ${statusClass}">${r.status}</span></td>
-              <td><strong>${passPercent}%</strong> (${r.passed_scenarios}/${r.total_scenarios})</td>
-              <td style="font-size: 11.5px; color: var(--text-muted);">${dateStr}</td>
-              <td>
-                <button class="btn-secondary" onclick="openRunInStudio('${r.id}')">Inspect</button>
-              </td>
-            </tr>
-          `;
-        }).join('');
+            document.getElementById('ovTotalRuns').textContent = data.total_runs;
+            document.getElementById('ovRunSplit').textContent = `${data.mock_runs} Mock · ${data.real_runs} Live Real`;
+            document.getElementById('ovBehavioralRate').textContent = `${data.behavioral_pass_rate}%`;
+
+            const checkStatsEl = document.getElementById('ovCheckStats');
+            if (checkStatsEl) {
+              checkStatsEl.textContent = `${data.checks_passed} of ${data.total_checks} assertions passed`;
+            }
+
+            document.getElementById('ovCompletionRate').textContent = `${data.completion_rate}%`;
+            document.getElementById('ovCompletedRuns').textContent = `${data.completed_runs} of ${data.total_runs} clean`;
+            document.getElementById('ovScenarioCount').textContent = data.total_scenario_runs;
+            document.getElementById('ovScenarioSplit').textContent = `${data.passed_scenarios} Pass · ${data.failed_scenarios} Fail`;
+
+            // Populate side panel metrics if present
+            const sideFailedCount = document.getElementById('ovSideFailedCount');
+            if (sideFailedCount) sideFailedCount.textContent = data.failed_scenarios;
+            const sideFailedChecks = document.getElementById('ovSideFailedChecks');
+            if (sideFailedChecks) sideFailedChecks.textContent = data.checks_failed;
+            const sideTotalChecks = document.getElementById('ovSideTotalChecks');
+            if (sideTotalChecks) sideTotalChecks.textContent = data.checks_passed;
+
+            // Render recent runs table
+            const tbody = document.getElementById('ovRecentTbody');
+            if (!tbody) return;
+            if (!data.recent_runs || data.recent_runs.length === 0) {
+              tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No benchmark runs recorded in database yet.</td></tr>';
+              return;
+            }
+
+            tbody.innerHTML = data.recent_runs.map(r => {
+              const modePill = r.is_mock
+                ? '<span class="badge-pill mock">Mock</span>'
+                : '<span class="badge-pill real">Live Real</span>';
+
+              // Lifecycle Status (COMPLETED, RUNNING, FAILED)
+              const statusClass = (r.status || 'queued').toLowerCase();
+              const lifecyclePill = `<span class="status-pill ${statusClass}">${r.status}</span>`;
+
+              // Evaluation Outcome (PASSED, FAILED, PARTIAL, EMPTY)
+              let evalOutcomePill = '';
+              const totalScens = r.total_scenarios || 0;
+              const passedScens = r.passed_scenarios || 0;
+              const failedScens = r.failed_scenarios || 0;
+
+              if (totalScens === 0) {
+                evalOutcomePill = '<span class="status-pill queued">NO TESTS</span>';
+              } else if (failedScens > 0 || passedScens < totalScens) {
+                evalOutcomePill = '<span class="status-pill failed">FAILED</span>';
+              } else {
+                evalOutcomePill = '<span class="status-pill passed">PASSED</span>';
+              }
+
+              const passPercent = totalScens ? Math.round((passedScens / totalScens) * 100) : 0;
+              const dateStr = r.created_at ? new Date(r.created_at).toLocaleDateString([], {month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit'}) : '-';
+              const displayId = r.id.length > 13 ? `${r.id.substring(0, 12)}...` : r.id;
+
+              return `
+                <tr>
+                  <td><code title="${r.id}" style="cursor: pointer;" onclick="openRunInStudio('${r.id}')">${displayId}</code></td>
+                  <td><strong>${r.agent_version_id}</strong></td>
+                  <td>${modePill}</td>
+                  <td>${lifecyclePill}</td>
+                  <td>${evalOutcomePill}</td>
+                  <td><strong>${passPercent}%</strong> <span style="font-size: 11px; color: var(--text-muted);">(${passedScens}/${totalScens})</span></td>
+                  <td style="font-size: 11px; color: var(--text-muted); white-space: nowrap;">${dateStr}</td>
+                  <td>
+                    <button class="btn-secondary" style="font-size: 11.5px; padding: 3px 8px; height: 26px;" onclick="openRunInStudio('${r.id}')">Inspect</button>
+                  </td>
+                </tr>
+              `;
+            }).join('');
+          })
+          .catch(err => {
+            console.error('Failed to load overview metrics:', err);
+          });
       } catch (err) {
         console.error('Failed to load overview:', err);
       }
     }
 
-    // -------------------------------------------------------------
     // View 2: Test Studio
     // -------------------------------------------------------------
     async function loadModels() {
@@ -3106,12 +3794,30 @@
       btnRun.disabled = true;
       document.getElementById('btnRunText').textContent = 'Starting...';
 
+      // Read configured execution limits from Step 3 inputs with fallbacks
+      const timeoutInput = document.getElementById('limitTimeoutSec');
+      const maxTurnsInput = document.getElementById('limitMaxTurns');
+      const maxToolCallsInput = document.getElementById('limitMaxToolCalls');
+      const maxTokensInput = document.getElementById('limitMaxTokens');
+
+      const scenario_timeout_sec = timeoutInput ? (parseFloat(timeoutInput.value) || 30.0) : 30.0;
+      const max_turns = maxTurnsInput ? (parseInt(maxTurnsInput.value, 10) || 6) : 6;
+      const max_tool_calls = maxToolCallsInput ? (parseInt(maxToolCallsInput.value, 10) || 10) : 10;
+      const max_tokens_budget = maxTokensInput ? (parseInt(maxTokensInput.value, 10) || 15000) : 15000;
+
       try {
         const payload = {
           agent_version_id: isCustom ? (agentVer || 'custom') : agentVer,
           provider_type: provider,
           model_name: isCustom ? agentVer : model,
-          scenarios: suite
+          scenarios: suite,
+          execution_config: {
+            scenario_timeout_sec,
+            max_turns,
+            max_tool_calls,
+            max_tokens_budget,
+            tool_timeout_sec: 5.0
+          }
         };
 
         const res = await fetch('/api/runs/queue', {
