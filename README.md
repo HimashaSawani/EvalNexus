@@ -54,7 +54,7 @@ Modern AI agents that execute tools and interact with backends present critical 
 * **Custom Agent HTTP Registry:** Register and benchmark external AI agents over authenticated HTTP/HTTPS with URL validation and comprehensive SSRF protections (blocking loopback, RFC-1918, link-local, and cloud metadata endpoints).
 * **Automated Regression Testing & Scorecards:** Compares baseline vs. candidate runs, detects tool-call sequence drift, computes latency percentiles ($p50$/$p90$), and calculates token/cost deltas with statistical sample warnings.
 * **Chaos Lab & Fault Injection:** Simulates network timeouts, database deadlocks, transient 500 errors, rate-limit backpressure, and late-write race conditions.
-* **Interactive Dashboard:** Complete single-page dashboard serving 16 sections, including Test Studio, Scenarios Catalog, Trace Explorer, Quality Gates, and Failure Investigation.
+* **Interactive Dashboard:** Complete single-page dashboard serving 16 sections, including Test Studio, Scenarios Catalog, Trace Explorer, Quality Gates, and Failure Investigation, fully adaptable to desktop, tablet, and mobile viewports.
 
 ---
 
@@ -133,9 +133,9 @@ Deep inspection of policy assertion checks, audit revisions, and detailed ration
 Sequential trace explorer displaying turn numbers, model calls, tool calls, and execution latencies.
 ![Trace Stepper Timeline](docs/assets/screenshots/06_trace_timeline.png)
 
-### 7. Responsive Mobile Layout
-Full mobile responsive drawer and stacked inspection workspace tested on mobile viewports.
-![Responsive Mobile Layout](docs/assets/screenshots/07_mobile_responsive.png)
+### 7. Mobile-Responsive Web Dashboard
+EvalNexus provides a responsive web dashboard that adapts to desktop, tablet, and mobile browser viewports. It is not currently distributed as a standalone Android or iOS application.
+![EvalNexus Mobile-Responsive Dashboard](docs/assets/screenshots/07_mobile_responsive.png)
 
 ---
 
@@ -301,6 +301,7 @@ All **204 tests pass cleanly** (203 pytest regression tests + 1 full 16-section 
 
 ## Known Limitations
 
+* **Web-Only Client:** EvalNexus provides a responsive web application designed for modern desktop, tablet, and mobile browsers; it does not currently provide native Android (APK) or iOS apps on application stores.
 * **Colab Inference Execution:** Scenario export and result import are automated via REST endpoints, but running GPU inference in Google Colab currently requires executing the notebook cells in the Colab Pro environment.
 * **In-Memory Rate Limiting:** The default rate limiter uses an in-memory sliding-window algorithm suited for single-node deployments. Multi-node cloud deployments should back this with Redis.
 * **Model Size Constraints:** Default Colab workflows target 1.5B to 7B parameter models using `float16` precision on 16GB Tesla T4 GPUs. Larger models require quantization or higher-memory GPUs.
