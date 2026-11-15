@@ -54,7 +54,7 @@ Modern AI agents that execute tools and interact with backends present critical 
 * **Custom Agent HTTP Registry:** Register and benchmark external AI agents over authenticated HTTP/HTTPS with URL validation and comprehensive SSRF protections (blocking loopback, RFC-1918, link-local, and cloud metadata endpoints).
 * **Automated Regression Testing & Scorecards:** Compares baseline vs. candidate runs, detects tool-call sequence drift, computes latency percentiles ($p50$/$p90$), and calculates token/cost deltas with statistical sample warnings.
 * **Chaos Lab & Fault Injection:** Simulates network timeouts, database deadlocks, transient 500 errors, rate-limit backpressure, and late-write race conditions.
-* **Interactive Dashboard:** Complete single-page dashboard serving 16 sections, including Test Studio, Scenarios Catalog, Trace Explorer, Quality Gates, and Failure Investigation, fully adaptable to desktop, tablet, and mobile viewports.
+* **Interactive Dashboard:** Complete single-page dashboard serving 16 sections, including Test Studio, Scenarios Catalog, Trace Explorer, Quality Gates, and Failure Investigation.
 
 ---
 
@@ -111,31 +111,31 @@ Modern AI agents that execute tools and interact with backends present critical 
 
 ### 1. System Overview Dashboard
 Live reliability scorecards, database-backed KPIs, behavioral pass rates vs. execution lifecycle rates, and recent evaluation audits.
-![EvalNexus System Overview](docs/assets/screenshots/01_overview_dashboard.png)
+![System Overview](docs/assets/screenshots/01_overview_dashboard.png)
 
 ### 2. Test Studio — 5-Step Evaluation Stepper
-Step 1: Agent & Provider selection, engine switching (Mock vs. Custom HTTP), and live endpoint probing.
-![Test Studio 5-Step Stepper](docs/assets/screenshots/02_test_studio_stepper.png)
+Interactive 5-step evaluation stepper: Agent Selection, Scenario Suites, Execution Limits, Queue Dispatch, and Results Review.
+![Test Studio](docs/assets/screenshots/02_test_studio_stepper.png)
 
-### 3. Active Evaluation Execution
-Asynchronous worker progress monitoring, real-time fraction calculation, and active run cancellation.
-![Evaluation Execution Progress](docs/assets/screenshots/03_evaluation_execution.png)
+### 3. Custom AI Agent Registry
+Register, configure, and probe external agent HTTP endpoints with automatic SSRF filtering and secret masking.
+![Custom Agent Registry](docs/assets/screenshots/03_custom_agent_registry.png)
 
-### 4. Scenario Evaluation Results Matrix
-Dual-pane evaluation results showing scenario checklist, status pills (`PASSED`, `FAILED`, `PROVIDER_ERROR`), and latency benchmarks.
-![Evaluation Results Matrix](docs/assets/screenshots/04_evaluation_results.png)
+### 4. Scenarios Catalog
+Comprehensive library of normal paths, boundary edge cases, prompt injection defense, and fault injection test suites.
+![Scenarios Catalog](docs/assets/screenshots/04_scenarios_catalog.png)
 
 ### 5. Evaluator Checks & Assertion Evidence
-Deep inspection of policy assertion checks, audit revisions, and detailed rationales.
+Deep inspection of policy assertion checks, audit revisions, and detailed diagnostic rationales.
 ![Evaluator Checks & Evidence](docs/assets/screenshots/05_assertion_evidence.png)
 
-### 6. Interactive Trace Timeline
-Sequential trace explorer displaying turn numbers, model calls, tool calls, and execution latencies.
-![Trace Stepper Timeline](docs/assets/screenshots/06_trace_timeline.png)
+### 6. Chaos Fault Lab
+Simulate network latency, database timeouts, dropped requests, and HTTP 500 errors to stress-test agent resilience.
+![Chaos Fault Lab](docs/assets/screenshots/06_chaos_fault_lab.png)
 
-### 7. Mobile-Responsive Web Dashboard
-EvalNexus provides a responsive web dashboard that adapts to desktop, tablet, and mobile browser viewports. It is not currently distributed as a standalone Android or iOS application.
-![EvalNexus Mobile-Responsive Dashboard](docs/assets/screenshots/07_mobile_responsive.png)
+### 7. Automated Quality Gates
+Enterprise CI/CD quality gate enforcement with pass rate thresholds, security leak checks, and automated exit codes.
+![Quality Gates](docs/assets/screenshots/07_quality_gates.png)
 
 ---
 
@@ -301,7 +301,6 @@ All **204 tests pass cleanly** (203 pytest regression tests + 1 full 16-section 
 
 ## Known Limitations
 
-* **Web-Only Client:** EvalNexus provides a responsive web application designed for modern desktop, tablet, and mobile browsers; it does not currently provide native Android (APK) or iOS apps on application stores.
 * **Colab Inference Execution:** Scenario export and result import are automated via REST endpoints, but running GPU inference in Google Colab currently requires executing the notebook cells in the Colab Pro environment.
 * **In-Memory Rate Limiting:** The default rate limiter uses an in-memory sliding-window algorithm suited for single-node deployments. Multi-node cloud deployments should back this with Redis.
 * **Model Size Constraints:** Default Colab workflows target 1.5B to 7B parameter models using `float16` precision on 16GB Tesla T4 GPUs. Larger models require quantization or higher-memory GPUs.
