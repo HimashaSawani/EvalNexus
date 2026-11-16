@@ -1,4 +1,0 @@
-{
-  "docker_available": false,
-  "error": "Command '['C:\\\\Users\\\\himas\\\\AppData\\\\Local\\\\Programs\\\\Python\\\\Python313\\\\python.exe', '-m', 'venv', 'C:\\\\Users\\\\himas\\\\AppData\\\\Local\\\\Temp\\\\awt-clean-setup-6mb31hwo']' timed out after 89.99998409999534 seconds"
-}

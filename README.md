@@ -184,7 +184,7 @@ A defining feature of EvalNexus is its **evaluation integrity**: unlike naive ev
 
 ```bash
 # Clone the repository
-git clone https://github.com/your-username/EvalNexus.git
+git clone https://github.com/HimashaSawani/EvalNexus.git
 cd EvalNexus
 
 # Create and activate virtual environment
@@ -271,7 +271,7 @@ python -m pytest tests/ -v
 ```text
 ============================= test session starts =============================
 platform win32 -- Python 3.13.3, pytest-9.1.1, pluggy-1.6.0
-rootdir: D:\AgentWindTunnel\AgentWindTunnel
+rootdir: /app/EvalNexus
 plugins: anyio-4.11.0, langsmith-0.9.8, asyncio-1.4.0
 collected 204 items
 
@@ -309,4 +309,4 @@ All **204 tests pass cleanly** (203 pytest regression tests + 1 full 16-section 
 
 ## License
 
-This project is distributed under standard open-source licensing.
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.

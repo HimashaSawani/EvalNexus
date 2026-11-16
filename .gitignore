@@ -50,3 +50,7 @@ scenarios/custom/*.json
 # OS Generated Files
 .DS_Store
 Thumbs.db
+
+# Local tools and inspection files
+step14_inspection.txt
+*.before_travel_fix.ipynb
