@@ -36,7 +36,7 @@ jobs:
           AWT_EMBEDDED_WORKER: 0
           AWT_REQUIRE_AUTH: 0
         run: |
-          python -m pytest -v --ignore=tests/test_read_only_evaluator.py
+          python -m pytest -v
 
   dependency-audit:
     name: Dependency Vulnerability Audit (pip-audit)
@@ -67,6 +67,7 @@ jobs:
         uses: docker/build-push-action@v5
         with:
           context: .
+          load: true
           push: false
           tags: agentwindtunnel:ci-test
 
