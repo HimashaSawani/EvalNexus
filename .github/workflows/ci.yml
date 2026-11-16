@@ -36,8 +36,9 @@ jobs:
           DATABASE_URL: sqlite:////tmp/ci_test.db
           AWT_EMBEDDED_WORKER: 0
           AWT_REQUIRE_AUTH: 0
+          PYTHONPATH: .
         run: |
-          python -m pytest -v
+          python -m pytest tests/ -v
 
   dependency-audit:
     name: Dependency Vulnerability Audit (pip-audit)
